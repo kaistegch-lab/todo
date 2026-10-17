@@ -200,6 +200,9 @@ body{margin:0;padding-top:calc(16px + env(safe-area-inset-top,0px))!important;pa
 .hist{display:flex;gap:4px;margin-left:auto}
 .hist button{width:36px;height:32px;border:1px solid var(--line);background:var(--sheet);border-radius:16px;font-size:17px;line-height:1;cursor:pointer;color:var(--ink)}
 .hist button:disabled{opacity:.3;cursor:default}
+.chatbtn{border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:16px;padding:5px 12px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap}
+.chatbtn:hover{background:var(--soft)}
+@media (max-width:420px){.appbar{gap:6px}.hist{gap:2px}.hist button{width:32px}.chatbtn,.menubtn{padding:5px 9px;font-size:12px;white-space:nowrap}.sync{max-width:6em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 .menubtn{border:1px solid var(--line);background:var(--sheet);border-radius:16px;padding:5px 14px;font-size:13px;font-weight:700;cursor:pointer}
 .panel{background:var(--sheet);border:1px solid var(--line);border-radius:6px;margin-bottom:12px;display:grid}
 .pane{padding:14px 16px;border-top:1px solid var(--line);display:grid;gap:8px}
@@ -258,6 +261,7 @@ button{-webkit-tap-highlight-color:transparent}
       <button type="button" id="undoBtn" title="元に戻す（Ctrl+Z）" aria-label="元に戻す" disabled>↶</button>
       <button type="button" id="redoBtn" title="やり直す（Ctrl+Shift+Z）" aria-label="やり直す" disabled>↷</button>
     </div>
+    <a class="chatbtn" id="chatBtn" href="https://claude.ai/code/session_01ViKyWad9K2prbUUYXEmG4z" target="_blank" rel="noopener" title="不具合・要望をClaudeのチャットで伝える">不具合・要望</a>
     <button type="button" class="menubtn" id="menuBtn" aria-expanded="false" aria-controls="panel">設定・同期</button>
   </div>
   <div class="panel" id="panel" hidden>
