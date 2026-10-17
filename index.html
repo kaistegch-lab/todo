@@ -123,7 +123,8 @@ button{font:inherit;color:inherit}
 .acts .on{color:var(--star)}
 .acts .un{font-size:12px}
 .subs{list-style:none;margin:0;padding:0 12px 8px 40px;display:grid;gap:2px}
-.sub{display:flex;align-items:flex-start;gap:7px;padding:4px 0;position:relative;background:var(--sheet)}
+.sub{display:flex;align-items:flex-start;gap:7px;padding:4px 0;position:relative}
+.sub.dragging{background:var(--sheet)}
 .sub .handle{width:18px;align-self:stretch;opacity:.45}
 .sub.dragging{box-shadow:0 4px 12px rgba(0,0,0,.18);z-index:5;border-radius:4px}
 .newtask .box{border-style:dashed;opacity:.6}
@@ -135,7 +136,9 @@ button{font:inherit;color:inherit}
 .sub .acts button{font-size:13px}
 input.edit,.subadd input{flex:1;min-width:0;font:inherit;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:3px 8px}
 .subadd{display:flex;gap:6px;padding:4px 0}
-.task.moved{opacity:.5}
+.task.moved>.row>.txt,.task.moved>.row>.box,.task.moved>.subs{opacity:.5}
+.task.moved>.row>.acts{opacity:1}
+.task.moved .acts .un{border:1px solid var(--line);background:var(--sheet);color:var(--ink);font-weight:700;padding:2px 10px;border-radius:12px}
 .task.moved>.row>.box{border-style:dashed;cursor:default}
 .task.moved>.row>.txt{text-decoration:none}
 .confirm{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;color:var(--muted);padding:0 12px 10px 64px}
@@ -219,6 +222,7 @@ body{margin:0;padding-top:calc(16px + env(safe-area-inset-top,0px))!important;pa
   .more{display:grid;place-items:center;flex:none;width:34px;height:30px;border:0;background:none;color:var(--muted);font-size:20px;line-height:1;cursor:pointer;border-radius:6px}
   .task.open>.row>.more{background:var(--soft);color:var(--ink)}
   .task>.row>.acts{display:none}
+  .task.moved>.row>.acts{display:flex}
   .task.open>.row>.acts{display:flex;opacity:1;order:5;flex-basis:100%;justify-content:flex-end;gap:4px;padding-top:4px}
   .task.open>.row>.acts button{background:var(--soft)}
 }
@@ -280,7 +284,7 @@ button{-webkit-tap-highlight-color:transparent}
     </section>
     <section class="pane">
       <h3>使い方</h3>
-      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。</p>
+      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。</p>
       <p class="hint">ホーム画面に追加：iPhoneはSafariの共有ボタン →「ホーム画面に追加」、AndroidはChromeのメニュー →「ホーム画面に追加」。</p>
     </section>
   </div>
@@ -362,7 +366,7 @@ button{-webkit-tap-highlight-color:transparent}
   let addCat="main", addDaily=false, editing=false, subFor=null, confirmFor=null, autoChecked={}, editTarget=null, newAfter=null;
 
   const normCat=c=>CAT_IDS.includes(c)?c:"other";
-  const norm=list=>(list||[]).map(i=>({id:i.id||uid(),text:String(i.text||""),done:!!i.done,cat:normCat(i.cat),star:!!i.star,parent:i.parent||null,...(i.moved?{moved:true}:{}),...(i.from?{from:i.from}:{})}));
+  const norm=list=>(list||[]).map(i=>({id:i.id||uid(),text:String(i.text||""),done:!!i.done,cat:normCat(i.cat),star:!!i.star,parent:i.parent||null,...(i.moved?{moved:true}:{}),...(i.from?{from:i.from}:{}),...(i.movedTo?{movedTo:i.movedTo}:{}),...(i.movedId?{movedId:i.movedId}:{}),...(i.fromDay?{fromDay:i.fromDay}:{}),...(i.fromId?{fromId:i.fromId}:{})}));
   const normDaily=list=>(list||[]).map(d=>({id:d.id||uid(),text:String(d.text||""),cat:normCat(d.cat),star:!!d.star,since:d.since||"2000-01-01",until:d.until||null}));
   const activeDaily=k=>daily.filter(d=>d.since<=k&&(!d.until||k<d.until));
   // daily tasks shown on day k (rd = that day's rdone; "skip" hides it for that day only)
@@ -370,70 +374,125 @@ button{-webkit-tap-highlight-color:transparent}
   const emptyDoc=()=>({items:[],rdone:{},order:[],carriedFrom:null});
   const local={
     get(k){try{const v=JSON.parse(localStorage.getItem("todo:"+k)||"null");return Array.isArray(v)?{...emptyDoc(),items:v}:{...emptyDoc(),...(v||{})}}catch(e){return emptyDoc()}},
-    set(k,v){try{localStorage.setItem("todo:"+k,JSON.stringify(v))}catch(e){}}
+    set(k,v){try{localStorage.setItem("todo:"+k,JSON.stringify(v))}catch(e){saveFailed(e)}}
   };
   let writing=Promise.resolve();
   const onErr=e=>{
     if(e&&e.code==="invalid_argument"){readOnly=true;$("note").textContent="このページは閲覧のみです。";render()}
     else if(e&&e.code==="quota_exceeded"){$("note").textContent="保存容量がいっぱいです。古い日のタスクを消してください。"}
   };
+  let failToastAt=0;
+  function saveFailed(e){
+    const now=Date.now();if(now-failToastAt<5000)return;failToastAt=now;
+    const c=e?[e.name,e.code,e.message].filter(Boolean).join(" "):"";
+    const msg=/quota/i.test(c)?"この端末の保存容量がいっぱいで、保存できませんでした":
+      /permission/i.test(c)?"保存できませんでした。いったんログアウトしてログインし直してください":
+      "保存できませんでした。もう一度操作してみてください";
+    try{toast(msg)}catch(_){}
+    $("note").textContent=msg;
+  }
   function writeDay(k,body){
     body={...body,updatedAt:new Date().toISOString()};
-    if(!db){local.set(k,body);return}
-    writing=writing.then(()=>db.doc("days/"+k).set(body)).catch(onErr);
+    const d=db;
+    if(!d){local.set(k,body);return}
+    writing=writing.then(()=>d.doc("days/"+k).set(body)).catch(onErr);
   }
   // ---- undo / redo (Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y, or the ↶ ↷ buttons) ----
-  let baseSnap=null,undoStack=[],redoStack=[],restoring=false;
-  const snapshot=()=>JSON.stringify({day:cur,items,rdone,order,carriedFrom,daily});
+  // Each step keeps the before/after of every day it touched, so carry-overs between days undo completely.
+  let baseSnap=null,undoStack=[],redoStack=[],restoring=false,pendingX=null;
+  let loaded=true,pendingDoc=null,pendingDaily=null,blurT=null;
+  const dayDoc=()=>({items:items.map(i=>({...i})),rdone:{...rdone},order:[...order],carriedFrom});
+  const snapshot=()=>JSON.stringify({day:cur,doc:dayDoc(),daily});
+  const cloneDoc=d=>JSON.parse(JSON.stringify({items:d.items||[],rdone:d.rdone||{},order:d.order||[],carriedFrom:d.carriedFrom||null}));
   function histButtons(){
     const u=document.getElementById("undoBtn"),rd=document.getElementById("redoBtn");
     if(u)u.disabled=!undoStack.length;if(rd)rd.disabled=!redoStack.length;
   }
   function record(){
-    if(restoring)return;
+    if(restoring){pendingX=null;return}
     const s=snapshot();
-    if(baseSnap&&s!==baseSnap&&JSON.parse(baseSnap).day===cur){undoStack.push(baseSnap);if(undoStack.length>60)undoStack.shift();redoStack=[]}
-    baseSnap=s;histButtons();
+    const base=baseSnap&&JSON.parse(baseSnap);
+    if(base&&base.day===cur&&(s!==baseSnap||pendingX)){
+      const now=JSON.parse(s);
+      const e={view:cur,days:{},daily:null};
+      if(JSON.stringify(base.doc)!==JSON.stringify(now.doc))e.days[cur]={before:base.doc,after:now.doc};
+      if(JSON.stringify(base.daily)!==JSON.stringify(now.daily))e.daily={before:base.daily,after:now.daily};
+      (pendingX||[]).forEach(x=>{if(x.day!==cur)e.days[x.day]={before:cloneDoc(x.before),after:cloneDoc(x.after)}});
+      if(Object.keys(e.days).length||e.daily){undoStack.push(e);if(undoStack.length>60)undoStack.shift();redoStack=[]}
+    }
+    pendingX=null;baseSnap=s;histButtons();
   }
   function setBase(){baseSnap=snapshot();histButtons()}
-  function restore(str){
-    const st=JSON.parse(str);if(st.day!==cur)return false;
-    const dailyChanged=JSON.stringify(daily)!==JSON.stringify(st.daily);
-    items=st.items;rdone=st.rdone;order=st.order;carriedFrom=st.carriedFrom;daily=st.daily;
-    restoring=true;subFor=null;newAfter=null;editTarget=null;confirmFor=null;editing=false;
-    render();save();if(dailyChanged)saveDaily();restoring=false;
-    baseSnap=str;histButtons();return true;
+  function applyStep(e,which){
+    restoring=true;pendingDoc=null;pendingDaily=null;
+    subFor=null;newAfter=null;editTarget=null;confirmFor=null;editing=false;
+    Object.entries(e.days).forEach(([k,v])=>{
+      const d=cloneDoc(v[which]);
+      if(k===cur){items=norm(d.items);rdone=d.rdone;order=d.order;carriedFrom=d.carriedFrom}
+      writeDay(k,d);
+      if(week.data[k])week.data[k]={items:norm(d.items),rdone:{...d.rdone}};
+      if(k===shift(cur,-1))prevItems=norm(d.items);
+    });
+    if(e.daily){daily=normDaily(JSON.parse(JSON.stringify(e.daily[which])));saveDaily()}
+    restoring=false;
+    if(e.view!==cur)open(e.view);else{render();setBase()}
   }
-  function undo(){if(!undoStack.length||readOnly)return;const cur_=snapshot();const prev=undoStack.pop();if(restore(prev)){redoStack.push(cur_);toast("元に戻しました")}histButtons()}
-  function redo(){if(!redoStack.length||readOnly)return;const cur_=snapshot();const next=redoStack.pop();if(restore(next)){undoStack.push(cur_);toast("やり直しました")}histButtons()}
+  const dayLabel=k=>{const d=parse(k);return (d.getMonth()+1)+"/"+d.getDate()};
+  function undo(){
+    if(!undoStack.length||readOnly)return;
+    const e=undoStack.pop();applyStep(e,"before");redoStack.push(e);
+    toast("元に戻しました"+(e.view!==todayKey()?"（"+dayLabel(e.view)+"）":""));histButtons();
+  }
+  function redo(){
+    if(!redoStack.length||readOnly)return;
+    const e=redoStack.pop();applyStep(e,"after");undoStack.push(e);
+    toast("やり直しました"+(e.view!==todayKey()?"（"+dayLabel(e.view)+"）":""));histButtons();
+  }
   document.addEventListener("keydown",e=>{
     if(!(e.ctrlKey||e.metaKey)||e.altKey)return;
     const k=e.key.toLowerCase();if(k!=="z"&&k!=="y")return;
     const tg=e.target;
     // while typing in a box, the box's own text undo works as usual
-    if(tg&&(tg.tagName==="INPUT"||tg.tagName==="TEXTAREA")&&tg.value)return;
+    if(tg&&(tg.tagName==="INPUT"||tg.tagName==="TEXTAREA")&&(tg.value||!tg.closest(".sheet")))return;
     e.preventDefault();
     if(k==="y"||e.shiftKey)redo();else undo();
   });
 
-  function save(){record();writeDay(cur,{items:items.map(i=>({...i})),rdone:{...rdone},order:[...order],carriedFrom})}
+  function save(){
+    pendingDoc=null;
+    if(!loaded){toast("読み込み中です。表示が出てからもう一度操作してください");return}
+    record();writeDay(cur,{items:items.map(i=>({...i})),rdone:{...rdone},order:[...order],carriedFrom});
+  }
   function saveDaily(){
     record();
+    pendingDaily=null;
     const body={items:daily.map(d=>({...d})),updatedAt:new Date().toISOString()};
-    if(!db){local.set("daily",body);return}
-    writing=writing.then(()=>db.doc("settings/daily").set(body)).catch(onErr);
+    const d=db;
+    if(!d){local.set("daily",body);return}
+    writing=writing.then(()=>d.doc("settings/daily").set(body)).catch(onErr);
   }
-  function commit(){editing=!!subFor||!!editTarget||!!newAfter;render();save()}
+  function commit(){pendingDoc=null;editing=!!subFor||!!editTarget||!!newAfter;clearTimeout(blurT);render();save()}
+  function softCommit(changed){
+    editing=!!subFor||!!editTarget||!!newAfter;
+    if(changed)save();
+    clearTimeout(blurT);blurT=setTimeout(()=>{if(!editing&&!drag)render()},250);
+  }
   // Backspace at the very start of a subtask: its text joins the end of the line above (previous subtask, or the big task)
   function mergeInto(prev,text,remove){
     const caret=prev.text.length;
     if(text)prev.text=prev.text+text;
-    remove();subFor=null;editTarget={id:prev.id,caret};commit();
+    remove();subFor=null;
+    const top=prev.parent?items.find(i=>i.id===prev.parent):prev;
+    const hidden=doneCollapsed&&top&&isFinished(top.id);
+    editTarget=hidden?null:{id:prev.id,caret};commit();
   }
-  const atStart=(e,inp)=>e.key==="Backspace"&&!e.isComposing&&inp.selectionStart===0&&inp.selectionEnd===0;
+  const atStart=(e,inp)=>e.key==="Backspace"&&!e.isComposing&&e.keyCode!==229&&inp.selectionStart===0&&inp.selectionEnd===0;
+  // Enter that is not the kana-kanji conversion confirm (Safari reports that one as keyCode 229)
+  const isEnter=e=>e.key==="Enter"&&!e.isComposing&&e.keyCode!==229;
 
   // Order: keys are item ids, or "d:<id>" for daily tasks. Anything not yet placed: daily tasks first, then items in the order they were added.
   // finished = checked (or a daily task checked today), or already moved to the next day
+  const isSkipped=k=>k.startsWith("d:")&&rdone[k.slice(2)]==="skip";
   function isFinished(k){
     if(k.startsWith("d:"))return rdone[k.slice(2)]===true;
     const it=items.find(i=>i.id===k);return !!it&&(it.done||!!it.moved);
@@ -443,22 +502,33 @@ button{-webkit-tap-highlight-color:transparent}
     return items.filter(p=>!p.parent&&!p.moved).filter(p=>!p.done||items.some(c=>c.parent===p.id&&!c.done));
   }
   let pushArm=null;
+  function updatePushBtn(){
+    const nLeft=readOnly?0:leftovers().length;
+    $("pushBar").hidden=nLeft===0;
+    if(nLeft){const b=$("pushBtn");
+      if(pushArm){b.classList.add("arm");b.textContent=nLeft+"件を翌日に移す？ もう一度押して確定"}
+      else{b.classList.remove("arm");b.textContent="残り "+nLeft+"件を翌日へ →"}}
+  }
   async function pushToNext(){
     const src=cur,dst=shift(cur,1);
     const list=leftovers();if(!list.length)return;
     const ord=viewKeys().filter(k=>list.some(p=>p.id===k));
     let doc=emptyDoc();try{doc=await readDay(dst)}catch(e){toast("翌日のデータを読めませんでした。もう一度押してください");return}
     if(cur!==src)return;
+    const before=cloneDoc(doc);
     const dItems=norm(doc.items);const added=[];
     ord.map(k=>list.find(p=>p.id===k)).forEach(p=>{
-      p.moved=true;
-      if(dItems.some(i=>!i.parent&&i.text===p.text))return;
-      const nid=uid();added.push(nid);
-      dItems.push({id:nid,text:p.text,done:false,cat:p.cat,star:p.star,parent:null,from:p.from||src});
+      const same=dItems.find(i=>!i.parent&&i.fromDay===src&&i.fromId===p.id);
+      p.moved=true;p.movedTo=dst;
+      if(same){p.movedId=same.id;return}
+      const nid=uid();added.push(nid);p.movedId=nid;
+      dItems.push({id:nid,text:p.text,done:false,cat:p.cat,star:p.star,parent:null,from:p.from||src,fromDay:src,fromId:p.id});
       items.filter(c=>c.parent===p.id&&!c.done).forEach(c=>dItems.push({id:uid(),text:c.text,done:false,cat:p.cat,star:c.star,parent:nid}));
     });
+    const after={items:dItems,rdone:doc.rdone||{},order:[...(doc.order||[]),...added],carriedFrom:doc.carriedFrom||null};
+    pendingX=[{day:dst,before,after}];
     save();
-    writeDay(dst,{items:dItems,rdone:doc.rdone||{},order:[...(doc.order||[]),...added],carriedFrom:doc.carriedFrom||null});
+    writeDay(dst,after);
     if(week.data[dst])week.data[dst]={items:dItems,rdone:{...(doc.rdone||{})}};
     week.data[src]={items,rdone};
     const n=list.length;
@@ -469,7 +539,7 @@ button{-webkit-tap-highlight-color:transparent}
   try{doneCollapsed=localStorage.getItem("todo:doneCollapsed")==="1"}catch(e){}
   function viewKeys(){
     const tops=items.filter(i=>!i.parent).map(i=>i.id);
-    const dks=shownDaily(cur,rdone).map(d=>"d:"+d.id);
+    const dks=activeDaily(cur).map(d=>"d:"+d.id); // includes ones skipped today, so they keep their place
     const valid=new Set([...tops,...dks]);
     const seen=new Set();const out=[];
     order.forEach(k=>{if(valid.has(k)&&!seen.has(k)){seen.add(k);out.push(k)}});
@@ -492,14 +562,16 @@ button{-webkit-tap-highlight-color:transparent}
     holder.replaceChild(inp,txtEl);inp.focus();
     if(caret!=null)inp.setSelectionRange(caret,caret);
     let fin=false;
-    const finish=(ok,enter)=>{if(fin)return;fin=true;const v=inp.value.trim();
+    const finish=(ok,enter,blur)=>{if(fin)return;fin=true;const v=inp.value.trim();
       if(enter&&onEnter)onEnter();
-      if(ok&&v&&v!==get()){set(v);commit()}else{editing=!!subFor||!!newAfter;render()}};
+      const changed=ok&&v&&v!==get();
+      if(blur){if(changed)set(v);softCommit(changed);return}
+      if(changed){set(v);commit()}else{editing=!!subFor||!!newAfter;render()}};
     inp.onkeydown=e=>{
-      if(e.key==="Enter"&&!e.isComposing)finish(true,true);
+      if(isEnter(e))finish(true,true);
       else if(e.key==="Escape")finish(false);
       else if(onMergeUp&&atStart(e,inp)){e.preventDefault();if(fin)return;fin=true;onMergeUp(inp.value.trim())}};
-    inp.onblur=()=>finish(true);
+    inp.onblur=()=>finish(true,false,true);
     if(onPasteLines)inp.onpaste=e=>{
       const text=(e.clipboardData||window.clipboardData).getData("text");
       const fromClip=clip&&squash(text)===squash(clip.text);
@@ -583,6 +655,40 @@ button{-webkit-tap-highlight-color:transparent}
 
   function actBtn(label,title,fn,cls){const b=el("button",cls||null,label);b.type="button";b.title=title;b.setAttribute("aria-label",title);b.onclick=fn;return b}
 
+  // "↩ 戻す" on a task that was carried to another day: it becomes an open task here again,
+  // and the copy on the other day is removed (its checks are kept).
+  async function unmove(it){
+    if(readOnly)return;
+    const day=cur;
+    let dst=it.movedTo||null,dDoc=null,copy=null;
+    const findCopy=(list)=>list.find(i=>!i.parent&&(i.id===it.movedId||(i.fromDay===day&&i.fromId===it.id)))||
+      list.find(i=>!i.parent&&!i.moved&&i.text===it.text&&(i.fromDay===day||(i.from&&i.from<=day)));
+    try{
+      if(dst){dDoc=await readDay(dst);copy=findCopy(norm(dDoc.items))}
+      else{ // older carry-overs have no link: look at the next days
+        for(let n=1;n<=14&&!copy;n++){const k=shift(day,n);const d=await readDay(k);const c=findCopy(norm(d.items));if(c){dst=k;dDoc=d;copy=c}}
+      }
+    }catch(e){toast("移動先の日を読めませんでした。もう一度押してください");return}
+    if(cur!==day)return;
+    const x=[];
+    if(copy&&dDoc){
+      const dItems=norm(dDoc.items);
+      const cKids=dItems.filter(c=>c.parent===copy.id);
+      // keep what was checked over there
+      if(copy.done)it.done=true;
+      items.filter(k=>k.parent===it.id).forEach(k=>{const m=cKids.find(c=>c.text===k.text);if(m&&m.done)k.done=true});
+      cKids.filter(c=>!items.some(k=>k.parent===it.id&&k.text===c.text)).forEach(c=>items.push({id:uid(),text:c.text,done:c.done,cat:it.cat,star:c.star,parent:it.id}));
+      const after={...cloneDoc(dDoc),items:dItems.filter(i=>i.id!==copy.id&&i.parent!==copy.id),order:(dDoc.order||[]).filter(o=>o!==copy.id)};
+      x.push({day:dst,before:cloneDoc(dDoc),after});
+      writeDay(dst,after);
+      if(week.data[dst])week.data[dst]={items:norm(after.items),rdone:{...(after.rdone||{})}};
+    }
+    delete it.moved;delete it.movedTo;delete it.movedId;
+    const kids=items.filter(k=>k.parent===it.id);if(kids.length)it.done=kids.every(k=>k.done);
+    pendingX=x;commit();
+    toast(copy?"この日に戻しました（"+dayLabel(dst)+"の分は消しました）":"この日に戻しました");
+  }
+
   function itemRow(it){
     const kidsAll=items.filter(k=>k.parent===it.id);
     const kids=kidsAll.filter(k=>!k.done).concat(kidsAll.filter(k=>k.done));
@@ -614,6 +720,8 @@ button{-webkit-tap-highlight-color:transparent}
         items=items.filter(x=>x!==it);saveDaily();commit()}));
       acts.append(actBtn("⧉","コピー",()=>copyTasks([{text:it.text,cat:it.cat,star:it.star,subs:kids.map(k=>({text:k.text,star:k.star}))}],kids.length?"小タスクごとコピーしました":"コピーしました")));
       acts.append(actBtn("×","削除",()=>{items=items.filter(x=>x!==it&&x.parent!==it.id);commit()}));
+    }else if(!readOnly&&it.moved){
+      acts.append(actBtn("↩ 戻す","この日に戻す（移動先の分は消えます）",()=>unmove(it),"un"));
     }
     row.append(handle(),boxBtn(it.done,()=>{
       it.done=!it.done;items.forEach(k=>{if(k.parent===it.id)k.done=it.done});commit()},it.moved),t,acts);
@@ -626,7 +734,7 @@ button{-webkit-tap-highlight-color:transparent}
         const f=el("li","subadd");const inp=el("input");inp.placeholder="小タスクを入力してEnter（空でEnterで終了）";inp.maxLength=200;inp.id="subInput";
         f.append(inp);queueMicrotask(()=>inp.focus());
         let fin=false;
-        const done=(ok,enter)=>{if(fin)return;fin=true;const v=inp.value.trim();
+        const done=(ok,enter,blur)=>{if(fin)return;fin=true;const v=inp.value.trim();
           if(ok&&v){
             const nk={id:uid(),text:v,done:false,cat:it.cat,star:false,parent:it.id};
             const sibs=items.filter(c=>c.parent===it.id);
@@ -634,16 +742,16 @@ button{-webkit-tap-highlight-color:transparent}
             if(anchor>=0)items.splice(anchor+1,0,nk);else items.push(nk);
             it.done=false;
             subFor=enter?{p:it.id,after:nk.id}:null;
-            commit();
-          }else{subFor=null;if(enter&&!v)newAfter=it.id;editing=!!newAfter;render()}};
+            if(blur)softCommit(true);else commit();
+          }else{subFor=null;if(enter&&!v)newAfter=it.id;if(blur)softCommit(false);else{editing=!!newAfter;render()}}};
         inp.onkeydown=e=>{
-          if(e.key==="Enter"&&!e.isComposing){e.preventDefault();done(true,true)}
+          if(isEnter(e)){e.preventDefault();done(true,true)}
           else if(e.key==="Escape")done(false);
           else if(atStart(e,inp)){e.preventDefault();if(fin)return;fin=true;
             const kidsNow=items.filter(c=>c.parent===it.id);
             const prev=after?items.find(x=>x.id===after):(kidsNow[kidsNow.length-1]||it);
             mergeInto(prev||it,inp.value.trim(),()=>{})}};
-        inp.onblur=()=>done(true,false);
+        inp.onblur=()=>done(true,false,true);
         inp.onpaste=e=>{
           const text=(e.clipboardData||window.clipboardData).getData("text");
           const fromClip=clip&&squash(text)===squash(clip.text);
@@ -664,12 +772,11 @@ button{-webkit-tap-highlight-color:transparent}
         const s=el("li","sub"+(k.done?" done":""));s.dataset.id=k.id;
         const st=textEl(k.text,k.star);
         const openSub=caret=>{if(!it.moved)editText(s,st,()=>k.text,v=>{k.text=v},()=>{subFor={p:it.id,after:k.id}},
-          val=>{const prev=idx>0?kids[idx-1]:it;mergeInto(prev,val,()=>{items=items.filter(x=>x!==k);
-            const rest=items.filter(c=>c.parent===it.id);if(rest.length)it.done=rest.every(c=>c.done)})},caret)};
+          val=>{const prev=idx>0?kids[idx-1]:it;mergeInto(prev,val,()=>{items=items.filter(x=>x!==k)})},caret)};
         st.onclick=()=>openSub();
         if(editTarget&&editTarget.id===k.id){const c=editTarget.caret;editTarget=null;queueMicrotask(()=>openSub(c))}
         const a=el("div","acts");
-        if(!readOnly&&!it.moved)a.append(actBtn("⧉","コピー",()=>copyTasks([{sub:true,text:k.text,star:k.star}],"小タスクをコピーしました")),actBtn("×","削除",()=>{items=items.filter(x=>x!==k);commit()}));
+        if(!readOnly&&!it.moved)a.append(actBtn("⧉","コピー",()=>copyTasks([{sub:true,text:k.text,star:k.star}],"小タスクをコピーしました")),actBtn("×","削除",()=>{items=items.filter(x=>x!==k);const rest=items.filter(c=>c.parent===it.id);if(rest.length)it.done=rest.every(c=>c.done);commit()}));
         const sh=handle();sh.setAttribute("aria-label","ドラッグで小タスクを並べ替え（キーボードは上下キー）");if(it.moved||readOnly)sh.style.visibility="hidden";
         s.append(sh,boxBtn(k.done,()=>{k.done=!k.done;it.done=items.filter(c=>c.parent===it.id).every(c=>c.done);commit()},it.moved),st,a);
         subs.append(s);
@@ -718,15 +825,19 @@ button{-webkit-tap-highlight-color:transparent}
     row.append(sp,bx,inp);li.append(row);
     queueMicrotask(()=>inp.focus());
     let fin=false;
-    const done=(ok,enter)=>{if(fin)return;fin=true;const v=inp.value.trim();
+    const done=(ok,enter,blur)=>{if(fin)return;fin=true;const v=inp.value.trim();
       if(ok&&v){
         const it={id:uid(),text:v,done:false,cat:anchorCat,star:false,parent:null};items.push(it);
-        const ks=viewKeys().filter(k=>k!==it.id);const at=ks.indexOf(anchor);
-        ks.splice(at<0?ks.length:at+1,0,it.id);order=ks;
-        newAfter=enter?it.id:null;commit();
-      }else{newAfter=null;editing=false;render()}};
+        const ks=viewKeys().filter(k=>k!==it.id);let at=ks.indexOf(anchor);
+        if(at<0||isFinished(anchor)){ // anchor sits in 完了済み: put the new task at the end of the open ones
+          const open=ks.filter(k=>!isFinished(k)&&!isSkipped(k));at=open.length?ks.indexOf(open[open.length-1]):-1;
+        }
+        ks.splice(at+1,0,it.id);order=ks;
+        newAfter=enter?it.id:null;
+        if(blur)softCommit(true);else commit();
+      }else{newAfter=null;if(blur)softCommit(false);else{editing=!!subFor;render()}}};
     inp.onkeydown=e=>{
-      if(e.key==="Enter"&&!e.isComposing){e.preventDefault();done(true,true)}
+      if(isEnter(e)){e.preventDefault();done(true,true)}
       else if(e.key==="Escape")done(false);
       else if(e.key==="Tab"&&!e.shiftKey&&!anchor.startsWith("d:")&&items.some(i=>i.id===anchor)){
         // Tab: make it a subtask of the task above instead
@@ -734,11 +845,13 @@ button{-webkit-tap-highlight-color:transparent}
         if(v){const p=items.find(i=>i.id===anchor);items.push({id:uid(),text:v,done:false,cat:p.cat,star:false,parent:p.id});p.done=false;const ks=items.filter(c=>c.parent===p.id);subFor={p:p.id,after:ks[ks.length-1].id};commit()}
         else{subFor={p:anchor,after:null};editing=true;render()}
       }};
-    inp.onblur=()=>done(true,false);
+    inp.onblur=()=>done(true,false,true);
     return li;
   }
 
   function render(){
+    if(!editing&&pendingDoc){applyDoc(pendingDoc);pendingDoc=null;setBase()}
+    if(!editing&&pendingDaily){daily=pendingDaily;pendingDaily=null;setBase()}
     const ul=$("list");ul.textContent="";
     const dl=$("doneList");dl.textContent="";
     const dmap=Object.fromEntries(shownDaily(cur,rdone).map(d=>[d.id,d]));
@@ -763,15 +876,11 @@ button{-webkit-tap-highlight-color:transparent}
       if(a)a.after(nr);else ul.append(nr);
     }
     $("doneSec").hidden=nDone===0;
-    const nLeft=readOnly?0:leftovers().length;
-    $("pushBar").hidden=nLeft===0;
-    if(nLeft){const b=$("pushBtn");
-      if(pushArm){b.classList.add("arm");b.textContent=nLeft+"件を翌日に移す？ もう一度押して確定"}
-      else{b.classList.remove("arm");b.textContent="残り "+nLeft+"件を翌日へ →"}}
+    updatePushBtn();
     $("doneLabel").textContent="完了済み "+nDone+"件";
     $("doneToggle").setAttribute("aria-expanded",String(!doneCollapsed));
     dl.hidden=doneCollapsed;
-    $("empty").hidden=keys.length>0;
+    $("empty").hidden=keys.some(k=>!isSkipped(k));
     // today's tally by category
     const counted=dayItems(cur);
     const chips=$("todayChips");chips.textContent="";
@@ -785,7 +894,7 @@ button{-webkit-tap-highlight-color:transparent}
     chips.hidden=!chips.children.length;
     const all=counted.length,doneAll=counted.filter(x=>x.done).length;
     const p=all?doneAll/all:0;
-    $("pct").textContent=Math.round(p*100)+"%";
+    $("pct").textContent=all?Math.round(p*100)+"%":"—";
     $("ringFg").setAttribute("stroke-dashoffset",String(169.6*(1-p)));
     const carry=carryList();
     $("carryBtn").hidden=readOnly||carry.length===0;
@@ -800,7 +909,7 @@ button{-webkit-tap-highlight-color:transparent}
   function decorateRows(){
     document.querySelectorAll("#list > .task, #doneList > .task").forEach(li=>{
       const row=li.querySelector(":scope > .row");const acts=row&&row.querySelector(":scope > .acts");
-      if(!row||!acts||!acts.children.length)return;
+      if(!row||!acts||!acts.children.length||li.classList.contains("moved"))return;
       const k=li.dataset.key;
       const b=document.createElement("button");b.type="button";b.className="more";b.textContent="⋯";
       b.setAttribute("aria-label","操作を表示");b.setAttribute("aria-expanded",String(openRows.has(k)));
@@ -822,6 +931,7 @@ button{-webkit-tap-highlight-color:transparent}
     items=items.filter(x=>x.parent!==pid);
     const pi=items.findIndex(x=>x.id===pid);items.splice(pi+1,0,...kids);
   }
+  sheetEl.addEventListener("mousedown",e=>{if(e.target.closest(".handle"))e.preventDefault()});
   sheetEl.addEventListener("pointerdown",e=>{
     const h=e.target.closest(".handle");if(!h||readOnly||h.style.visibility==="hidden")return;
     const sub=h.closest(".sub");const li=sub||h.closest(".task");if(!li)return;
@@ -847,7 +957,7 @@ button{-webkit-tap-highlight-color:transparent}
     const d=drag;drag=null;d.li.classList.remove("dragging");
     if(!d.moved){editing=false;return}
     if(d.sub){reorderKids(d.box.closest(".task").dataset.key,[...d.box.querySelectorAll(":scope > .sub")].map(x=>x.dataset.id));commit()}
-    else{order=[...$("list").children].filter(x=>x.dataset.key).map(x=>x.dataset.key).concat(viewKeys().filter(isFinished));commit()}
+    else{const all=viewKeys();order=[...$("list").children].filter(x=>x.dataset.key).map(x=>x.dataset.key).concat(all.filter(k=>isFinished(k)||isSkipped(k)));commit()}
   };
   sheetEl.addEventListener("pointerup",endDrag);
   sheetEl.addEventListener("pointercancel",endDrag);
@@ -867,9 +977,9 @@ button{-webkit-tap-highlight-color:transparent}
     }
     const t=h.closest(".task");if(!t||t.parentElement.id!=="list")return;
     e.preventDefault();
-    const key=t.dataset.key;const all=viewKeys();const ks=all.filter(k=>!isFinished(k));const i=ks.indexOf(key);const j=e.key==="ArrowUp"?i-1:i+1;
+    const key=t.dataset.key;const all=viewKeys();const ks=all.filter(k=>!isFinished(k)&&!isSkipped(k));const i=ks.indexOf(key);const j=e.key==="ArrowUp"?i-1:i+1;
     if(i<0||j<0||j>=ks.length)return;
-    [ks[i],ks[j]]=[ks[j],ks[i]];order=ks.concat(all.filter(isFinished));commit();
+    [ks[i],ks[j]]=[ks[j],ks[i]];order=ks.concat(all.filter(k=>isFinished(k)||isSkipped(k)));commit();
     const nh=document.querySelector('.task[data-key="'+CSS.escape(key)+'"] > .row .handle');if(nh)nh.focus();
   });
 
@@ -878,7 +988,8 @@ button{-webkit-tap-highlight-color:transparent}
   let week={start:null,data:{}};
   function dayItems(k){
     const doc=k===cur?{items,rdone}:(week.data[k]||emptyDoc());
-    return doc.items.filter(x=>!x.moved).concat(shownDaily(k,doc.rdone).map(d=>({cat:d.cat,done:(doc.rdone||{})[d.id]===true})));
+    const gone=new Set(doc.items.filter(x=>x.moved).map(x=>x.id));
+    return doc.items.filter(x=>!x.moved&&!gone.has(x.parent)).concat(shownDaily(k,doc.rdone).map(d=>({cat:d.cat,done:(doc.rdone||{})[d.id]===true})));
   }
   function renderWeek(){
     const start=mondayOf(cur);
@@ -915,19 +1026,24 @@ button{-webkit-tap-highlight-color:transparent}
     if(week.start===start&&!editing)renderWeek();
   }
 
+  // a copy of p already exists on this day (linked copy, or an older unlinked copy with the same name)
+  function alreadyHere(p,src){
+    src=src||shift(cur,-1);
+    return items.some(i=>!i.parent&&((i.fromDay===src&&i.fromId===p.id)||(!i.fromId&&i.from&&i.text===p.text)));
+  }
   function carryList(){
     return prevItems.filter(p=>!p.parent&&!p.moved).filter(p=>{
       const kids=prevItems.filter(k=>k.parent===p.id);
-      return (!p.done||kids.some(k=>!k.done))&&!items.some(i=>!i.parent&&i.text===p.text);
+      return (!p.done||kids.some(k=>!k.done))&&!alreadyHere(p);
     });
   }
   // Move unfinished tasks into today; returns map old id -> new id
   function pullIn(fromItems,list,src){
     const map={};
     list.forEach(p=>{
-      p.moved=true;
       const nid=uid();map[p.id]=nid;
-      items.push({id:nid,text:p.text,done:false,cat:p.cat,star:p.star,parent:null,from:p.from||src});
+      p.moved=true;p.movedTo=cur;p.movedId=nid;
+      items.push({id:nid,text:p.text,done:false,cat:p.cat,star:p.star,parent:null,from:p.from||src,fromDay:src,fromId:p.id});
       fromItems.filter(c=>c.parent===p.id&&!c.done).forEach(c=>items.push({id:uid(),text:c.text,done:false,cat:p.cat,star:c.star,parent:nid}));
     });
     return map;
@@ -950,7 +1066,7 @@ button{-webkit-tap-highlight-color:transparent}
     const old=norm(doc.items);
     const list=old.filter(p=>!p.parent&&!p.moved)
       .filter(p=>!p.done||old.some(c=>c.parent===p.id&&!c.done))
-      .filter(p=>!items.some(i=>!i.parent&&i.text===p.text));
+      .filter(p=>!alreadyHere(p,src));
     const map=pullIn(old,list,src);
     // today's order follows the earlier day's: daily tasks and carried tasks keep their places
     const prevOrder=(doc.order||[]).map(x=>map[x]||x).filter(x=>x.startsWith("d:")||items.some(i=>i.id===x));
@@ -963,6 +1079,7 @@ button{-webkit-tap-highlight-color:transparent}
       if(src===shift(k,-1))prevItems=old;
     }
     restoring=true;commit();restoring=false;setBase();
+    if(list.length){undoStack=undoStack.filter(e=>!e.days[k]&&!e.days[src]);redoStack=redoStack.filter(e=>!e.days[k]&&!e.days[src]);histButtons()}
   }
 
   async function loadPrev(k){
@@ -977,14 +1094,16 @@ button{-webkit-tap-highlight-color:transparent}
     if(cur!==k&&week.start===mondayOf(cur))week.data[cur]={items,rdone};
     if(week.start!==mondayOf(k))week={start:mondayOf(k),data:{}};
     const cached=week.data[k];
-    if(cur!==k){undoStack=[];redoStack=[]}
     cur=k;items=cached?cached.items:[];rdone=cached?{...cached.rdone}:{};order=[];carriedFrom=null;
+    pendingDoc=null;loaded=!db;
     prevItems=[];subFor=null;confirmFor=null;editing=false;renderDate();render();
     if(unsub){unsub();unsub=null}
     if(db){
       unsub=db.doc("days/"+k).onSnapshot(s=>{
         if(k!==cur)return;
-        applyDoc(s.exists?s.data():emptyDoc());setBase();
+        const data=s.exists?s.data():emptyDoc();
+        if(editing&&loaded){pendingDoc=data;return} // applied when the edit ends
+        applyDoc(data);setBase();loaded=true;
         if(!editing)render();
         if(!s.metadata||!s.metadata.fromCache)autoCarry(k);
       },()=>{});
@@ -995,9 +1114,14 @@ button{-webkit-tap-highlight-color:transparent}
 
   $("pushBtn").onclick=()=>{
     if(readOnly)return;
-    if(!pushArm){pushArm=setTimeout(()=>{pushArm=null;render()},4000);render();return}
+    if(!pushArm){pushArm=setTimeout(()=>{pushArm=null;updatePushBtn()},4000);updatePushBtn();return}
     clearTimeout(pushArm);pushArm=null;pushToNext();
   };
+  window.addEventListener("storage",e=>{
+    if(db||!e.key||editing)return;
+    if(e.key==="todo:daily"){daily=normDaily(local.get("daily").items);setBase();render()}
+    else if(e.key==="todo:"+cur){applyDoc(local.get(cur));setBase();render()}
+  });
   $("undoBtn").onclick=undo;$("redoBtn").onclick=redo;
   $("doneToggle").onclick=()=>{doneCollapsed=!doneCollapsed;try{localStorage.setItem("todo:doneCollapsed",doneCollapsed?"1":"0")}catch(e){}render()};
   $("prevBtn").onclick=()=>open(shift(cur,-1));
@@ -1026,15 +1150,24 @@ button{-webkit-tap-highlight-color:transparent}
     const it={id:uid(),text:v,done:false,cat:addCat,star:false,parent:null};
     items.push(it);order=[...ks,it.id];commit();
   };
-  $("carryBtn").onclick=()=>{
+  $("carryBtn").onclick=async()=>{
+    if(readOnly)return;
+    const day=cur,src=shift(cur,-1);
+    let doc;try{doc=await readDay(src)}catch(e){toast("前日のデータを読めませんでした。もう一度押してください");return}
+    if(cur!==day)return;
+    const before=cloneDoc(doc);
+    prevItems=norm(doc.items);
     const ks=viewKeys();
-    const src=shift(cur,-1);
     const map=pullIn(prevItems,carryList(),src);
+    if(!Object.keys(map).length){render();return}
     order=[...ks,...Object.values(map)];
-    // the earlier day keeps its record, marked as moved
-    readDay(src).then(doc=>{const old=norm(doc.items);old.forEach(o=>{if(map[o.id])o.moved=true});
-      writeDay(src,{...doc,items:old})}).catch(()=>{});
+    // the earlier day keeps its record, marked as moved (and linked to the copy here)
+    const after={...cloneDoc(doc),items:prevItems.map(i=>({...i}))};
+    pendingX=[{day:src,before,after}];
+    writeDay(src,after);
+    if(week.data[src])week.data[src]={items:norm(after.items),rdone:{...(after.rdone||{})}};
     commit();
+    toast(Object.keys(map).length+"件を引き継ぎました");
   };
   let lastToday=todayKey();
   setInterval(()=>{const t=todayKey();if(t!==lastToday){const was=cur===lastToday;lastToday=t;if(was)open(t);else renderDate()}},60000);
@@ -1043,17 +1176,20 @@ button{-webkit-tap-highlight-color:transparent}
   open(cur);
   // hooks for app.js (cloud sync)
   let dailyUnsub=null;
-  const reset=()=>{autoChecked={};week={start:null,data:{}};readOnly=false};
+  const reset=()=>{autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
   window.todoCore={
     connect(d){
       if(dailyUnsub)dailyUnsub();db=d;reset();
-      dailyUnsub=d.doc("settings/daily").onSnapshot(s=>{daily=normDaily(s.exists?s.data().items:[]);setBase();if(!editing)render()},()=>{});
+      dailyUnsub=d.doc("settings/daily").onSnapshot(s=>{const nd=normDaily(s.exists?s.data().items:[]);
+        if(editing){pendingDaily=nd;return}
+        daily=nd;setBase();render()},()=>{});
       open(cur);
     },
     disconnect(){
       if(dailyUnsub)dailyUnsub();dailyUnsub=null;if(unsub){unsub();unsub=null}
       db=null;reset();daily=normDaily(local.get("daily").items);open(cur);
     },
+    writeError:saveFailed,
     refresh(){reset();if(!db)daily=normDaily(local.get("daily").items);open(cur)},
     toast
   };

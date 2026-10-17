@@ -32,8 +32,9 @@
       return{
         get:()=>ref.get().then(wrapSnap),
         // offline writes are queued by Firestore; don't wait for the server
-        set:b=>{ref.set(b).catch(e=>console.warn("sync",e));return Promise.resolve()},
-        onSnapshot:(next,err)=>ref.onSnapshot(s=>next(wrapSnap(s)),err||(()=>{}))
+        set:b=>{ref.set(b).catch(e=>{console.warn("sync",e);core.writeError&&core.writeError(e)});return Promise.resolve()},
+        // metadata changes too, so the page hears when the server has confirmed the day (needed for the day-change carry-over)
+        onSnapshot:(next,err)=>ref.onSnapshot({includeMetadataChanges:true},s=>next(wrapSnap(s)),err||(()=>{}))
       };
     }};
   }
@@ -49,6 +50,28 @@
       }
     }catch(e){}
     return{days,daily};
+  }
+  // put imported tasks next to what a day already has, instead of replacing it
+  function mergeDay(have,inc){
+    if(!have||!(have.items||[]).length)return inc;
+    const ids=new Set(have.items.map(i=>i.id));
+    const add=(inc.items||[]).filter(i=>!ids.has(i.id));
+    return{...have,items:[...have.items,...add],
+      rdone:{...(inc.rdone||{}),...(have.rdone||{})},
+      order:[...(have.order||[]),...(inc.order||[]).filter(k=>!(have.order||[]).includes(k))]};
+  }
+  function mergeDaily(have,inc){
+    if(!have||!(have.items||[]).length)return inc;
+    const ids=new Set(have.items.map(i=>i.id));
+    return{...have,items:[...have.items,...(inc.items||[]).filter(i=>!ids.has(i.id))]};
+  }
+  async function readCloud(path){try{const s=await fs.doc(path).get();return s.exists?s.data():null}catch(e){return null}}
+  async function writeMerged(uid,data){
+    const base="users/"+uid+"/";
+    const out={days:{},daily:null};
+    for(const [k,v] of Object.entries(data.days||{}))out.days[k]=mergeDay(await readCloud(base+"days/"+k),v);
+    if(data.daily)out.daily=mergeDaily(await readCloud(base+"settings/daily"),data.daily);
+    await writeAll(uid,out);
   }
   async function writeAll(uid,data){
     const base="users/"+uid+"/";
@@ -67,8 +90,14 @@
     let snap;try{snap=await meta.get()}catch(e){return}
     if(snap.exists)return;
     const d=localDump();
-    if(Object.keys(d.days).length||d.daily){try{await writeAll(uid,d)}catch(e){console.warn(e)}}
-    meta.set({created:new Date().toISOString()}).catch(()=>{});
+    // only days the account doesn't have yet are uploaded; nothing in the cloud is overwritten
+    try{
+      const base="users/"+uid+"/";const up={days:{},daily:null};
+      for(const [k,v] of Object.entries(d.days)){const s=await fs.doc(base+"days/"+k).get();if(!s.exists)up.days[k]=v}
+      if(d.daily){const s=await fs.doc(base+"settings/daily").get();if(!s.exists)up.daily=d.daily}
+      if(Object.keys(up.days).length||up.daily)await writeAll(uid,up);
+      await meta.set({created:new Date().toISOString()});
+    }catch(e){console.warn(e)}
   }
 
   function initFirebase(){
@@ -126,10 +155,11 @@
     if(!data||data.app!=="himekuri-todo"||!data.days){msg("importMsg","このデータは日めくりTodoのものではないようです。",true);return}
     const n=Object.keys(data.days).length;
     try{
-      if(user&&fs)await writeAll(user.uid,data);
+      if(user&&fs)await writeMerged(user.uid,data);
       else{
-        Object.entries(data.days).forEach(([k,v])=>localStorage.setItem("todo:"+k,JSON.stringify(v)));
-        if(data.daily)localStorage.setItem("todo:daily",JSON.stringify(data.daily));
+        const get=k=>{try{return JSON.parse(localStorage.getItem("todo:"+k)||"null")}catch(e){return null}};
+        Object.entries(data.days).forEach(([k,v])=>localStorage.setItem("todo:"+k,JSON.stringify(mergeDay(get(k),v))));
+        if(data.daily)localStorage.setItem("todo:daily",JSON.stringify(mergeDaily(get("daily"),data.daily)));
       }
     }catch(e){msg("importMsg","保存できませんでした（"+((e&&e.code)||e)+"）",true);return}
     $("importBox").value="";
