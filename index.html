@@ -194,6 +194,9 @@ body{margin:0;padding-top:calc(16px + env(safe-area-inset-top,0px))!important;pa
 .sync::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--muted)}
 .sync.on::before{background:var(--mc)}
 .sync.off::before{background:var(--star)}
+.hist{display:flex;gap:4px;margin-left:auto}
+.hist button{width:36px;height:32px;border:1px solid var(--line);background:var(--sheet);border-radius:16px;font-size:17px;line-height:1;cursor:pointer;color:var(--ink)}
+.hist button:disabled{opacity:.3;cursor:default}
 .menubtn{border:1px solid var(--line);background:var(--sheet);border-radius:16px;padding:5px 14px;font-size:13px;font-weight:700;cursor:pointer}
 .panel{background:var(--sheet);border:1px solid var(--line);border-radius:6px;margin-bottom:12px;display:grid}
 .pane{padding:14px 16px;border-top:1px solid var(--line);display:grid;gap:8px}
@@ -247,6 +250,10 @@ button{-webkit-tap-highlight-color:transparent}
 <div class="wrap">
   <div class="appbar">
     <button type="button" class="sync" id="syncState" aria-label="同期の状態">この端末に保存</button>
+    <div class="hist">
+      <button type="button" id="undoBtn" title="元に戻す（Ctrl+Z）" aria-label="元に戻す" disabled>↶</button>
+      <button type="button" id="redoBtn" title="やり直す（Ctrl+Shift+Z）" aria-label="やり直す" disabled>↷</button>
+    </div>
     <button type="button" class="menubtn" id="menuBtn" aria-expanded="false" aria-controls="panel">設定・同期</button>
   </div>
   <div class="panel" id="panel" hidden>
@@ -273,7 +280,7 @@ button{-webkit-tap-highlight-color:transparent}
     </section>
     <section class="pane">
       <h3>使い方</h3>
-      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。</p>
+      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。</p>
       <p class="hint">ホーム画面に追加：iPhoneはSafariの共有ボタン →「ホーム画面に追加」、AndroidはChromeのメニュー →「ホーム画面に追加」。</p>
     </section>
   </div>
@@ -375,8 +382,43 @@ button{-webkit-tap-highlight-color:transparent}
     if(!db){local.set(k,body);return}
     writing=writing.then(()=>db.doc("days/"+k).set(body)).catch(onErr);
   }
-  function save(){writeDay(cur,{items:items.map(i=>({...i})),rdone:{...rdone},order:[...order],carriedFrom})}
+  // ---- undo / redo (Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y, or the ↶ ↷ buttons) ----
+  let baseSnap=null,undoStack=[],redoStack=[],restoring=false;
+  const snapshot=()=>JSON.stringify({day:cur,items,rdone,order,carriedFrom,daily});
+  function histButtons(){
+    const u=document.getElementById("undoBtn"),rd=document.getElementById("redoBtn");
+    if(u)u.disabled=!undoStack.length;if(rd)rd.disabled=!redoStack.length;
+  }
+  function record(){
+    if(restoring)return;
+    const s=snapshot();
+    if(baseSnap&&s!==baseSnap&&JSON.parse(baseSnap).day===cur){undoStack.push(baseSnap);if(undoStack.length>60)undoStack.shift();redoStack=[]}
+    baseSnap=s;histButtons();
+  }
+  function setBase(){baseSnap=snapshot();histButtons()}
+  function restore(str){
+    const st=JSON.parse(str);if(st.day!==cur)return false;
+    const dailyChanged=JSON.stringify(daily)!==JSON.stringify(st.daily);
+    items=st.items;rdone=st.rdone;order=st.order;carriedFrom=st.carriedFrom;daily=st.daily;
+    restoring=true;subFor=null;newAfter=null;editTarget=null;confirmFor=null;editing=false;
+    render();save();if(dailyChanged)saveDaily();restoring=false;
+    baseSnap=str;histButtons();return true;
+  }
+  function undo(){if(!undoStack.length||readOnly)return;const cur_=snapshot();const prev=undoStack.pop();if(restore(prev)){redoStack.push(cur_);toast("元に戻しました")}histButtons()}
+  function redo(){if(!redoStack.length||readOnly)return;const cur_=snapshot();const next=redoStack.pop();if(restore(next)){undoStack.push(cur_);toast("やり直しました")}histButtons()}
+  document.addEventListener("keydown",e=>{
+    if(!(e.ctrlKey||e.metaKey)||e.altKey)return;
+    const k=e.key.toLowerCase();if(k!=="z"&&k!=="y")return;
+    const tg=e.target;
+    // while typing in a box, the box's own text undo works as usual
+    if(tg&&(tg.tagName==="INPUT"||tg.tagName==="TEXTAREA")&&tg.value)return;
+    e.preventDefault();
+    if(k==="y"||e.shiftKey)redo();else undo();
+  });
+
+  function save(){record();writeDay(cur,{items:items.map(i=>({...i})),rdone:{...rdone},order:[...order],carriedFrom})}
   function saveDaily(){
+    record();
     const body={items:daily.map(d=>({...d})),updatedAt:new Date().toISOString()};
     if(!db){local.set("daily",body);return}
     writing=writing.then(()=>db.doc("settings/daily").set(body)).catch(onErr);
@@ -903,7 +945,8 @@ button{-webkit-tap-highlight-color:transparent}
       if((d.items||[]).length||(d.order||[]).length){src=pk;doc=d;break}
     }
     if(k!==cur||carriedFrom)return;
-    if(!src){carriedFrom="none";save();return}
+    // automatic carry-over is not an undo step
+    if(!src){carriedFrom="none";restoring=true;save();restoring=false;setBase();return}
     const old=norm(doc.items);
     const list=old.filter(p=>!p.parent&&!p.moved)
       .filter(p=>!p.done||old.some(c=>c.parent===p.id&&!c.done))
@@ -919,7 +962,7 @@ button{-webkit-tap-highlight-color:transparent}
       if(week.data[src])week.data[src]={items:old,rdone:{...(doc.rdone||{})}};
       if(src===shift(k,-1))prevItems=old;
     }
-    commit();
+    restoring=true;commit();restoring=false;setBase();
   }
 
   async function loadPrev(k){
@@ -934,17 +977,18 @@ button{-webkit-tap-highlight-color:transparent}
     if(cur!==k&&week.start===mondayOf(cur))week.data[cur]={items,rdone};
     if(week.start!==mondayOf(k))week={start:mondayOf(k),data:{}};
     const cached=week.data[k];
+    if(cur!==k){undoStack=[];redoStack=[]}
     cur=k;items=cached?cached.items:[];rdone=cached?{...cached.rdone}:{};order=[];carriedFrom=null;
     prevItems=[];subFor=null;confirmFor=null;editing=false;renderDate();render();
     if(unsub){unsub();unsub=null}
     if(db){
       unsub=db.doc("days/"+k).onSnapshot(s=>{
         if(k!==cur)return;
-        applyDoc(s.exists?s.data():emptyDoc());
+        applyDoc(s.exists?s.data():emptyDoc());setBase();
         if(!editing)render();
         if(!s.metadata||!s.metadata.fromCache)autoCarry(k);
       },()=>{});
-    }else{applyDoc(local.get(k));render();autoCarry(k)}
+    }else{applyDoc(local.get(k));setBase();render();autoCarry(k)}
     loadPrev(k);
     loadWeek(k);
   }
@@ -954,6 +998,7 @@ button{-webkit-tap-highlight-color:transparent}
     if(!pushArm){pushArm=setTimeout(()=>{pushArm=null;render()},4000);render();return}
     clearTimeout(pushArm);pushArm=null;pushToNext();
   };
+  $("undoBtn").onclick=undo;$("redoBtn").onclick=redo;
   $("doneToggle").onclick=()=>{doneCollapsed=!doneCollapsed;try{localStorage.setItem("todo:doneCollapsed",doneCollapsed?"1":"0")}catch(e){}render()};
   $("prevBtn").onclick=()=>open(shift(cur,-1));
   $("nextBtn").onclick=()=>open(shift(cur,1));
@@ -1002,7 +1047,7 @@ button{-webkit-tap-highlight-color:transparent}
   window.todoCore={
     connect(d){
       if(dailyUnsub)dailyUnsub();db=d;reset();
-      dailyUnsub=d.doc("settings/daily").onSnapshot(s=>{daily=normDaily(s.exists?s.data().items:[]);if(!editing)render()},()=>{});
+      dailyUnsub=d.doc("settings/daily").onSnapshot(s=>{daily=normDaily(s.exists?s.data().items:[]);setBase();if(!editing)render()},()=>{});
       open(cur);
     },
     disconnect(){
