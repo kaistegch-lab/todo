@@ -122,9 +122,13 @@ button{font:inherit;color:inherit}
 .acts button:hover{background:var(--soft);color:var(--ink)}
 .acts .on{color:var(--star)}
 .acts .un{font-size:12px}
-.subs{list-style:none;margin:0;padding:0 12px 8px 64px;display:grid;gap:2px}
-.sub{display:flex;align-items:flex-start;gap:9px;padding:4px 0;position:relative}
-.sub::before{content:"";position:absolute;left:-18px;top:0;bottom:50%;width:10px;border-left:1.5px solid var(--line);border-bottom:1.5px solid var(--line);border-bottom-left-radius:4px}
+.subs{list-style:none;margin:0;padding:0 12px 8px 40px;display:grid;gap:2px}
+.sub{display:flex;align-items:flex-start;gap:7px;padding:4px 0;position:relative;background:var(--sheet)}
+.sub .handle{width:18px;align-self:stretch;opacity:.45}
+.sub.dragging{box-shadow:0 4px 12px rgba(0,0,0,.18);z-index:5;border-radius:4px}
+.newtask .box{border-style:dashed;opacity:.6}
+.newtask input.edit{flex:1}
+.sub::before{content:"";position:absolute;left:-12px;top:0;bottom:50%;width:8px;border-left:1.5px solid var(--line);border-bottom:1.5px solid var(--line);border-bottom-left-radius:4px}
 .sub .box{width:18px;height:18px;border-width:1.5px;border-radius:4px}
 .sub .box svg{width:11px;height:11px}
 .sub .txt{font-size:14px;font-weight:400}
@@ -177,7 +181,7 @@ input.edit,.subadd input{flex:1;min-width:0;font:inherit;color:var(--ink);backgr
   .head{padding:14px 16px}.today{padding-inline:16px}
   .score{grid-template-columns:repeat(3,1fr)}.sc[data-cat="main"]{grid-column:1/-1}
   .acts button{padding:2px 3px;font-size:13px}.row{gap:6px;padding-right:6px}
-  .subs{padding-left:56px}.confirm{padding-left:56px}
+  .subs{padding-left:34px}.confirm{padding-left:56px}
   .addrow button{padding:0 14px}.add{padding-inline:12px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -269,7 +273,7 @@ button{-webkit-tap-highlight-color:transparent}
     </section>
     <section class="pane">
       <h3>使い方</h3>
-      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。小タスクは入力中にEnterで次の行、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。</p>
+      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。</p>
       <p class="hint">ホーム画面に追加：iPhoneはSafariの共有ボタン →「ホーム画面に追加」、AndroidはChromeのメニュー →「ホーム画面に追加」。</p>
     </section>
   </div>
@@ -348,7 +352,7 @@ button{-webkit-tap-highlight-color:transparent}
 
   let cur=todayKey(), items=[], rdone={}, order=[], carriedFrom=null;
   let prevItems=[], daily=[], db=null, unsub=null, readOnly=false;
-  let addCat="main", addDaily=false, editing=false, subFor=null, confirmFor=null, autoChecked={}, editTarget=null;
+  let addCat="main", addDaily=false, editing=false, subFor=null, confirmFor=null, autoChecked={}, editTarget=null, newAfter=null;
 
   const normCat=c=>CAT_IDS.includes(c)?c:"other";
   const norm=list=>(list||[]).map(i=>({id:i.id||uid(),text:String(i.text||""),done:!!i.done,cat:normCat(i.cat),star:!!i.star,parent:i.parent||null,...(i.moved?{moved:true}:{}),...(i.from?{from:i.from}:{})}));
@@ -377,7 +381,7 @@ button{-webkit-tap-highlight-color:transparent}
     if(!db){local.set("daily",body);return}
     writing=writing.then(()=>db.doc("settings/daily").set(body)).catch(onErr);
   }
-  function commit(){editing=!!subFor||!!editTarget;render();save()}
+  function commit(){editing=!!subFor||!!editTarget||!!newAfter;render();save()}
   // Backspace at the very start of a subtask: its text joins the end of the line above (previous subtask, or the big task)
   function mergeInto(prev,text,remove){
     const caret=prev.text.length;
@@ -448,7 +452,7 @@ button{-webkit-tap-highlight-color:transparent}
     let fin=false;
     const finish=(ok,enter)=>{if(fin)return;fin=true;const v=inp.value.trim();
       if(enter&&onEnter)onEnter();
-      if(ok&&v&&v!==get()){set(v);commit()}else{editing=!!subFor;render()}};
+      if(ok&&v&&v!==get()){set(v);commit()}else{editing=!!subFor||!!newAfter;render()}};
     inp.onkeydown=e=>{
       if(e.key==="Enter"&&!e.isComposing)finish(true,true);
       else if(e.key==="Escape")finish(false);
@@ -550,7 +554,7 @@ button{-webkit-tap-highlight-color:transparent}
     if(it.moved)tags.append(el("span","co-tag","→ 翌日へ"));
     else if(it.from){const f=parse(it.from);tags.append(el("span","co-tag","繰越 "+(f.getMonth()+1)+"/"+f.getDate()+"〜"))}
     t.append(tags);
-    const openEdit=caret=>{if(!it.moved)editText(row,t,()=>it.text,v=>{it.text=v},null,null,caret,lines=>{
+    const openEdit=caret=>{if(!it.moved)editText(row,t,()=>it.text,v=>{it.text=v},()=>{newAfter=it.id},null,caret,lines=>{
       let last=null;
       lines.forEach(l=>{const nk={id:uid(),text:l.text,done:false,cat:it.cat,star:l.star,parent:it.id};items.push(nk);last=nk.id});
       it.done=false;subFor={p:it.id,after:last};commit();toast(lines.length+"件を小タスクに貼り付けました")})};
@@ -589,7 +593,7 @@ button{-webkit-tap-highlight-color:transparent}
             it.done=false;
             subFor=enter?{p:it.id,after:nk.id}:null;
             commit();
-          }else{subFor=null;editing=false;render()}};
+          }else{subFor=null;if(enter&&!v)newAfter=it.id;editing=!!newAfter;render()}};
         inp.onkeydown=e=>{
           if(e.key==="Enter"&&!e.isComposing){e.preventDefault();done(true,true)}
           else if(e.key==="Escape")done(false);
@@ -615,7 +619,7 @@ button{-webkit-tap-highlight-color:transparent}
       };
       if(adding&&subFor.after===null&&!kids.length)subs.append(addRow(null));
       kids.forEach((k,idx)=>{
-        const s=el("li","sub"+(k.done?" done":""));
+        const s=el("li","sub"+(k.done?" done":""));s.dataset.id=k.id;
         const st=textEl(k.text,k.star);
         const openSub=caret=>{if(!it.moved)editText(s,st,()=>k.text,v=>{k.text=v},()=>{subFor={p:it.id,after:k.id}},
           val=>{const prev=idx>0?kids[idx-1]:it;mergeInto(prev,val,()=>{items=items.filter(x=>x!==k);
@@ -624,7 +628,8 @@ button{-webkit-tap-highlight-color:transparent}
         if(editTarget&&editTarget.id===k.id){const c=editTarget.caret;editTarget=null;queueMicrotask(()=>openSub(c))}
         const a=el("div","acts");
         if(!readOnly&&!it.moved)a.append(actBtn("⧉","コピー",()=>copyTasks([{sub:true,text:k.text,star:k.star}],"小タスクをコピーしました")),actBtn("×","削除",()=>{items=items.filter(x=>x!==k);commit()}));
-        s.append(boxBtn(k.done,()=>{k.done=!k.done;it.done=items.filter(c=>c.parent===it.id).every(c=>c.done);commit()},it.moved),st,a);
+        const sh=handle();sh.setAttribute("aria-label","ドラッグで小タスクを並べ替え（キーボードは上下キー）");if(it.moved||readOnly)sh.style.visibility="hidden";
+        s.append(sh,boxBtn(k.done,()=>{k.done=!k.done;it.done=items.filter(c=>c.parent===it.id).every(c=>c.done);commit()},it.moved),st,a);
         subs.append(s);
         const isLast=idx===kids.length-1;
         if(adding&&(subFor.after===k.id||(subFor.after===null&&isLast)))subs.append(addRow(k.id));
@@ -642,7 +647,7 @@ button{-webkit-tap-highlight-color:transparent}
     const tags=el("span","tags");
     tags.append(catTag(d.cat,c=>{d.cat=c;saveDaily();render()}),el("span","dtag","↻ 毎日"));
     t.append(tags);
-    t.onclick=e=>{if(e.target.closest(".ctag"))return;editText(row,t,()=>d.text,v=>{d.text=v;saveDaily()})};
+    t.onclick=e=>{if(e.target.closest(".ctag"))return;editText(row,t,()=>d.text,v=>{d.text=v;saveDaily()},()=>{newAfter="d:"+d.id})};
     const acts=el("div","acts");
     if(!readOnly)acts.append(
       actBtn(d.star?"★":"☆","重要マーク",()=>{d.star=!d.star;saveDaily();render()},d.star?"on":""),
@@ -658,6 +663,36 @@ button{-webkit-tap-highlight-color:transparent}
       const n=el("button",null,"やめる");n.type="button";n.onclick=()=>{confirmFor=null;render()};
       c.append(y,n);li.append(c);
     }
+    return li;
+  }
+
+  // inline row for a new big task, opened by Enter
+  function newTaskRow(anchor){
+    const anchorCat=anchor.startsWith("d:")?((daily.find(d=>"d:"+d.id===anchor)||{}).cat||addCat):((items.find(i=>i.id===anchor)||{}).cat||addCat);
+    const li=el("li","task newtask");li.dataset.cat=anchorCat;
+    const row=el("div","row");const sp=el("span","handle");sp.style.visibility="hidden";
+    const bx=el("span","box");const inp=el("input","edit");inp.id="newTaskInline";inp.maxLength=400;
+    inp.placeholder="新しいタスク（空でEnterで終了）";
+    row.append(sp,bx,inp);li.append(row);
+    queueMicrotask(()=>inp.focus());
+    let fin=false;
+    const done=(ok,enter)=>{if(fin)return;fin=true;const v=inp.value.trim();
+      if(ok&&v){
+        const it={id:uid(),text:v,done:false,cat:anchorCat,star:false,parent:null};items.push(it);
+        const ks=viewKeys().filter(k=>k!==it.id);const at=ks.indexOf(anchor);
+        ks.splice(at<0?ks.length:at+1,0,it.id);order=ks;
+        newAfter=enter?it.id:null;commit();
+      }else{newAfter=null;editing=false;render()}};
+    inp.onkeydown=e=>{
+      if(e.key==="Enter"&&!e.isComposing){e.preventDefault();done(true,true)}
+      else if(e.key==="Escape")done(false);
+      else if(e.key==="Tab"&&!e.shiftKey&&!anchor.startsWith("d:")&&items.some(i=>i.id===anchor)){
+        // Tab: make it a subtask of the task above instead
+        e.preventDefault();if(fin)return;fin=true;const v=inp.value.trim();newAfter=null;
+        if(v){const p=items.find(i=>i.id===anchor);items.push({id:uid(),text:v,done:false,cat:p.cat,star:false,parent:p.id});p.done=false;const ks=items.filter(c=>c.parent===p.id);subFor={p:p.id,after:ks[ks.length-1].id};commit()}
+        else{subFor={p:anchor,after:null};editing=true;render()}
+      }};
+    inp.onblur=()=>done(true,false);
     return li;
   }
 
@@ -680,6 +715,11 @@ button{-webkit-tap-highlight-color:transparent}
       if(!row)return;
       if(fin){dl.append(row);nDone++}else ul.append(row);
     });
+    if(newAfter&&!readOnly){
+      const nr=newTaskRow(newAfter);
+      const a=[...ul.children].find(x=>x.dataset.key===newAfter);
+      if(a)a.after(nr);else ul.append(nr);
+    }
     $("doneSec").hidden=nDone===0;
     const nLeft=readOnly?0:leftovers().length;
     $("pushBar").hidden=nLeft===0;
@@ -729,40 +769,66 @@ button{-webkit-tap-highlight-color:transparent}
   }
 
   // Drag to reorder (pointer: mouse + touch). Keyboard: focus the grip and press ↑/↓.
+  // Big tasks move within the list; subtasks move within their own task.
   let drag=null;
-  $("list").addEventListener("pointerdown",e=>{
-    const h=e.target.closest(".handle");if(!h||readOnly)return;
-    const li=h.closest(".task");if(!li)return;
+  const sheetEl=document.querySelector(".sheet");
+  const subPeers=(box,li)=>[...box.children].filter(x=>x.classList.contains("sub")&&x.classList.contains("done")===li.classList.contains("done"));
+  function reorderKids(pid,ids){
+    const byId=Object.fromEntries(items.filter(x=>x.parent===pid).map(x=>[x.id,x]));
+    const kids=ids.map(i=>byId[i]).filter(Boolean);
+    Object.values(byId).forEach(k=>{if(!kids.includes(k))kids.push(k)});
+    items=items.filter(x=>x.parent!==pid);
+    const pi=items.findIndex(x=>x.id===pid);items.splice(pi+1,0,...kids);
+  }
+  sheetEl.addEventListener("pointerdown",e=>{
+    const h=e.target.closest(".handle");if(!h||readOnly||h.style.visibility==="hidden")return;
+    const sub=h.closest(".sub");const li=sub||h.closest(".task");if(!li)return;
+    if(!sub&&li.parentElement.id!=="list")return;
     e.preventDefault();h.setPointerCapture(e.pointerId);
-    editing=true;drag={li,h,id:e.pointerId,y:e.clientY,moved:false};
+    editing=true;drag={li,id:e.pointerId,moved:false,sub:!!sub,box:li.parentElement};
     li.classList.add("dragging");
   });
-  $("list").addEventListener("pointermove",e=>{
+  sheetEl.addEventListener("pointermove",e=>{
     if(!drag||e.pointerId!==drag.id)return;
     const y=e.clientY;drag.moved=true;
-    const ul=$("list");
-    const others=[...ul.children].filter(x=>x!==drag.li);
+    const box=drag.box;
+    const others=(drag.sub?subPeers(box,drag.li):[...box.children]).filter(x=>x!==drag.li&&!x.classList.contains("newtask"));
+    if(!others.length)return;
     let before=null;
     for(const o of others){const r=o.getBoundingClientRect();if(y<r.top+r.height/2){before=o;break}}
-    if(before!==drag.li.nextElementSibling||(!before&&ul.lastElementChild!==drag.li)){ul.insertBefore(drag.li,before)}
+    if(before){if(before!==drag.li.nextElementSibling)box.insertBefore(drag.li,before)}
+    else{const last=others[others.length-1];if(last.nextElementSibling!==drag.li)last.after(drag.li)}
     if(y<60)window.scrollBy(0,-12);else if(y>window.innerHeight-60)window.scrollBy(0,12);
   });
   const endDrag=e=>{
     if(!drag||(e&&e.pointerId!==drag.id))return;
-    drag.li.classList.remove("dragging");
-    const moved=drag.moved;drag=null;
-    if(moved){order=[...$("list").children].map(x=>x.dataset.key).concat(viewKeys().filter(isFinished));commit()}else{editing=false}
+    const d=drag;drag=null;d.li.classList.remove("dragging");
+    if(!d.moved){editing=false;return}
+    if(d.sub){reorderKids(d.box.closest(".task").dataset.key,[...d.box.querySelectorAll(":scope > .sub")].map(x=>x.dataset.id));commit()}
+    else{order=[...$("list").children].filter(x=>x.dataset.key).map(x=>x.dataset.key).concat(viewKeys().filter(isFinished));commit()}
   };
-  $("list").addEventListener("pointerup",endDrag);
-  $("list").addEventListener("pointercancel",endDrag);
-  $("list").addEventListener("keydown",e=>{
+  sheetEl.addEventListener("pointerup",endDrag);
+  sheetEl.addEventListener("pointercancel",endDrag);
+  sheetEl.addEventListener("keydown",e=>{
     const h=e.target.closest(".handle");if(!h||readOnly)return;
     if(e.key!=="ArrowUp"&&e.key!=="ArrowDown")return;
+    const sub=h.closest(".sub");
+    if(sub){
+      e.preventDefault();
+      const box=sub.parentElement;const peers=subPeers(box,sub);const i=peers.indexOf(sub);const j=e.key==="ArrowUp"?i-1:i+1;
+      if(j<0||j>=peers.length)return;
+      const ids=[...box.querySelectorAll(":scope > .sub")].map(x=>x.dataset.id);
+      const a=ids.indexOf(sub.dataset.id),b=ids.indexOf(peers[j].dataset.id);[ids[a],ids[b]]=[ids[b],ids[a]];
+      const id=sub.dataset.id;reorderKids(box.closest(".task").dataset.key,ids);commit();
+      const nh=document.querySelector('.sub[data-id="'+CSS.escape(id)+'"] .handle');if(nh)nh.focus();
+      return;
+    }
+    const t=h.closest(".task");if(!t||t.parentElement.id!=="list")return;
     e.preventDefault();
-    const key=h.closest(".task").dataset.key;const all=viewKeys();const ks=all.filter(k=>!isFinished(k));const i=ks.indexOf(key);const j=e.key==="ArrowUp"?i-1:i+1;
+    const key=t.dataset.key;const all=viewKeys();const ks=all.filter(k=>!isFinished(k));const i=ks.indexOf(key);const j=e.key==="ArrowUp"?i-1:i+1;
     if(i<0||j<0||j>=ks.length)return;
     [ks[i],ks[j]]=[ks[j],ks[i]];order=ks.concat(all.filter(isFinished));commit();
-    const nh=document.querySelector('.task[data-key="'+CSS.escape(key)+'"] .handle');if(nh)nh.focus();
+    const nh=document.querySelector('.task[data-key="'+CSS.escape(key)+'"] > .row .handle');if(nh)nh.focus();
   });
 
   // Weekly score: Monday–Sunday of the shown day; every checked box counts as 1
