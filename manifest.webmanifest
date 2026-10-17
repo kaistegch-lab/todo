@@ -1,0 +1,17 @@
+{
+  "name": "日めくりTodo",
+  "short_name": "日めくりTodo",
+  "description": "メイン・マイクラ・その他で分ける日めくり式のTodo",
+  "lang": "ja",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#e9e7e1",
+  "theme_color": "#e9e7e1",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
