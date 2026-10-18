@@ -213,6 +213,21 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .page>section.week,.page>section.plan,.page>section.review,.page>section.later{border-top:0}
 .later{padding:14px 18px 16px;display:grid;gap:12px}
 .later .future{border:0;padding:0}
+.logp .seg{flex-wrap:wrap}
+.logtools{display:flex;gap:8px;flex-wrap:wrap}
+.logtools input{flex:1;min-width:160px;font:inherit;font-size:16px;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:7px 10px}
+.logtools button,.logmore,.lg-b button{border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:6px;padding:6px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.lg-b button{padding:3px 9px;font-size:12px}
+.loglist{display:grid;gap:8px}
+.lg{border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:grid;gap:4px;background:var(--sheet)}
+.lg-h{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-size:13px}
+.lg-t{font-weight:900;font-variant-numeric:tabular-nums}
+.lg-k{font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:10px;padding:0 6px}
+.lg-d{font-size:12px;line-height:1.6;color:var(--muted);white-space:pre-wrap;word-break:break-word}
+.lg-d .add{color:var(--mc)}.lg-d .del{color:var(--main)}
+.lg-b{display:flex;gap:6px;flex-wrap:wrap}
+.lg-b .warn{border-color:var(--main);color:var(--main)}
+.lg pre{margin:0;font:inherit;font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-word;background:var(--soft);border-radius:6px;padding:8px}
 .rvbanner{display:block;width:calc(100% - 44px);margin:0 22px 12px;border:1px dashed var(--ink);background:var(--soft);color:var(--ink);border-radius:6px;padding:8px 12px;font-size:13px;font-weight:700;text-align:left;cursor:pointer}
 @media (max-width:420px){.rvbanner{width:calc(100% - 32px);margin-inline:16px}.later{padding-inline:14px}}
 
@@ -445,6 +460,11 @@ button{-webkit-tap-highlight-color:transparent}
       <p class="msg" id="acctMsg" role="status"></p>
     </section>
     <section class="pane">
+      <h3>変更の記録</h3>
+      <p class="hint">保存するたびに、その時の中身を記録に残しています（消したタスクやメモも、前の版から探して戻せます）。</p>
+      <div class="btns"><button type="button" class="pri" id="logOpen">記録を開く</button></div>
+    </section>
+    <section class="pane">
       <h3>前のページからデータを移す</h3>
       <p class="hint">前のTodoページの一番下にある「アプリ用にデータをコピー」を押して、ここに貼り付けてください。</p>
       <textarea id="importBox" rows="3" placeholder="ここに貼り付け"></textarea>
@@ -453,7 +473,7 @@ button{-webkit-tap-highlight-color:transparent}
     </section>
     <section class="pane">
       <h3>使い方</h3>
-      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます（週の計画・目標・メモの操作も含めて全部）。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。週の欄と「週の計画」には「この週のメモ」があり、計画の予定にも ✎ でメモを付けられます。「週の計画」の下には、再来週以降のことを見出しごとに開いたり閉じたりして書けるメモがあります。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。色のタグをタップすると メイン→マイクラ→その他→付箋 と切り替わるので、タスクを付箋にしたり付箋をタスクに戻したりできます。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に先週のふりかえりが出ます。</p>
+      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます（週の計画・目標・メモの操作も含めて全部）。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。週の欄と「週の計画」には「この週のメモ」があり、計画の予定にも ✎ でメモを付けられます。「週の計画」の下には、再来週以降のことを見出しごとに開いたり閉じたりして書けるメモがあります。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。色のタグをタップすると メイン→マイクラ→その他→付箋 と切り替わるので、タスクを付箋にしたり付箋をタスクに戻したりできます。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に先週のふりかえりが出ます。保存した中身は全部「変更の記録」に残るので、消してしまったものも「設定・同期」→「記録を開く」から探して戻せます。</p>
       <p class="hint">ホーム画面に追加：iPhoneはSafariの共有ボタン →「ホーム画面に追加」、AndroidはChromeのメニュー →「ホーム画面に追加」。</p>
     </section>
   </div>
@@ -572,6 +592,16 @@ button{-webkit-tap-highlight-color:transparent}
       </div>
     </section>
   </div>
+  <div class="sheet page" id="pageLog" hidden>
+    <section class="later logp">
+      <div class="rv-h"><b>変更の記録</b><span class="rv-note" id="logState"></span></div>
+      <p class="rv-note">保存するたびに、その時の中身を残しています（同じ場所は1分ごとにまとめて記録）。「この版に戻す」で前の状態にでき、戻したあとも ↶ で取り消せます。</p>
+      <div class="seg" id="logKind"><button type="button" data-k="all" aria-pressed="true">すべて</button><button type="button" data-k="day" aria-pressed="false">日のタスク</button><button type="button" data-k="daily" aria-pressed="false">毎日</button><button type="button" data-k="week" aria-pressed="false">週</button><button type="button" data-k="future" aria-pressed="false">先のメモ</button></div>
+      <div class="logtools"><input id="logQ" type="search" placeholder="言葉で探す"><button type="button" id="logCopy">表示中の記録をコピー</button></div>
+      <div id="logList" class="loglist"></div>
+      <button type="button" id="logMore" class="logmore" hidden>もっと前を読み込む</button>
+    </section>
+  </div>
   <div class="toast" id="toast" role="status" hidden></div>
   <p class="note" id="note"></p>
 </div>
@@ -629,9 +659,41 @@ button{-webkit-tap-highlight-color:transparent}
   }
   function writeDay(k,body){
     body={...body,updatedAt:new Date().toISOString()};
-    const d=db;
-    if(!d){local.set(k,body);return}
-    writing=writing.then(()=>d.doc("days/"+k).set(body)).catch(onErr);
+    store("days/"+k,body);
+  }
+  // ---- change log ----
+  // Every save also keeps a copy in the log (one copy per place per minute; the last one in that minute wins),
+  // and the first save of a place in a session also keeps the version from before the change.
+  // Nothing is ever removed from the log in the account. Logs are separate from undo and never sync back.
+  const LOG_MIN=60000,logSeen={};
+  const LOCAL_KEY=path=>{const m=path.match(/^days\/(.+)$/);if(m)return "todo:"+m[1];
+    if(path==="settings/daily")return "todo:daily";if(path==="settings/future")return "todo:future";
+    const w=path.match(/^weeks\/(.+)$/);return w?"todo:week:"+w[1]:null};
+  const logId=(path,kind,ts)=>path.replace(/\//g,"_")+"~"+(kind==="before"?"b"+ts:Math.floor(ts/LOG_MIN));
+  function logLocalPut(e){
+    try{
+      let l=JSON.parse(localStorage.getItem("todo:log")||"[]");
+      l=l.filter(x=>x.id!==e.id);l.push(e);
+      // this device only: keep the newest ~2MB
+      let txt=JSON.stringify(l);while(txt.length>2000000&&l.length>20){l.shift();txt=JSON.stringify(l)}
+      localStorage.setItem("todo:log",txt);
+    }catch(err){}
+  }
+  function store(path,body){
+    const d=db,ts=Date.now();
+    if(!d){
+      const lk=LOCAL_KEY(path);
+      if(!logSeen["l:"+path]){logSeen["l:"+path]=1;try{const prev=localStorage.getItem(lk);if(prev)logLocalPut({id:logId(path,"before",ts),path,kind:"before",ts:ts-1,data:prev})}catch(e){}}
+      try{localStorage.setItem(lk,JSON.stringify(body))}catch(e){saveFailed(e);return}
+      logLocalPut({id:logId(path,"save",ts),path,kind:"save",ts,data:JSON.stringify(body)});
+      return;
+    }
+    writing=writing.then(async()=>{
+      if(!logSeen[path]){logSeen[path]=1;
+        try{const s_=await d.doc(path).getCached();if(s_&&s_.exists){const b=ts-1;d.doc("log/"+logId(path,"before",b)).set({path,kind:"before",ts:b,data:JSON.stringify(s_.data())},true)}}catch(e){}}
+      d.doc("log/"+logId(path,"save",ts)).set({path,kind:"save",ts,data:JSON.stringify(body)},true);
+      return d.doc(path).set(body);
+    }).catch(onErr);
   }
   // ---- undo / redo (Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y, or the ↶ ↷ buttons) ----
   // A step keeps the before/after of everything it touched: the day on screen, other days, daily tasks,
@@ -737,9 +799,7 @@ button{-webkit-tap-highlight-color:transparent}
     record();
     pendingDaily=null;
     const body={items:daily.map(d=>({...d})),updatedAt:new Date().toISOString()};
-    const d=db;
-    if(!d){local.set("daily",body);return}
-    writing=writing.then(()=>d.doc("settings/daily").set(body)).catch(onErr);
+    store("settings/daily",body);
   }
   function commit(){pendingDoc=null;editing=!!subFor||!!dsubFor||!!editTarget||!!newAfter;clearTimeout(blurT);render();save()}
   function softCommit(changed){
@@ -1522,18 +1582,19 @@ button{-webkit-tap-highlight-color:transparent}
       else data=JSON.parse(localStorage.getItem("todo:week:"+start)||"null");
     }catch(e){}
     const fresh=!weekInfo[start];
-    weekInfo[start]=data?{goals:(data.goals||[]).map(g=>({id:g.id||uid(),text:String(g.text||""),result:g.result||null})),seen:!!data.seen,memo:String(data.memo||""),
-      defaultVer:data.defaultVer||(data.defaultUsed?1:0),
-      plan:(data.plan||[]).map(p=>({id:p.id||uid(),text:String(p.text||""),cat:normCat(p.cat),day:p.day,...(p.star?{star:true}:{}),...(p.memo?{memo:String(p.memo)}:{})})),defaultUsed:!!data.defaultUsed}:goalsDefault(start);
+    weekInfo[start]=data?normWeek(data):goalsDefault(start);
     if(fresh)baseAdd(b=>{if(b.aux){const w=JSON.parse(JSON.stringify(weekInfo[start]));delete w.seen;b.aux.weeks[start]=w}});
     return weekInfo[start];
+  }
+  function normWeek(data){
+    return {goals:(data.goals||[]).map(g=>({id:g.id||uid(),text:String(g.text||""),result:g.result||null})),seen:!!data.seen,memo:String(data.memo||""),
+      defaultVer:data.defaultVer||(data.defaultUsed?1:0),
+      plan:(data.plan||[]).map(p=>({id:p.id||uid(),text:String(p.text||""),cat:normCat(p.cat),day:p.day,...(p.star?{star:true}:{}),...(p.memo?{memo:String(p.memo)}:{})})),defaultUsed:!!data.defaultUsed};
   }
   function saveWeekInfo(start){
     record();
     const body={...weekInfo[start],updatedAt:new Date().toISOString()};
-    const d=db;
-    if(!d){try{localStorage.setItem("todo:week:"+start,JSON.stringify(body))}catch(e){saveFailed(e)}return}
-    writing=writing.then(()=>d.doc("weeks/"+start).set(body)).catch(onErr);
+    store("weeks/"+start,body);
   }
   // ---- week memo (weeks/<monday>.memo); hidden until opened ----
   const wmOpen=new Set();
@@ -1779,7 +1840,7 @@ button{-webkit-tap-highlight-color:transparent}
   }
   // ---- pages: 今日 / 今週 / 予定 / 先のメモ ----
   let page="today";
-  const PAGES={today:"pageToday",week:"pageWeek",plan:"pagePlan",later:"pageLater"};
+  const PAGES={today:"pageToday",week:"pageWeek",plan:"pagePlan",later:"pageLater",log:"pageLog"};
   const planVisible=()=>page==="plan";
   async function showPage(p,noHash){
     if(!PAGES[p])p="today";
@@ -1794,7 +1855,131 @@ button{-webkit-tap-highlight-color:transparent}
       // on Sunday the next week is planned; otherwise this week
       if(!planStart)await openPlan(parse(t).getDay()===0?shift(mondayOf(t),7):mondayOf(t));else refreshPlanDocs()}
     if(p==="later"){if(!futureLoaded)loadFuture();else renderFuture()}
+    if(p==="log"){logN=300;loadLogs()}
   }
+  // ---- change log page ----
+  let logList=[],logN=300,logKind="all",logOpenIds=new Set(),logArmed=null,logGen=0;
+  const logKindOf=path=>path.startsWith("days/")?"day":path==="settings/daily"?"daily":path.startsWith("weeks/")?"week":path==="settings/future"?"future":"other";
+  function logLabel(path){
+    if(path.startsWith("days/")){const k=path.slice(5);return dayLabel(k)+"（"+WD[parse(k).getDay()]+"）のタスク"}
+    if(path==="settings/daily")return "毎日タスク";
+    if(path.startsWith("weeks/"))return dayLabel(path.slice(6))+"〜の週（目標・計画・メモ）";
+    if(path==="settings/future")return "先のメモ";
+    return path;
+  }
+  const catName=c=>CAT[normCat(c)]||"";
+  function logLines(path,data){
+    const L=[];data=data||{};
+    if(path.startsWith("days/")){
+      const its=data.items||[];
+      its.filter(i=>!i.parent).forEach(i=>{
+        L.push((i.done?"☑ ":"☐ ")+"["+catName(i.cat)+"] "+(i.star?"★":"")+i.text+(i.moved?"（→翌日へ）":""));
+        if(i.memo)L.push("　✎ "+String(i.memo).replace(/\n/g," / "));
+        its.filter(k=>k.parent===i.id).forEach(k=>L.push("　└ "+(k.done?"☑ ":"☐ ")+k.text));
+      });
+      const dn=Object.entries(data.rdone||{});
+      const names=Object.fromEntries((daily||[]).map(d=>[d.id,d.text]));
+      dn.forEach(([id,v])=>{if(v===true)L.push("↻☑ "+(names[id]||"毎日タスク"));else if(v==="skip")L.push("↻ この日は休み："+(names[id]||"毎日タスク"))});
+    }else if(path==="settings/daily"){
+      (data.items||[]).forEach(d=>{L.push("↻ ["+catName(d.cat)+"] "+(d.star?"★":"")+d.text+(d.until?"（"+dayLabel(d.until)+"で解除）":""));
+        (d.subs||[]).forEach(x=>L.push("　└ "+x.text));if(d.memo)L.push("　✎ "+String(d.memo).replace(/\n/g," / "))});
+    }else if(path.startsWith("weeks/")){
+      (data.goals||[]).forEach(g=>L.push("目標："+g.text+(g.result?"（"+g.result+"）":"")));
+      if(data.memo)String(data.memo).split("\n").forEach(x=>{if(x.trim())L.push("メモ："+x)});
+      [...(data.plan||[])].sort((a,b)=>String(a.day).localeCompare(String(b.day))).forEach(p=>{
+        L.push((p.day?WD[parse(p.day).getDay()]+" ":"")+"["+catName(p.cat)+"] "+p.text);if(p.memo)L.push("　✎ "+String(p.memo).replace(/\n/g," / "))});
+    }else if(path==="settings/future"){
+      futureFrom(data).forEach(t=>{L.push("■ "+t.title);t.body.split("\n").forEach(x=>{if(x.trim())L.push("　"+x)})});
+    }
+    return L;
+  }
+  const fmtTs=ts=>{const d=new Date(ts);return (d.getMonth()+1)+"/"+d.getDate()+" "+d.getHours()+":"+String(d.getMinutes()).padStart(2,"0")};
+  async function loadLogs(){
+    const g=++logGen;$("logState").textContent="読み込み中…";
+    let l=[];
+    try{
+      if(db&&db.logs)l=await db.logs(logN);
+      else l=JSON.parse(localStorage.getItem("todo:log")||"[]");
+      l.sort((a,b)=>b.ts-a.ts);
+    }catch(e){if(g===logGen)$("logState").textContent="読み込めませんでした（つながってからもう一度開いてください）";return}
+    if(g!==logGen)return;
+    logList=l.map(e=>{let data=null;try{data=JSON.parse(e.data)}catch(_){}return{...e,data,lines:logLines(e.path,data)}});
+    $("logState").textContent=logList.length?logList.length+"件":"";
+    $("logMore").hidden=!(db&&logList.length>=logN);
+    renderLog();
+  }
+  function renderLog(){
+    const box=$("logList");box.textContent="";
+    const q=$("logQ").value.trim();
+    // what changed: compared with the next older copy of the same place
+    const older={};const diffs=new Map();
+    for(let i=logList.length-1;i>=0;i--){const e=logList[i];const o=older[e.path];
+      if(o){const a=new Set(o.lines),b=new Set(e.lines);diffs.set(e,{add:e.lines.filter(x=>!a.has(x)),del:o.lines.filter(x=>!b.has(x))})}
+      older[e.path]=e}
+    const shown=logList.filter(e=>(logKind==="all"||logKindOf(e.path)===logKind)&&(!q||e.lines.some(x=>x.includes(q))||logLabel(e.path).includes(q)||(diffs.get(e)&&diffs.get(e).del.some(x=>x.includes(q)))));
+    if(!shown.length){box.append(el("p","rv-note",logList.length?"見つかりませんでした。":"まだ記録はありません。これから保存するたびにここに残ります。"));return}
+    shown.slice(0,300).forEach(e=>{
+      const w=el("div","lg");
+      const h=el("div","lg-h");h.append(el("span","lg-t",fmtTs(e.ts)),el("span",null,logLabel(e.path)));
+      if(e.kind==="before")h.append(el("span","lg-k","変更する前"));
+      w.append(h);
+      const df=diffs.get(e);
+      const d=el("div","lg-d");
+      if(df&&(df.add.length||df.del.length)){
+        df.add.slice(0,6).forEach(x=>d.append(el("div","add","＋ "+x)));if(df.add.length>6)d.append(el("div",null,"…ほか"+(df.add.length-6)+"件"));
+        df.del.slice(0,6).forEach(x=>d.append(el("div","del","− "+x)));if(df.del.length>6)d.append(el("div",null,"…ほか"+(df.del.length-6)+"件"));
+      }else d.textContent=e.lines.length?e.lines.slice(0,3).join("\n")+(e.lines.length>3?"\n…ほか"+(e.lines.length-3)+"行":""):"（空）";
+      w.append(d);
+      const b=el("div","lg-b");
+      const open=logOpenIds.has(e.id);
+      const vb=el("button",null,open?"中身を閉じる":"中身を見る");vb.type="button";vb.onclick=()=>{if(open)logOpenIds.delete(e.id);else logOpenIds.add(e.id);renderLog()};
+      const rb=el("button",logArmed===e.id?"warn":null,logArmed===e.id?"本当に戻す？":"この版に戻す");rb.type="button";
+      rb.onclick=()=>{if(readOnly||!e.data)return;if(logArmed!==e.id){logArmed=e.id;renderLog();setTimeout(()=>{if(logArmed===e.id){logArmed=null;renderLog()}},4000);return}logArmed=null;restoreLog(e)};
+      const mk="m:"+e.id;
+      const mb=el("button",logArmed===mk?"warn":null,logArmed===mk?"本当に足す？":"消えた分だけ戻す");mb.type="button";
+      mb.title="今の中身は残したまま、この版にあって今はないものだけを戻します";
+      mb.onclick=()=>{if(readOnly||!e.data)return;if(logArmed!==mk){logArmed=mk;renderLog();setTimeout(()=>{if(logArmed===mk){logArmed=null;renderLog()}},4000);return}logArmed=null;restoreLog(e,true)};
+      b.append(vb,mb,rb);w.append(b);
+      if(open)w.append(el("pre",null,e.lines.join("\n")||"（空）"));
+      box.append(w);
+    });
+  }
+  async function restoreLog(e,merge){
+    const path=e.path,data=e.data;
+    // merge: keep everything that's there now and add back only what this version had and now lacks
+    const addMissing=(now,old,key)=>{const have=new Set(now.map(key));return now.concat(old.filter(x=>!have.has(key(x))))};
+    const ev={view:cur,days:{},daily:null,weeks:{},future:null};
+    try{
+      if(path.startsWith("days/")){const k=path.slice(5);const before=cloneDoc(k===cur?dayDoc():await readDay(k));let after=cloneDoc(data);
+        if(merge){const add=after.items.filter(x=>!before.items.some(y=>y.id===x.id));after={...cloneDoc(before),items:before.items.concat(add)}}
+        ev.days[k]={before,after}}
+      else if(path==="settings/daily"){const before=JSON.parse(JSON.stringify(daily));const old=normDaily(data.items);ev.daily={before,after:merge?addMissing(before,old,x=>x.id):old}}
+      else if(path.startsWith("weeks/")){const k=path.slice(6);const w=JSON.parse(JSON.stringify(await loadWeekInfo(k)));delete w.seen;const a=normWeek(data);delete a.seen;
+        const after=merge?{...JSON.parse(JSON.stringify(w)),goals:addMissing(w.goals,a.goals,x=>x.id),plan:addMissing(w.plan,a.plan,x=>x.id),memo:w.memo.includes(a.memo)?w.memo:(w.memo?w.memo+"\n":"")+a.memo}:a;
+        ev.weeks[k]={before:w,after}}
+      else if(path==="settings/future"){
+        if(!futureLoaded){loadFuture();for(let i=0;i<60&&!futureLoaded;i++)await new Promise(r=>setTimeout(r,100))}
+        if(!futureLoaded){toast("先のメモを読み込めませんでした。つながってからもう一度押してください");return}
+        const now=future.map(t=>({id:t.id,title:t.title,body:t.body})),old=futureFrom(data).map(t=>({id:t.id,title:t.title,body:t.body}));
+        ev.future={before:now,after:merge?addMissing(now,old,x=>x.id):old};
+      }else return;
+    }catch(err){toast("戻せませんでした。もう一度押してください");return}
+    applyStep(ev,"after");undoStack.push(ev);if(undoStack.length>80)undoStack.shift();redoStack=[];histButtons();
+    if(jeq(ev.days,{})&&!ev.daily&&jeq(ev.weeks,{})&&!ev.future)return;
+    toast(merge?logLabel(path)+"に "+fmtTs(e.ts)+" の版から消えた分を戻しました（↶で取り消せます）":logLabel(path)+"を "+fmtTs(e.ts)+" の版に戻しました（↶で取り消せます）");
+    setTimeout(()=>{if(page==="log")loadLogs()},1200);
+  }
+  $("logKind").onclick=e=>{const b=e.target.closest("button[data-k]");if(!b)return;logKind=b.dataset.k;[...$("logKind").children].forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderLog()};
+  $("logQ").oninput=()=>renderLog();
+  $("logMore").onclick=()=>{logN+=300;loadLogs()};
+  $("logCopy").onclick=()=>{
+    const q=$("logQ").value.trim();
+    const shown=logList.filter(e=>(logKind==="all"||logKindOf(e.path)===logKind)&&(!q||e.lines.some(x=>x.includes(q))||logLabel(e.path).includes(q)));
+    const text=shown.map(e=>"【"+fmtTs(e.ts)+" "+logLabel(e.path)+(e.kind==="before"?"（変更する前）":"")+"】\n"+(e.lines.join("\n")||"（空）")).join("\n\n");
+    if(!text){toast("コピーする記録がありません");return}
+    try{navigator.clipboard.writeText(text).then(()=>toast(shown.length+"件の記録をコピーしました"),()=>toast("コピーできませんでした"))}catch(err){toast("コピーできませんでした")}
+  };
+  $("logOpen").onclick=()=>{$("panel").hidden=true;$("menuBtn").setAttribute("aria-expanded","false");showPage("log")};
   $("tabs").onclick=e=>{const b=e.target.closest("button[data-page]");if(b)showPage(b.dataset.page)};
   window.addEventListener("hashchange",()=>showPage((location.hash||"").slice(1)||"today",true));
   $("rvBanner").onclick=()=>{$("rvBanner").hidden=true;showPage("week");openReview(shift(mondayOf(todayKey()),-7))};
@@ -1885,9 +2070,7 @@ button{-webkit-tap-highlight-color:transparent}
       futureT=null;futurePending=null;
       record();
       const body={toggles:future.map(t=>({...t})),updatedAt:new Date().toISOString()};
-      const d=db;
-      if(!d){try{localStorage.setItem("todo:future",JSON.stringify(body))}catch(e){saveFailed(e)}}
-      else writing=writing.then(()=>d.doc("settings/future").set(body)).catch(onErr);
+      store("settings/future",body);
       $("futureState").textContent="保存しました";
     };
     if(now){futureT=null;go()}else{$("futureState").textContent="…";futureT=setTimeout(go,700)}
@@ -2226,7 +2409,7 @@ button{-webkit-tap-highlight-color:transparent}
   // hooks for app.js (cloud sync)
   let dailyUnsub=null;
   // after login/logout the page on screen reads the account's data again
-  function afterSwitch(){if(page==="later")loadFuture();else if(page==="plan"&&planStart)openPlan(planStart);else if(page==="week")renderWeek()}
+  function afterSwitch(){if(page==="log")loadLogs();else if(page==="later")loadFuture();else if(page==="plan"&&planStart)openPlan(planStart);else if(page==="week")renderWeek()}
   const reset=()=>{stopFuture();clearTimeout(futureT);futureT=null;futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
   window.todoCore={
     connect(d){

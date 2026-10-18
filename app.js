@@ -29,13 +29,17 @@
     const base="users/"+uid+"/";
     return{
       // every saved day, for the running totals
+      // change log, newest first
+      async logs(n){const r=await fs.collection(base+"log").orderBy("ts","desc").limit(n).get();const out=[];r.forEach(d=>out.push({id:d.id,...d.data()}));return out},
       async allDays(){const q=await fs.collection(base+"days").get();const out={};q.forEach(d=>{out[d.id]=d.data()});return out},
       doc(p){
       const ref=fs.doc(base+p);
       return{
         get:()=>ref.get().then(wrapSnap),
         // offline writes are queued by Firestore; don't wait for the server
-        set:b=>{ref.set(b).catch(e=>{console.warn("sync",e);core.writeError&&core.writeError(e)});return Promise.resolve()},
+        set:(b,quiet)=>{ref.set(b).catch(e=>{console.warn("sync",e);if(!quiet&&core.writeError)core.writeError(e)});return Promise.resolve()},
+        // what this device last knew (no network wait)
+        getCached:()=>ref.get({source:"cache"}).then(wrapSnap),
         // metadata changes too, so the page hears when the server has confirmed the day (needed for the day-change carry-over)
         onSnapshot:(next,err)=>ref.onSnapshot({includeMetadataChanges:true},s=>next(wrapSnap(s)),err||(()=>{}))
       };
