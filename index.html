@@ -188,6 +188,17 @@ button{font:inherit;color:inherit}
 .psel-h{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;background:var(--soft);font-size:13px;font-weight:900}
 .psel-h button{border:0;background:none;color:var(--muted);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 .psel .pitem{border-top:0}
+.pgrid tr.pg-opt{display:none}
+.pgrid.dragging tr.pg-opt{display:table-row}
+.pcard{touch-action:pan-x pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.pd-ghost{position:fixed;z-index:60;pointer-events:none;margin:0;box-shadow:0 10px 26px rgba(0,0,0,.22);opacity:.95}
+.pcard.pd-src{opacity:.3}
+.pg-cell.pg-drop{background:color-mix(in srgb,var(--ink) 7%,var(--sheet))!important;box-shadow:inset 0 0 0 2px var(--ink)}
+.pd-ins{height:3px;border-radius:2px;background:var(--ink);margin:2px 0}
+.psel-cats{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:6px 10px 8px;border-top:1px solid var(--line)}
+.psel-cats>span{font-size:11px;font-weight:700;color:var(--muted);margin-right:2px}
+.psel-cats button{border:1.5px solid var(--c);background:var(--sheet);color:var(--c);border-radius:14px;padding:2px 10px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.psel-cats button[aria-pressed="true"]{background:var(--c);color:var(--sheet)}
 .pcat{padding:4px 10px 0;font-size:11px;font-weight:900;color:var(--c);letter-spacing:.06em;border-top:1px solid var(--line);display:flex;align-items:center;gap:6px}
 .pcat::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--c)}
 .pcat+.pitem{border-top:0}
@@ -1155,7 +1166,7 @@ button{-webkit-tap-highlight-color:transparent}
   }
   const cacheDay=(k,doc)=>{if(week.data[k])week.data[k]={items:norm(doc.items),rdone:{...(doc.rdone||{})}};if(allDocs)allDocs[k]=doc};
   // move a task (with its subtasks) from one day to another; one undo step covers both days
-  async function moveBetween(src,dst,id,quiet){
+  async function moveBetween(src,dst,id,quiet,fix){
     if(src===dst||readOnly)return false;
     let srcDoc=null,dstDoc=null;
     try{if(src!==cur)srcDoc=await readDay(src);if(dst!==cur)dstDoc=await readDay(dst)}catch(e){toast("その日のデータを読めませんでした。もう一度押してください");return false}
@@ -1164,7 +1175,7 @@ button{-webkit-tap-highlight-color:transparent}
     if(src===cur){const d={items:[...items],order:viewKeys()};moved=take(d);items=d.items;order=d.order}
     else{const d={items:norm(srcDoc.items),order:[...(srcDoc.order||[])]};moved=take(d);const after={...cloneDoc(srcDoc),items:d.items,order:d.order};x.push({day:src,before:cloneDoc(srcDoc),after});writeDay(src,after);cacheDay(src,after)}
     if(!moved.length){render();return false}
-    moved=moved.map(m=>{const c={...m};delete c.moved;delete c.movedTo;delete c.movedId;return c});
+    moved=moved.map(m=>{const c={...m};delete c.moved;delete c.movedTo;delete c.movedId;if(fix)fix(c);return c});
     if(dst===cur){items=[...items,...moved];order=[...viewKeys().filter(k=>k!==id),id]}
     else{const after={...cloneDoc(dstDoc),items:[...norm(dstDoc.items).filter(i=>!moved.some(m=>m.id===i.id)),...moved],order:[...(dstDoc.order||[]).filter(o=>o!==id),id]};x.push({day:dst,before:cloneDoc(dstDoc),after});writeDay(dst,after);cacheDay(dst,after)}
     pendingX=x;commit();
@@ -1364,7 +1375,7 @@ button{-webkit-tap-highlight-color:transparent}
         st.onclick=()=>editText(sl,st,()=>x.text,v=>{x.text=v;saveDaily()},()=>{dsubFor={p:d.id,after:x.id}});
         const a=el("div","acts");
         if(!readOnly)a.append(actBtn("×","この小タスクを消す（毎日共通）",()=>{d.subs=subs.filter(y=>y!==x);if(!d.subs.length)delete d.subs;delete rdone["s:"+x.id];grouped(()=>{saveDaily();commit()})}));
-        const sh=el("span","handle");sh.style.visibility="hidden";
+        const sh=handle();sh.setAttribute("aria-label","ドラッグで小タスクを並べ替え");if(readOnly)sh.style.visibility="hidden";
         sl.append(sh,boxBtn(sdone(x),()=>{if(sdone(x))delete rdone["s:"+x.id];else rdone["s:"+x.id]=1;syncParent();commit()}),st,a);
         ul.append(sl);
         if(dAdding&&(dsubFor.after===x.id||(dsubFor.after===null&&idx===shown.length-1)))ul.append(addRow(x.id));
@@ -1598,7 +1609,7 @@ button{-webkit-tap-highlight-color:transparent}
     const task=sub?li.closest("li.task"):li;
     if(!task||task.parentElement.id!=="list"&&!sub)return;
     if(!task.closest("#list"))return;
-    if(sub&&task.classList.contains("daily"))return;
+    // a daily task's subtasks can be reordered inside that daily task
     const rowEl=sub||task.querySelector(":scope>.row");if(!rowEl)return;
     const r=rowEl.getBoundingClientRect();
     // the floating copy keeps the same surroundings as the list so it looks the same
@@ -1610,7 +1621,7 @@ button{-webkit-tap-highlight-color:transparent}
     const line=el("div","kline");document.body.append(line);
     li.classList.add("kdragging");
     editing=true;
-    kd={pid,li,sub:!!sub,daily:task.dataset.key.startsWith("d:"),key:task.dataset.key,id:sub?sub.dataset.id:task.dataset.key,
+    kd={pid,li,sub:!!sub,dsub:!!sub&&task.dataset.key.startsWith("d:"),daily:task.dataset.key.startsWith("d:"),key:task.dataset.key,id:sub?sub.dataset.id:task.dataset.key,
         x0:x,y0:y,r,ghost,line,R:dragRows(li),gap:null,level:null,moved:false};
     kdMove(x,y);
   }
@@ -1618,6 +1629,11 @@ button{-webkit-tap-highlight-color:transparent}
     const R=kd.R;let i=R.length;
     for(let j=0;j<R.length;j++){const b=R[j].el.getBoundingClientRect();if(y<b.top+b.height/2){i=j;break}}
     const prev=R[i-1],next=R[i];
+    if(kd.dsub){
+      // only inside its own daily task
+      const own=prev&&((prev.type==="top"&&prev.key===kd.key)||(prev.type==="sub"&&prev.parentKey===kd.key));
+      return{i,level:own?"sub":null,parentKey:kd.key,prev,next};
+    }
     const canTop=!next||next.type==="top";
     let parentKey=null;
     if(prev&&!kd.daily){const pk=prev.type==="top"?prev.key:prev.parentKey;const pr=R.find(r=>r.type==="top"&&r.key===pk);if(pr&&!pr.daily&&!pr.moved&&pk!==kd.id)parentKey=pk}
@@ -1645,6 +1661,14 @@ button{-webkit-tap-highlight-color:transparent}
     swSuppress=true;setTimeout(()=>{swSuppress=false},450);
     const t=d.t;if(!d.moved||!t||!t.level){render();return}
     const {prev,next}=t;
+    if(d.dsub){
+      const dl=daily.find(x=>"d:"+x.id===d.key);if(!dl||!dl.subs){render();return}
+      const ids=d.R.slice(0,t.i).filter(r=>r.type==="sub"&&r.parentKey===d.key).map(r=>r.id);
+      const me=dl.subs.find(x=>x.id===d.id);const rest=dl.subs.filter(x=>x!==me);
+      const at=ids.length?rest.findIndex(x=>x.id===ids[ids.length-1])+1:0;
+      rest.splice(at,0,me);dl.subs=rest;
+      grouped(()=>{saveDaily();commit()});return;
+    }
     if(t.level==="top"){
       const key=d.sub?d.id:d.key;
       if(d.sub){const it=items.find(x=>x.id===d.id);if(!it){render();return}
@@ -1693,7 +1717,7 @@ button{-webkit-tap-highlight-color:transparent}
     if(e.pointerType==="mouse"||readOnly||kd||!e.isPrimary)return;
     const t=e.target;if(!t.closest||t.closest("input,textarea,a,.handle,.xpop,.subadd"))return;
     const task=t.closest("#list li.task");if(!task||task.classList.contains("newtask")||task.classList.contains("moved"))return;
-    const sub=t.closest("li.sub");if(sub&&(task.classList.contains("daily")||!sub.dataset.id))return;
+    const sub=t.closest("li.sub");if(sub&&!sub.dataset.id)return;
     lp={pid:e.pointerId,x:e.clientX,y:e.clientY,li:sub||task};
     lpT=setTimeout(()=>{
       if(!lp||(sw&&sw.on))return;
@@ -1974,7 +1998,8 @@ button{-webkit-tap-highlight-color:transparent}
       let live=null,liveDay=null,outDay=null;
       Object.keys(docs).sort().forEach(k=>{
         norm((docs[k]||emptyDoc()).items).forEach(i=>{
-          if(i.planId!==p.id||i.parent)return;
+          if(i.planId!==p.id)return; // also when it was made a subtask
+          if(i.parent&&!norm((docs[k]||emptyDoc()).items).some(x=>x.id===i.parent))return;
           if(i.moved){if(i.movedTo&&!(i.movedTo in docs))outDay=i.movedTo;return}
           live=i;liveDay=k;
         });
@@ -1983,12 +2008,13 @@ button{-webkit-tap-highlight-color:transparent}
       if(live){shift=daysBetween(p.day,liveDay);state=live.done?(shift?"shiftedDone":"onPlan"):(shift?"shifting":"pending")}
       else if(outDay){shift=daysBetween(p.day,outDay);state="nextWeek"}
       else state="dropped";
-      out.push({p,live,liveDay,shift,state});
+      // the category follows the task in the day list (it can be changed there too)
+      out.push({p,live,liveDay,shift,state,cat:live?live.cat:p.cat});
     });
     return out;
   }
   function planSummary(stats){
-    stats=stats.filter(s=>!isNote(s.p));
+    stats=stats.filter(s=>!isNote(s));
     const c=k=>stats.filter(s=>s.state===k).length;
     const shifted=stats.filter(s=>s.shift!==0&&(s.live||s.state==="nextWeek"));
     const shiftDays=shifted.reduce((a,s)=>a+Math.abs(s.shift),0);
@@ -2029,12 +2055,11 @@ button{-webkit-tap-highlight-color:transparent}
     const thead=el("thead");thead.append(hr);tb.append(thead);
     const tbody=el("tbody");
     CAT_IDS.forEach(c=>{
-      const inCat=stats.filter(s=>s.p.cat===c);
-      if(!inCat.length&&(c==="post"||c==="pub"))return;
-      const tr=el("tr");tr.dataset.cat=c;
+      const inCat=stats.filter(s=>s.cat===c);
+      const tr=el("tr",!inCat.length&&(c==="post"||c==="pub")?"pg-opt":null);tr.dataset.cat=c;
       const th=el("th","pg-cat");th.dataset.cat=c;th.append(el("span",null,CAT[c]));tr.append(th);
       days.forEach(k=>{
-        const td=el("td","pg-cell"+(k<today?" past":"")+(k===today?" is-today":""));
+        const td=el("td","pg-cell"+(k<today?" past":"")+(k===today?" is-today":""));td.dataset.day=k;td.dataset.cat=c;
         inCat.filter(s=>s.p.day===k).forEach(s=>td.append(planCard(s)));
         if(!readOnly){
           if(planCell&&planCell.day===k&&planCell.cat===c)td.append(cellInput(k,c));
@@ -2057,10 +2082,103 @@ button{-webkit-tap-highlight-color:transparent}
       const pane=el("div","psel");
       const h=el("div","psel-h");h.append(el("span",null,WD[d.getDay()]+" "+(d.getMonth()+1)+"/"+d.getDate()+" の予定"));
       const x=el("button",null,"閉じる");x.type="button";x.onclick=()=>{planSel=null;planShift=null;renderPlan()};h.append(x);
-      pane.append(h,planRow(sel));box.append(pane);
+      // item buttons so the category is easy to change (the dot also works)
+      const cs=el("div","psel-cats");cs.append(el("span",null,"項目"));
+      CAT_IDS.forEach(c=>{const b=el("button",null,CAT[c]);b.type="button";b.dataset.cat=c;b.setAttribute("aria-pressed",String(sel.cat===c));
+        b.onclick=()=>{if(readOnly||sel.cat===c)return;grouped(async()=>{sel.p.cat=c;sel.cat=c;saveWeekInfo(planStart);if(sel.live)await setLiveCat_(sel,c);else renderPlan()}).then(()=>toast(CAT[c]+"にしました"))};
+        cs.append(b)});
+      pane.append(h,planRow(sel),cs);box.append(pane);
     }else if(planSel){planSel=null}
   }
   let planSel=null,planCell=null,planScroll=null;
+  // ---- drag a planned item to another day (left/right), another item row (up/down) or another place in the cell ----
+  // Dragging re-plans it: the planned day itself changes and the task moves to that day's list.
+  // (⇢ ずらす is still the way to move it while keeping a record of how far it slipped.)
+  let pd=null,pdSuppress=false,pdT=null;
+  function pdStart(e,s,card){
+    if(readOnly||!e.isPrimary||e.button>0)return;
+    clearTimeout(pdT);
+    pd={s,card,pid:e.pointerId,x0:e.clientX,y0:e.clientY,x:e.clientX,y:e.clientY,on:false,touch:e.pointerType!=="mouse"};
+    if(pd.touch)pdT=setTimeout(()=>{if(pd&&!pd.on){try{navigator.vibrate&&navigator.vibrate(12)}catch(_){}pdBegin()}},330);
+  }
+  function pdBegin(){
+    const r=pd.card.getBoundingClientRect();
+    const g=pd.card.cloneNode(true);g.classList.add("pd-ghost");g.classList.remove("sel");g.style.width=r.width+"px";g.style.left=r.left+"px";g.style.top=r.top+"px";
+    document.body.append(g);pd.g=g;pd.r=r;pd.on=true;editing=true;
+    pd.card.classList.add("pd-src");
+    const t=$("planDays").querySelector(".pgrid");if(t)t.classList.add("dragging");
+    pd.ins=el("div","pd-ins");
+    pdMove(pd.x,pd.y);
+  }
+  function pdTarget(x,y){
+    const hit=document.elementFromPoint(x,y);const td=hit&&hit.closest&&hit.closest("#planDays td.pg-cell");
+    if(!td)return null;
+    const cards=[...td.querySelectorAll(".pcard")].filter(c=>c!==pd.card);
+    let before=null;for(const c of cards){const b=c.getBoundingClientRect();if(y<b.top+b.height/2){before=c;break}}
+    return{td,day:td.dataset.day,cat:td.dataset.cat,before};
+  }
+  function pdMove(x,y){
+    pd.x=x;pd.y=y;
+    pd.g.style.transform="translate("+(x-pd.x0)+"px,"+(y-pd.y0)+"px)";
+    const t=pdTarget(x,y);
+    $("planDays").querySelectorAll(".pg-drop").forEach(z=>z.classList.remove("pg-drop"));
+    if(t){t.td.classList.add("pg-drop");if(t.before)t.td.insertBefore(pd.ins,t.before);else{const pl=t.td.querySelector(".pg-plus");if(pl)t.td.insertBefore(pd.ins,pl);else t.td.append(pd.ins)}}
+    else pd.ins.remove();
+    pd.t=t;
+    // keep scrolling while near an edge
+    const w=$("planDays").querySelector(".pgrid-wrap");
+    if(w){const wr=w.getBoundingClientRect();if(x<wr.left+40)w.scrollLeft-=14;else if(x>wr.right-40)w.scrollLeft+=14}
+    if(y<70)window.scrollBy(0,-12);else if(y>window.innerHeight-70)window.scrollBy(0,12);
+  }
+  function pdClean(){
+    if(pd&&pd.g)pd.g.remove();if(pd&&pd.ins)pd.ins.remove();if(pd&&pd.card)pd.card.classList.remove("pd-src");
+    $("planDays").querySelectorAll(".pg-drop").forEach(z=>z.classList.remove("pg-drop"));
+    const t=$("planDays").querySelector(".pgrid");if(t)t.classList.remove("dragging");
+  }
+  document.addEventListener("pointermove",e=>{
+    if(!pd||e.pointerId!==pd.pid)return;
+    if(!pd.on){
+      const d=Math.hypot(e.clientX-pd.x0,e.clientY-pd.y0);
+      if(pd.touch){if(d>9){clearTimeout(pdT);pd=null}return} // a finger that moves first is scrolling
+      if(d<6)return;pd.x=e.clientX;pd.y=e.clientY;pdBegin();
+    }
+    e.preventDefault();pdMove(e.clientX,e.clientY);
+  },{passive:false});
+  document.addEventListener("touchmove",e=>{if(pd&&pd.on)e.preventDefault()},{passive:false});
+  document.addEventListener("pointerup",e=>{
+    if(!pd||e.pointerId!==pd.pid)return;clearTimeout(pdT);
+    const d=pd;pd=null;if(!d.on)return;
+    pdSuppress=true;setTimeout(()=>{pdSuppress=false},400);
+    const t=d.t;pd=d;pdClean();pd=null;editing=false;
+    if(!t){renderPlan();return}
+    planDrop(d.s,t.day,t.cat,t.before?t.before.dataset.id:null);
+  });
+  document.addEventListener("pointercancel",e=>{if(!pd||e.pointerId!==pd.pid)return;clearTimeout(pdT);const d=pd;if(d.on){pdClean();editing=false;renderPlan()}pd=null});
+  document.addEventListener("keydown",e=>{if(pd&&pd.on&&e.key==="Escape"){pdClean();pd=null;editing=false;renderPlan()}});
+  function planDrop(s,toDay,toCat,beforeId){
+    const info=weekInfo[planStart];if(!info)return;
+    const p=s.p,oldDay=p.day,oldCat=s.cat;
+    const same=toDay===oldDay&&toCat===oldCat;
+    grouped(async()=>{
+      const rest=info.plan.filter(x=>x!==p);
+      p.day=toDay;p.cat=toCat;
+      const at=beforeId?rest.findIndex(x=>x.id===beforeId):-1;
+      if(at<0){
+        // after the last item already in that cell
+        const st=planStatus(planStart,planDocs||{});
+        let last=-1;rest.forEach((x,i)=>{const sx=st.find(y=>y.p.id===x.id);const xc=sx?sx.cat:x.cat;if(x.day===toDay&&xc===toCat)last=i});
+        rest.splice(last<0?rest.length:last+1,0,p);
+      }else rest.splice(at,0,p);
+      info.plan=rest;saveWeekInfo(planStart);
+      if(s.live){
+        if(toCat!==oldCat)await setLiveCat_(s,toCat);
+        if(toDay!==oldDay){
+          if(!s.live.done&&!s.live.parent&&s.liveDay===oldDay)await moveBetween(s.liveDay,toDay,s.live.id,true,c=>{if(c.id===s.live.id)c.planDay=toDay});
+          else if(s.liveDay===cur){const it=items.find(i=>i.id===s.live.id);if(it){it.planDay=toDay;commit()}}
+        }
+      }
+    }).then(()=>{refreshPlanDocs();if(!same){const d=parse(toDay);toast(WD[d.getDay()]+"曜の"+CAT[toCat]+"に移しました")}});
+  }
   function openCell(day,cat){planCell={day,cat};planSel=null;planShift=null;renderPlan()}
   // typing straight into a cell of the table: Enter adds and keeps the cell open for the next one
   function cellInput(day,cat){
@@ -2077,15 +2195,18 @@ button{-webkit-tap-highlight-color:transparent}
     return inp;
   }
   function planCard(s){
-    const b=el("button","pcard"+(planSel===s.p.id?" sel":""));b.type="button";b.dataset.cat=s.p.cat;
-    const [lbl,cls]=isNote(s.p)?(s.live?[CAT[s.p.cat],"no"]:["済み","ok"]):ST_LABEL(s);
+    const b=el("button","pcard"+(planSel===s.p.id?" sel":""));b.type="button";b.dataset.cat=s.cat;
+    const [lbl,cls]=isNote(s)?(s.live?[CAT[s.cat],"no"]:["済み","ok"]):ST_LABEL(s);
     b.classList.add("st-"+cls);
     b.append(el("span","pc-t",(s.p.star?"★":"")+s.p.text));
     const quiet=cls==="no";
     const meta=el("span","pc-s",quiet?"":lbl.replace(/（.*?）/,""));
     if((s.p.memo||"").trim())meta.append(el("span","pc-m","✎ メモ"));
     if(meta.textContent)b.append(meta);
-    b.onclick=()=>{planSel=planSel===s.p.id?null:s.p.id;planShift=null;renderPlan();
+    b.dataset.id=s.p.id;
+    b.onpointerdown=e=>pdStart(e,s,b);
+    b.onmousedown=e=>e.preventDefault();b.oncontextmenu=e=>e.preventDefault();
+    b.onclick=e=>{if(pdSuppress){pdSuppress=false;return}planSel=planSel===s.p.id?null:s.p.id;planShift=null;renderPlan();
       if(planSel)queueMicrotask(()=>{const p=$("planDays").querySelector(".psel");if(p&&p.scrollIntoView)p.scrollIntoView({block:"nearest",behavior:"smooth"})})};
     return b;
   }
@@ -2094,15 +2215,15 @@ button{-webkit-tap-highlight-color:transparent}
       case"shifting":return["→ "+wd(s.liveDay)+"へ（"+(s.shift>0?"+":"")+s.shift+"日）","go"];case"pending":return["未","no"];case"nextWeek":return["→ 来週へ","go"];default:return["取りやめ","drop"]}};
   const pmOpen=new Set();
   function planRow(s){
-    const row=el("div","pitem");row.dataset.cat=s.p.cat;
+    const row=el("div","pitem");row.dataset.cat=s.cat;
     const t=el("span","ptxt",(s.p.star?"★":"")+s.p.text);
     if((s.p.memo||"").trim()&&!pmOpen.has(s.p.id))t.append(el("span","mk","✎メモ"));
-    const [lbl,cls]=isNote(s.p)?(s.live?[CAT[s.p.cat],"no"]:["済み","ok"]):ST_LABEL(s);
+    const [lbl,cls]=isNote(s)?(s.live?[CAT[s.cat],"no"]:["済み","ok"]):ST_LABEL(s);
     const acts=el("span","pacts");
     if(s.live&&!s.live.done){const b=el("button",null,"⇢");b.type="button";b.title="ずらす";b.onclick=()=>{planShift=planShift===s.p.id?null:s.p.id;renderPlan()};acts.append(b)}
     const mb=el("button",null,"✎");mb.type="button";mb.title="メモ";mb.onclick=()=>{if(pmOpen.has(s.p.id))pmOpen.delete(s.p.id);else pmOpen.add(s.p.id);renderPlan()};acts.append(mb);
     const x=el("button",null,"×");x.type="button";x.title="予定から外す";x.onclick=()=>removePlan(s);acts.append(x);
-    const tag=catTag(s.p.cat,c=>grouped(async()=>{s.p.cat=c;saveWeekInfo(planStart);if(s.live)await setLiveCat_(s,c);else renderPlan()}));
+    const tag=catTag(s.cat,c=>grouped(async()=>{s.p.cat=c;s.cat=c;saveWeekInfo(planStart);if(s.live)await setLiveCat_(s,c);else renderPlan()}));
     tag.title="タップで分類を変える（メイン→マイクラ→その他→付箋→投稿）";tag.classList.add("dot");tag.textContent="";
     t.title="タップで書き換え";t.style.cursor="text";
     t.onclick=()=>{
