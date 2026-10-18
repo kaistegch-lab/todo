@@ -146,6 +146,7 @@ button{font:inherit;color:inherit}
 .pcat{padding:4px 10px 0;font-size:11px;font-weight:900;color:var(--c);letter-spacing:.06em;border-top:1px solid var(--line);display:flex;align-items:center;gap:6px}
 .pcat::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--c)}
 .pcat+.pitem{border-top:0}
+.ctag.dot{width:16px;height:16px;padding:0;border-radius:50%;background:var(--c);flex:none;margin-top:3px;box-shadow:inset 0 0 0 2px var(--c-soft)}
 .wmemo{display:grid;gap:4px}
 .wmemo .wm-h{display:flex;align-items:center;gap:6px}
 .wmemo .wm-h button{border:0;background:none;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;padding:2px 0}
@@ -203,6 +204,17 @@ button{font:inherit;color:inherit}
 .note-card .shiftbar{flex-basis:100%;order:4;padding:4px 0 0}
 .note-card input.edit{flex:1}
 @media (max-width:420px){.notes{padding-inline:16px}}
+
+/* pages */
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:8;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--bg);padding:6px 0 8px;margin-bottom:4px}
+.tabs button{border:1px solid var(--line);background:var(--sheet);color:var(--muted);border-radius:18px;padding:7px 0;font-size:13px;font-weight:700;cursor:pointer}
+.tabs button[aria-current="page"]{background:var(--ink);border-color:var(--ink);color:var(--sheet)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.page>section.week,.page>section.plan,.page>section.review,.page>section.later{border-top:0}
+.later{padding:14px 18px 16px;display:grid;gap:12px}
+.later .future{border:0;padding:0}
+.rvbanner{display:block;width:calc(100% - 44px);margin:0 22px 12px;border:1px dashed var(--ink);background:var(--soft);color:var(--ink);border-radius:6px;padding:8px 12px;font-size:13px;font-weight:700;text-align:left;cursor:pointer}
+@media (max-width:420px){.rvbanner{width:calc(100% - 32px);margin-inline:16px}.later{padding-inline:14px}}
 
 /* weekly score */
 .week{border-top:1px solid var(--line);padding:12px 18px 14px;display:grid;gap:10px;background:var(--soft)}
@@ -428,7 +440,13 @@ button{-webkit-tap-highlight-color:transparent}
       <p class="hint">ホーム画面に追加：iPhoneはSafariの共有ボタン →「ホーム画面に追加」、AndroidはChromeのメニュー →「ホーム画面に追加」。</p>
     </section>
   </div>
-  <div class="sheet">
+  <nav class="tabs" id="tabs" aria-label="ページ">
+    <button type="button" data-page="today" aria-current="page">今日</button>
+    <button type="button" data-page="week">今週</button>
+    <button type="button" data-page="plan">予定</button>
+    <button type="button" data-page="later">先のメモ</button>
+  </nav>
+  <div class="sheet page" id="pageToday">
     <div class="binding">
       <button id="prevBtn" type="button" aria-label="前の日">← 前日</button>
       <button id="todayBtn" type="button" hidden>今日に戻る</button>
@@ -445,63 +463,9 @@ button{-webkit-tap-highlight-color:transparent}
         <span id="pct">0%</span>
       </div>
     </div>
+    <button type="button" class="rvbanner" id="rvBanner" hidden>先週のふりかえりができました →</button>
     <div class="notes" id="notesBar" hidden></div>
     <div class="today" id="todayChips"></div>
-    <section class="week" aria-label="今週の成績">
-      <div class="week-h"><b>今週やった数</b><span id="weekRange">10/12（月）〜 10/18（日）</span></div>
-      <div class="score">
-        <div class="sc" data-cat="main"><small>メイン</small><strong id="wMain">0</strong><em>個</em></div>
-        <div class="sc" data-cat="mc"><small>マイクラ</small><strong id="wMc">0</strong><em>個</em></div>
-        <div class="sc" data-cat="other"><small>その他</small><strong id="wOther">0</strong><em>個</em></div>
-        <div class="sc total"><small>合計</small><strong id="wTotal">0</strong><em>個</em></div>
-      </div>
-      <div class="dsum" id="dailySum" hidden>
-        <div class="dsum-h"><small>毎日タスク</small><strong id="wDaily">0</strong><em>回</em><span class="dsum-pct" id="wDailyPct"></span></div>
-        <ul class="dsum-list" id="dailyList"></ul>
-      </div>
-      <div class="days" id="days"></div>
-      <div class="alltime" id="allTime" hidden></div>
-      <div class="goals" id="goals">
-        <div class="goals-h"><b>今週の目標</b><button type="button" class="linkbtn" id="goalEdit">書く</button></div>
-        <ul class="goal-list" id="goalList"></ul>
-        <div class="wmemo" id="weekMemoMain"></div>
-        <div class="goal-editor" id="goalEditor" hidden>
-          <textarea id="goalBox" rows="3" placeholder="1行に1つ。数より「決めたこと」を書く（例：メインを中心にやる）"></textarea>
-          <div class="btns"><button type="button" class="pri" id="goalSave">保存</button><button type="button" id="goalCancel">やめる</button></div>
-        </div>
-      </div>
-      <div class="weekbtns"><button type="button" class="reviewbtn planbtn" id="planBtn">週の計画</button><button type="button" class="reviewbtn" id="reviewBtn">先週のふりかえり</button><button type="button" class="reviewbtn" id="futureBtn">再来週以降のメモ</button></div>
-    </section>
-    <section class="plan" id="plan" hidden aria-label="週の計画">
-      <div class="rv-h"><b id="planTitle">週の計画</b><button type="button" class="linkbtn" id="planClose">閉じる</button></div>
-      <div class="pl-top">
-        <div class="seg pl-week" id="planWeek"><button type="button" data-w="0" aria-pressed="true">今週</button><button type="button" data-w="1" aria-pressed="false">来週</button></div>
-        <div class="seg" id="planCat">
-          <button type="button" data-cat="main" aria-pressed="true">メイン</button>
-          <button type="button" data-cat="mc" aria-pressed="false">マイクラ</button>
-          <button type="button" data-cat="other" aria-pressed="false">その他</button>
-          <button type="button" data-cat="post" aria-pressed="false">付箋</button>
-        </div>
-      </div>
-      <button type="button" class="pl-default" id="planDefault" hidden></button>
-      <p class="pl-sum" id="planSum"></p>
-      <div class="wmemo" id="weekMemoPlan"></div>
-      <div class="pl-days" id="planDays"></div>
-      <div class="future" id="futureSec">
-        <div class="goals-h"><b>再来週以降のメモ</b><span class="rv-note" id="futureState"></span></div>
-        <div class="flist" id="futureList"></div>
-        <div class="fadd"><span>＋</span><input id="futureNew" placeholder="見出しを追加して Enter（例：11月、年末企画）" maxlength="120"></div>
-      </div>
-      <p class="rv-note">ここに入れた予定は、その曜日のリストに自動で入ります。予定をずらしても、最初に決めた曜日はここに残るので、どれだけずれたかが分かります。</p>
-    </section>
-    <section class="review" id="review" hidden aria-label="先週のふりかえり">
-      <div class="rv-h"><b id="rvTitle">先週のふりかえり</b><button type="button" class="linkbtn" id="rvClose">閉じる</button></div>
-      <div class="rv-goals" id="rvGoals"></div>
-      <div class="rv-stats" id="rvStats"></div>
-      <div class="rv-advice" id="rvAdvice"></div>
-      <div class="btns"><button type="button" class="pri" id="rvAsk">Claudeに相談する</button><button type="button" id="rvNext">今週の目標を書く</button></div>
-      <p class="rv-note">「Claudeに相談する」は、この週のまとめをコピーしてチャットを開きます。貼り付けて送ってください。</p>
-    </section>
     <ul class="list" id="list"></ul>
     <div class="skipbar" id="skipBar" hidden></div>
     <div class="pushbar" id="pushBar" hidden>
@@ -526,6 +490,70 @@ button{-webkit-tap-highlight-color:transparent}
         <button type="submit">追加</button>
       </div>
     </form>
+  </div>
+  <div class="sheet page" id="pageWeek" hidden>
+    <section class="week" aria-label="今週の成績">
+      <div class="week-h"><b>今週やった数</b><span id="weekRange">10/12（月）〜 10/18（日）</span></div>
+      <div class="score">
+        <div class="sc" data-cat="main"><small>メイン</small><strong id="wMain">0</strong><em>個</em></div>
+        <div class="sc" data-cat="mc"><small>マイクラ</small><strong id="wMc">0</strong><em>個</em></div>
+        <div class="sc" data-cat="other"><small>その他</small><strong id="wOther">0</strong><em>個</em></div>
+        <div class="sc total"><small>合計</small><strong id="wTotal">0</strong><em>個</em></div>
+      </div>
+      <div class="dsum" id="dailySum" hidden>
+        <div class="dsum-h"><small>毎日タスク</small><strong id="wDaily">0</strong><em>回</em><span class="dsum-pct" id="wDailyPct"></span></div>
+        <ul class="dsum-list" id="dailyList"></ul>
+      </div>
+      <div class="days" id="days"></div>
+      <div class="alltime" id="allTime" hidden></div>
+      <div class="goals" id="goals">
+        <div class="goals-h"><b>今週の目標</b><button type="button" class="linkbtn" id="goalEdit">書く</button></div>
+        <ul class="goal-list" id="goalList"></ul>
+        <div class="wmemo" id="weekMemoMain"></div>
+        <div class="goal-editor" id="goalEditor" hidden>
+          <textarea id="goalBox" rows="3" placeholder="1行に1つ。数より「決めたこと」を書く（例：メインを中心にやる）"></textarea>
+          <div class="btns"><button type="button" class="pri" id="goalSave">保存</button><button type="button" id="goalCancel">やめる</button></div>
+        </div>
+      </div>
+      <div class="weekbtns"><button type="button" class="reviewbtn" id="reviewBtn">先週のふりかえり</button></div>
+    </section>
+    <section class="review" id="review" hidden aria-label="先週のふりかえり">
+      <div class="rv-h"><b id="rvTitle">先週のふりかえり</b><button type="button" class="linkbtn" id="rvClose">閉じる</button></div>
+      <div class="rv-goals" id="rvGoals"></div>
+      <div class="rv-stats" id="rvStats"></div>
+      <div class="rv-advice" id="rvAdvice"></div>
+      <div class="btns"><button type="button" class="pri" id="rvAsk">Claudeに相談する</button><button type="button" id="rvNext">今週の目標を書く</button></div>
+      <p class="rv-note">「Claudeに相談する」は、この週のまとめをコピーしてチャットを開きます。貼り付けて送ってください。</p>
+    </section>
+  </div>
+  <div class="sheet page" id="pagePlan" hidden>
+    <section class="plan" id="plan" aria-label="週の計画">
+      <div class="rv-h"><b id="planTitle">週の計画</b></div>
+      <div class="pl-top">
+        <div class="seg pl-week" id="planWeek"><button type="button" data-w="0" aria-pressed="true">今週</button><button type="button" data-w="1" aria-pressed="false">来週</button></div>
+        <div class="seg" id="planCat">
+          <button type="button" data-cat="main" aria-pressed="true">メイン</button>
+          <button type="button" data-cat="mc" aria-pressed="false">マイクラ</button>
+          <button type="button" data-cat="other" aria-pressed="false">その他</button>
+          <button type="button" data-cat="post" aria-pressed="false">付箋</button>
+        </div>
+      </div>
+      <button type="button" class="pl-default" id="planDefault" hidden></button>
+      <p class="pl-sum" id="planSum"></p>
+      <div class="wmemo" id="weekMemoPlan"></div>
+      <div class="pl-days" id="planDays"></div>
+      <p class="rv-note">ここに入れた予定は、その曜日のリストに自動で入ります。予定をずらしても、最初に決めた曜日はここに残るので、どれだけずれたかが分かります。</p>
+    </section>
+  </div>
+  <div class="sheet page" id="pageLater" hidden>
+    <section class="later">
+      <div class="rv-h"><b>再来週以降のメモ</b></div>
+      <div class="future" id="futureSec">
+        <div class="goals-h"><span class="rv-note">見出しごとに開いたり閉じたりできます</span><span class="rv-note" id="futureState"></span></div>
+        <div class="flist" id="futureList"></div>
+        <div class="fadd"><span>＋</span><input id="futureNew" placeholder="見出しを追加して Enter（例：11月、年末企画）" maxlength="120"></div>
+      </div>
+    </section>
   </div>
   <div class="toast" id="toast" role="status" hidden></div>
   <p class="note" id="note"></p>
@@ -657,7 +685,7 @@ button{-webkit-tap-highlight-color:transparent}
     }
     restoring=false;
     if(e.view!==cur)open(e.view);else{render();setBase()}
-    if(!$("plan").hidden)refreshPlanDocs();
+    if(planVisible())refreshPlanDocs();
     if(e.future)renderFuture();
     if(!$("review").hidden&&rvStart)renderReview();
   }
@@ -957,7 +985,7 @@ button{-webkit-tap-highlight-color:transparent}
     else{const after={...cloneDoc(dstDoc),items:[...norm(dstDoc.items).filter(i=>!moved.some(m=>m.id===i.id)),...moved],order:[...(dstDoc.order||[]).filter(o=>o!==id),id]};x.push({day:dst,before:cloneDoc(dstDoc),after});writeDay(dst,after);cacheDay(dst,after)}
     pendingX=x;commit();
     if(!quiet){const d=parse(dst);toast((d.getMonth()+1)+"/"+d.getDate()+"（"+WD[d.getDay()]+"）に移しました")}
-    if(!$("plan").hidden)renderPlan();
+    if(planVisible())renderPlan();
     return true;
   }
 
@@ -1400,7 +1428,7 @@ button{-webkit-tap-highlight-color:transparent}
     const isThis=start===mondayOf(todayKey());
     $("goals").querySelector("b").textContent=isThis?"今週の目標":rangeShort(start)+" の目標";
     $("reviewBtn").textContent="先週のふりかえり（"+rangeShort(shift(start,-7))+"）";
-    $("planBtn").textContent=parse(todayKey()).getDay()===0?"来週の計画を立てる":"週の計画";
+
   }
   const rangeLabel=start=>{const s=parse(start),e=parse(shift(start,6));return (s.getMonth()+1)+"/"+s.getDate()+"（月）〜 "+(e.getMonth()+1)+"/"+e.getDate()+"（日）"};
   const rangeShort=start=>{const s=parse(start),e=parse(shift(start,6));return (s.getMonth()+1)+"/"+s.getDate()+"〜"+(e.getMonth()+1)+"/"+e.getDate()};
@@ -1547,8 +1575,7 @@ button{-webkit-tap-highlight-color:transparent}
     planStart=start;await loadWeekInfo(start);
     if(!futureLoaded)loadFuture();else renderFuture();
     planDocs=await weekDocs(start);
-    $("plan").hidden=false;renderPlan();
-    $("plan").scrollIntoView({behavior:"smooth",block:"start"});
+    renderPlan();
   }
   async function refreshPlanDocs(){if(planStart){planDocs=await weekDocs(planStart);renderPlan()}}
   function renderPlan(){
@@ -1599,7 +1626,7 @@ button{-webkit-tap-highlight-color:transparent}
     const mb=el("button",null,"✎");mb.type="button";mb.title="メモ";mb.onclick=()=>{if(pmOpen.has(s.p.id))pmOpen.delete(s.p.id);else pmOpen.add(s.p.id);renderPlan()};acts.append(mb);
     const x=el("button",null,"×");x.type="button";x.title="予定から外す";x.onclick=()=>removePlan(s);acts.append(x);
     const tag=catTag(s.p.cat,c=>grouped(async()=>{s.p.cat=c;saveWeekInfo(planStart);if(s.live)await setLiveCat_(s,c);else renderPlan()}));
-    tag.title="タップで分類を変える（メイン→マイクラ→その他→付箋）";
+    tag.title="タップで分類を変える（メイン→マイクラ→その他→付箋）";tag.classList.add("dot");tag.textContent="";
     t.title="タップで書き換え";t.style.cursor="text";
     t.onclick=()=>{
       if(readOnly)return;
@@ -1673,12 +1700,27 @@ button{-webkit-tap-highlight-color:transparent}
     }
     await refreshPlanDocs();toast("予定から外しました");
   }
-  $("planBtn").onclick=()=>{
-    if(!$("plan").hidden){$("plan").hidden=true;return}
-    const t=todayKey();const d=parse(t);
-    // on Sunday the next week is planned; otherwise this week
-    openPlan(d.getDay()===0?shift(mondayOf(t),7):mondayOf(t));
-  };
+  // ---- pages: 今日 / 今週 / 予定 / 先のメモ ----
+  let page="today";
+  const PAGES={today:"pageToday",week:"pageWeek",plan:"pagePlan",later:"pageLater"};
+  const planVisible=()=>page==="plan";
+  async function showPage(p,noHash){
+    if(!PAGES[p])p="today";
+    if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
+    page=p;
+    Object.entries(PAGES).forEach(([k,id])=>{$(id).hidden=k!==p});
+    [...$("tabs").children].forEach(b=>{if(b.dataset.page===p)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
+    if(!noHash){try{history.replaceState(null,"",p==="today"?location.pathname+location.search:"#"+p)}catch(e){}}
+    window.scrollTo(0,0);
+    if(p==="week"){renderWeek()}
+    if(p==="plan"){const t=todayKey();
+      // on Sunday the next week is planned; otherwise this week
+      if(!planStart)await openPlan(parse(t).getDay()===0?shift(mondayOf(t),7):mondayOf(t));else refreshPlanDocs()}
+    if(p==="later"){if(!futureLoaded)loadFuture();else renderFuture()}
+  }
+  $("tabs").onclick=e=>{const b=e.target.closest("button[data-page]");if(b)showPage(b.dataset.page)};
+  window.addEventListener("hashchange",()=>showPage((location.hash||"").slice(1)||"today",true));
+  $("rvBanner").onclick=()=>{$("rvBanner").hidden=true;showPage("week");openReview(shift(mondayOf(todayKey()),-7))};
   $("planDefault").onclick=()=>grouped(planDefault_);
   async function planDefault_(){
     const start=planStart,def=latestDefault(start);if(!def)return;
@@ -1783,11 +1825,7 @@ button{-webkit-tap-highlight-color:transparent}
     saveFuture(true);renderFuture();
     const ta=$("futureList").querySelector('[data-id="'+CSS.escape(t.id)+'"] textarea');if(ta)ta.focus();
   };
-  $("futureBtn").onclick=async()=>{
-    if($("plan").hidden){const t=todayKey();await openPlan(parse(t).getDay()===0?shift(mondayOf(t),7):mondayOf(t))}
-    setTimeout(()=>$("futureSec").scrollIntoView({behavior:"smooth",block:"start"}),100);
-  };
-  $("planClose").onclick=()=>{$("plan").hidden=true;planShift=null};
+
   $("planWeek").onclick=e=>{const b=e.target.closest("button[data-w]");if(!b)return;openPlan(shift(mondayOf(todayKey()),7*+b.dataset.w))};
   $("planCat").onclick=e=>{const b=e.target.closest("button[data-cat]");if(!b)return;planCat=b.dataset.cat;[...$("planCat").children].forEach(x=>x.setAttribute("aria-pressed",String(x===b)))};
 
@@ -1899,7 +1937,7 @@ button{-webkit-tap-highlight-color:transparent}
   }
   $("reviewBtn").onclick=()=>openReview(shift(mondayOf(cur),-7));
   $("rvClose").onclick=()=>{$("review").hidden=true};
-  $("rvNext").onclick=()=>{$("review").hidden=true;if(cur!==todayKey())open(todayKey());setTimeout(()=>$("goalEdit").click(),50)};
+  $("rvNext").onclick=()=>{$("review").hidden=true;if(cur!==todayKey())open(todayKey());showPage("week");setTimeout(()=>$("goalEdit").click(),80)};
   $("rvAsk").onclick=()=>{
     const text=reviewText();const url=$("chatBtn").href;
     const go=()=>window.open(url,"_blank","noopener");
@@ -1913,7 +1951,7 @@ button{-webkit-tap-highlight-color:transparent}
     if(info.seen||!$("review").hidden)return;
     const docs=await weekDocs(last);
     const any=Object.values(docs).some(d=>(d.items||[]).length);
-    if(any||info.goals.length)openReview(last);
+    if(any||info.goals.length)$("rvBanner").hidden=false;
   }
   async function readDay(k){
     if(db){const s=await db.doc("days/"+k).get();return s.exists?{...emptyDoc(),...s.data()}:emptyDoc()}
@@ -2016,7 +2054,7 @@ button{-webkit-tap-highlight-color:transparent}
     loadPrev(k);
     loadWeek(k);
     setTimeout(()=>maybeAutoReview().catch(()=>{}),800);
-    if(!$("plan").hidden)refreshPlanDocs();
+    if(planVisible())refreshPlanDocs();
   }
 
   $("pushBtn").onclick=()=>{
@@ -2081,6 +2119,7 @@ button{-webkit-tap-highlight-color:transparent}
 
   daily=normDaily(local.get("daily").items);
   open(cur);
+  if(location.hash.length>1)setTimeout(()=>showPage(location.hash.slice(1),true),0);
   // hooks for app.js (cloud sync)
   let dailyUnsub=null;
   const reset=()=>{futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
