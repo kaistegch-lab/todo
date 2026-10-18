@@ -140,6 +140,27 @@ button{font:inherit;color:inherit}
 .weekbtns{display:flex;gap:8px;flex-wrap:wrap}
 .planbtn{border-style:solid;border-color:var(--ink)}
 .plan{border-top:1px solid var(--line);padding:14px 18px 16px;display:grid;gap:12px;background:var(--sheet)}
+.plan{grid-template-columns:minmax(0,1fr)}
+.plan>*{min-width:0}
+.pl-pick{flex:1 1 auto;min-width:0}
+.pl-pick select{min-width:0;flex:1 1 auto;max-width:100%}
+.pl-in{min-width:0;flex:1 1 220px}
+.pgrid.narrow{min-width:0;table-layout:fixed}
+.pgrid.narrow .pg-corner{width:42px}
+.pgrid.narrow .pg-colh{position:static;text-align:center;border-left:1px solid var(--line)!important;border-top:3px solid var(--c)!important;background:var(--soft);padding:5px 2px!important}
+.pgrid.narrow th.pg-day{position:sticky;left:0;z-index:1;background:var(--soft);padding:6px 2px!important}
+.pgrid.narrow th.pg-day.is-today{background:color-mix(in srgb,var(--main) 10%,var(--soft))}
+.pgrid.narrow tr.pg-drow>*{border-bottom:0}
+.pgrid.narrow tr.pg-nrow>td{border-top:0;padding:0 4px 4px 46px;border-left:0}
+.pgrid.narrow tr.pg-nrow>td .pcard{display:inline-grid;width:auto;max-width:100%;margin:0 4px 4px 0;vertical-align:top}
+.pgrid.narrow tr.pg-nrow>td .pg-plus{display:inline-block;width:auto;padding:2px 8px}
+.pgrid.narrow tr.pg-nrow.pg-opt>td{padding:0;height:0}
+/* on a phone, empty 付箋 lines stay hidden while dragging so nothing jumps under the finger */
+.pgrid.narrow.dragging tr.pg-nrow.pg-opt{display:none}
+.pgrid.narrow tbody tr.pg-nrow>*{border-bottom:0}
+.pgrid.narrow tbody tr.pg-drow>*{border-top:1px solid var(--line)}
+.pgrid.narrow thead th{border-bottom:0}
+.pgrid.narrow .pcard{font-size:12px;padding:4px 5px}
 .pl-top{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between}
 .pl-add{display:flex;gap:6px;flex-wrap:wrap;align-items:center;border:1px solid var(--line);border-radius:10px;padding:6px;background:var(--soft)}
 .pl-pick{display:flex;gap:6px}
@@ -2123,33 +2144,57 @@ button{-webkit-tap-highlight-color:transparent}
     const box=$("planDays");box.textContent="";
     const today=todayKey();
     const days=[...Array(7)].map((_,i)=>shift(start,i));
-    const wrap=el("div","pgrid-wrap");const tb=el("table","pgrid");
-    const hr=el("tr");hr.append(el("th","pg-corner",""));
-    days.forEach(k=>{const d=parse(k);const th=el("th","pg-day"+(k<today?" past":"")+(k===today?" is-today":"")+(d.getDay()===0?" sun":"")+(d.getDay()===6?" sat":""));
-      th.append(el("span","w",WD[d.getDay()]),el("span","d",(d.getMonth()+1)+"/"+d.getDate()));if(k===today)th.append(el("span","t","今日"));hr.append(th)});
-    const thead=el("thead");thead.append(hr);tb.append(thead);
-    const tbody=el("tbody");
-    CAT_IDS.forEach(c=>{
-      const inCat=stats.filter(s=>s.cat===c);
-      const tr=el("tr",!inCat.length&&(c==="post"||c==="pub")?"pg-opt":null);tr.dataset.cat=c;
-      const th=el("th","pg-cat");th.dataset.cat=c;th.append(el("span",null,CAT[c]));tr.append(th);
+    // one cell = one day x one item; cards, the ＋ / typing box, and drop target
+    const mkCell=(k,c,list,cls)=>{
+      const td=el("td","pg-cell"+(k<today?" past":"")+(k===today?" is-today":"")+(cls?" "+cls:""));td.dataset.day=k;td.dataset.cat=c;
+      list.forEach(s=>td.append(planCard(s)));
+      if(!readOnly){
+        if(planCell&&planCell.day===k&&planCell.cat===c)td.append(cellInput(k,c));
+        else{const pl=el("button","pg-plus","＋");pl.type="button";pl.setAttribute("aria-label",WD[parse(k).getDay()]+"の"+CAT[c]+"に追加");pl.onclick=e=>{e.stopPropagation();openCell(k,c)};td.append(pl)}
+        td.onclick=e=>{if(e.target===td)openCell(k,c)};
+      }
+      return td;
+    };
+    const dayHead=(k,tag)=>{const d=parse(k);const th=el(tag,"pg-day"+(k<today?" past":"")+(k===today?" is-today":"")+(d.getDay()===0?" sun":"")+(d.getDay()===6?" sat":""));
+      th.append(el("span","w",WD[d.getDay()]),el("span","d",(d.getMonth()+1)+"/"+d.getDate()));if(k===today)th.append(el("span","t","今日"));return th};
+    const narrow=window.matchMedia&&matchMedia("(max-width:560px)").matches;
+    const wrap=el("div","pgrid-wrap"+(narrow?" narrow":""));const tb=el("table","pgrid"+(narrow?" narrow":""));
+    if(narrow){
+      // phone: days down, items across, so the whole week fits the screen without sideways scrolling.
+      // 付箋・投稿 go on a line under the day.
+      const cols=TASK_CATS;
+      const hr=el("tr");hr.append(el("th","pg-corner",""));
+      cols.forEach(c=>{const th=el("th","pg-cat pg-colh");th.dataset.cat=c;th.append(el("span",null,CAT[c]));hr.append(th)});
+      const thead=el("thead");thead.append(hr);tb.append(thead);
+      const tbody=el("tbody");
       days.forEach(k=>{
-        const td=el("td","pg-cell"+(k<today?" past":"")+(k===today?" is-today":""));td.dataset.day=k;td.dataset.cat=c;
-        inCat.filter(s=>s.p.day===k).forEach(s=>td.append(planCard(s)));
-        if(!readOnly){
-          if(planCell&&planCell.day===k&&planCell.cat===c)td.append(cellInput(k,c));
-          else{const pl=el("button","pg-plus","＋");pl.type="button";pl.setAttribute("aria-label",WD[parse(k).getDay()]+"の"+CAT[c]+"に追加");pl.onclick=e=>{e.stopPropagation();openCell(k,c)};td.append(pl)}
-          td.onclick=e=>{if(e.target===td)openCell(k,c)};
-        }
-        tr.append(td);
+        const tr=el("tr","pg-drow");tr.append(dayHead(k,"th"));
+        cols.forEach(c=>tr.append(mkCell(k,c,stats.filter(s=>s.cat===c&&s.p.day===k))));
+        tbody.append(tr);
+        const notes=stats.filter(s=>isNote(s)&&s.p.day===k);
+        const nr=el("tr","pg-nrow"+(notes.length||(planCell&&planCell.day===k&&isNote({cat:planCell.cat}))?"":" pg-opt"));
+        const td=mkCell(k,planCell&&planCell.day===k&&planCell.cat==="pub"?"pub":"post",notes,"pg-notes");td.colSpan=cols.length+1;
+        nr.append(td);tbody.append(nr);
       });
-      tbody.append(tr);
-    });
-    tb.append(tbody);wrap.append(tb);box.append(wrap);
-    // keep the horizontal position between redraws; on first show, bring today into view
-    if(planScroll!=null)wrap.scrollLeft=planScroll;
-    else{const t=tb.querySelector(".pg-day.is-today");if(t&&wrap.scrollWidth>wrap.clientWidth)requestAnimationFrame(()=>{wrap.scrollLeft=Math.max(0,t.offsetLeft-56);planScroll=wrap.scrollLeft})}
-    wrap.onscroll=()=>{planScroll=wrap.scrollLeft};
+      tb.append(tbody);wrap.append(tb);box.append(wrap);
+    }else{
+      const hr=el("tr");hr.append(el("th","pg-corner",""));
+      days.forEach(k=>hr.append(dayHead(k,"th")));
+      const thead=el("thead");thead.append(hr);tb.append(thead);
+      const tbody=el("tbody");
+      CAT_IDS.forEach(c=>{
+        const inCat=stats.filter(s=>s.cat===c);
+        const tr=el("tr",!inCat.length&&(c==="post"||c==="pub")?"pg-opt":null);tr.dataset.cat=c;
+        const th=el("th","pg-cat");th.dataset.cat=c;th.append(el("span",null,CAT[c]));tr.append(th);
+        days.forEach(k=>tr.append(mkCell(k,c,inCat.filter(s=>s.p.day===k))));
+        tbody.append(tr);
+      });
+      tb.append(tbody);wrap.append(tb);box.append(wrap);
+      // keep the horizontal position between redraws; on first show, bring today into view
+      if(planScroll!=null)wrap.scrollLeft=planScroll;
+      else{const t=tb.querySelector(".pg-day.is-today");if(t&&wrap.scrollWidth>wrap.clientWidth)requestAnimationFrame(()=>{wrap.scrollLeft=Math.max(0,t.offsetLeft-56);planScroll=wrap.scrollLeft})}
+      wrap.onscroll=()=>{planScroll=wrap.scrollLeft};
+    }
     // the chosen item, with all its buttons, under the table
     const sel=planSel&&stats.find(s=>s.p.id===planSel);
     if(sel){
@@ -2166,6 +2211,8 @@ button{-webkit-tap-highlight-color:transparent}
     }else if(planSel){planSel=null}
   }
   let planSel=null,planCell=null,planScroll=null;
+  // phone ⇄ wide layout when the screen turns
+  try{matchMedia("(max-width:560px)").addEventListener("change",()=>{if(planVisible()&&!pd)renderPlan()})}catch(e){}
   // ---- drag a planned item to another day (left/right), another item row (up/down) or another place in the cell ----
   // Dragging re-plans it: the planned day itself changes and the task moves to that day's list.
   // (⇢ ずらす is still the way to move it while keeping a record of how far it slipped.)
@@ -2226,7 +2273,8 @@ button{-webkit-tap-highlight-color:transparent}
     pdSuppress=true;setTimeout(()=>{pdSuppress=false},400);
     const t=d.t;pd=d;pdClean();pd=null;editing=false;
     if(!t){renderPlan();return}
-    planDrop(d.s,t.day,t.cat,t.before?t.before.dataset.id:null);
+    let cat=t.cat;if(t.td.classList.contains("pg-notes"))cat=isNote(d.s)?d.s.cat:"post";
+    planDrop(d.s,t.day,cat,t.before?t.before.dataset.id:null);
   });
   document.addEventListener("pointercancel",e=>{if(!pd||e.pointerId!==pd.pid)return;clearTimeout(pdT);const d=pd;if(d.on){pdClean();editing=false;renderPlan()}pd=null});
   document.addEventListener("keydown",e=>{if(pd&&pd.on&&e.key==="Escape"){pdClean();pd=null;editing=false;renderPlan()}});
