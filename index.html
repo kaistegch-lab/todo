@@ -22,17 +22,18 @@
   --main:#c4452b; --main-soft:#fbe9e3;
   --mc:#3f7d32; --mc-soft:#e6f1e1;
   --other:#5b6577; --other-soft:#e9ecf1;
+  --post:#7a4fb0; --post-soft:#efe8f8;
   --star:#d99a0b; --sun:#c4372b; --sat:#2d5fa8;
   --display:"Zen Old Mincho","Hiragino Mincho ProN","Yu Mincho",serif;
   --body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#141513; --sheet:#1f201d; --ink:#ebe8e0; --muted:#9a968c; --line:#33342f; --soft:#272824;
-  --main:#ef7458; --main-soft:#3a2520; --mc:#79c065; --mc-soft:#22301e; --other:#a2adc2; --other-soft:#262a32;
+  --main:#ef7458; --main-soft:#3a2520; --mc:#79c065; --mc-soft:#22301e; --other:#a2adc2; --other-soft:#262a32; --post:#b99ae8; --post-soft:#2d2539;
   --star:#f2b632; --sun:#ef7458; --sat:#7ea3e6; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#141513; --sheet:#1f201d; --ink:#ebe8e0; --muted:#9a968c; --line:#33342f; --soft:#272824;
-  --main:#ef7458; --main-soft:#3a2520; --mc:#79c065; --mc-soft:#22301e; --other:#a2adc2; --other-soft:#262a32;
+  --main:#ef7458; --main-soft:#3a2520; --mc:#79c065; --mc-soft:#22301e; --other:#a2adc2; --other-soft:#262a32; --post:#b99ae8; --post-soft:#2d2539;
   --star:#f2b632; --sun:#ef7458; --sat:#7ea3e6; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -45,6 +46,7 @@ button{font:inherit;color:inherit}
 [data-cat="main"]{--c:var(--main);--c-soft:var(--main-soft)}
 [data-cat="mc"]{--c:var(--mc);--c-soft:var(--mc-soft)}
 [data-cat="other"]{--c:var(--other);--c-soft:var(--other-soft)}
+[data-cat="post"]{--c:var(--post);--c-soft:var(--post-soft)}
 
 /* binding strip */
 .binding{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-bottom:2px dashed var(--line)}
@@ -112,7 +114,7 @@ button{font:inherit;color:inherit}
 .rv-seg{display:flex;gap:6px;flex-wrap:wrap}
 .rv-seg button{border:1.5px solid var(--line);background:none;border-radius:14px;padding:2px 12px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted)}
 .rv-seg button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--sheet)}
-.rv-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.rv-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
 .rv-stats .sc{padding:5px 8px}
 .rv-stats .sc strong{font-size:22px}
 .rv-advice{display:grid;gap:8px;font-size:14px;line-height:1.75;background:var(--soft);border-radius:6px;padding:10px 12px}
@@ -141,6 +143,10 @@ button{font:inherit;color:inherit}
 .pl-sum .k{white-space:nowrap;margin-right:10px;display:inline-block}
 .pl-days{display:grid;gap:10px}
 .pday{border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.pcat{padding:4px 10px 0;font-size:11px;font-weight:900;color:var(--c);letter-spacing:.06em;border-top:1px solid var(--line);display:flex;align-items:center;gap:6px}
+.pcat::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--c)}
+.pcat+.pitem{border-top:0}
+.pl-default{justify-self:start;border:0;background:var(--ink);color:var(--sheet);border-radius:18px;padding:7px 16px;font-size:13px;font-weight:700;cursor:pointer}
 .pday-h{display:flex;align-items:baseline;gap:8px;padding:5px 10px;background:var(--soft);font-size:13px;font-weight:900}
 .pday-h .today{font-size:11px;color:var(--main)}
 .pday.past{opacity:.75}
@@ -168,7 +174,7 @@ button{font:inherit;color:inherit}
 .week-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .week-h b{font-size:14px;font-weight:900;letter-spacing:.04em}
 .week-h span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-.score{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:8px}
+.score{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;gap:8px}
 .sc{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:6px 10px 8px;min-width:0}
 .sc small{display:block;font-size:11px;font-weight:700;color:var(--c,var(--muted));letter-spacing:.04em}
 .sc strong{font-family:var(--display);font-size:28px;font-weight:900;line-height:1.1;color:var(--c,var(--ink));font-variant-numeric:tabular-nums}
@@ -326,8 +332,8 @@ body{margin:0;padding-top:calc(16px + env(safe-area-inset-top,0px))!important;pa
 }
 button{-webkit-tap-highlight-color:transparent}
 @media (max-width:520px){
-  .score{grid-template-columns:1.3fr 1fr 1fr 1fr!important;gap:6px}
-  .sc[data-cat="main"]{grid-column:auto!important}
+  .score{grid-template-columns:repeat(4,1fr)!important;gap:6px}
+  .sc[data-cat="main"]{grid-column:1/-1!important;display:flex;align-items:baseline;gap:8px}
   .sc{padding:5px 8px 6px}
   .sc small{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sc strong{font-size:24px}.sc[data-cat="main"] strong{font-size:28px}
@@ -411,6 +417,7 @@ button{-webkit-tap-highlight-color:transparent}
         <div class="sc" data-cat="main"><small>メイン</small><strong id="wMain">0</strong><em>個</em></div>
         <div class="sc" data-cat="mc"><small>マイクラ</small><strong id="wMc">0</strong><em>個</em></div>
         <div class="sc" data-cat="other"><small>その他</small><strong id="wOther">0</strong><em>個</em></div>
+        <div class="sc" data-cat="post"><small>投稿</small><strong id="wPost">0</strong><em>個</em></div>
         <div class="sc total"><small>合計</small><strong id="wTotal">0</strong><em>個</em></div>
       </div>
       <div class="dsum" id="dailySum" hidden>
@@ -437,8 +444,10 @@ button{-webkit-tap-highlight-color:transparent}
           <button type="button" data-cat="main" aria-pressed="true">メイン</button>
           <button type="button" data-cat="mc" aria-pressed="false">マイクラ</button>
           <button type="button" data-cat="other" aria-pressed="false">その他</button>
+          <button type="button" data-cat="post" aria-pressed="false">投稿</button>
         </div>
       </div>
+      <button type="button" class="pl-default" id="planDefault" hidden></button>
       <p class="pl-sum" id="planSum"></p>
       <div class="pl-days" id="planDays"></div>
       <p class="rv-note">ここに入れた予定は、その曜日のリストに自動で入ります。予定をずらしても、最初に決めた曜日はここに残るので、どれだけずれたかが分かります。</p>
@@ -467,6 +476,7 @@ button{-webkit-tap-highlight-color:transparent}
         <button type="button" data-cat="main" aria-pressed="true">メイン</button>
         <button type="button" data-cat="mc" aria-pressed="false">マイクラ</button>
         <button type="button" data-cat="other" aria-pressed="false">その他</button>
+        <button type="button" data-cat="post" aria-pressed="false">投稿</button>
         <button type="button" class="dailyToggle" id="dailyToggle" aria-pressed="false">↻ 毎日</button>
       </div>
       <div class="addrow">
@@ -481,8 +491,8 @@ button{-webkit-tap-highlight-color:transparent}
 
 <script>
 (function(){
-  const CAT={main:"メイン",mc:"マイクラ",other:"その他"};
-  const CAT_IDS=["main","mc","other"];
+  const CAT={main:"メイン",mc:"マイクラ",other:"その他",post:"投稿"};
+  const CAT_IDS=["main","mc","other","post"];
   const WD=["日","月","火","水","木","金","土"];
   const pad=n=>String(n).padStart(2,"0");
   const keyOf=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
@@ -494,7 +504,7 @@ button{-webkit-tap-highlight-color:transparent}
   const GRIP='<svg viewBox="0 0 10 16" fill="currentColor"><circle cx="2.5" cy="3" r="1.5"/><circle cx="7.5" cy="3" r="1.5"/><circle cx="2.5" cy="8" r="1.5"/><circle cx="7.5" cy="8" r="1.5"/><circle cx="2.5" cy="13" r="1.5"/><circle cx="7.5" cy="13" r="1.5"/></svg>';
   const $=id=>document.getElementById(id);
   const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
-  const nextCat=c=>CAT_IDS[(CAT_IDS.indexOf(c)+1)%3];
+  const nextCat=c=>CAT_IDS[(CAT_IDS.indexOf(c)+1)%CAT_IDS.length];
 
   let cur=todayKey(), items=[], rdone={}, order=[], carriedFrom=null;
   let prevItems=[], daily=[], db=null, unsub=null, readOnly=false;
@@ -741,7 +751,7 @@ button{-webkit-tap-highlight-color:transparent}
   // ---- copy & paste ----
   let toastT=null;
   function toast(msg){const t=$("toast");t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true},1600)}
-  const CAT_LABEL={main:"【メイン】",mc:"【マイクラ】",other:""};
+  const CAT_LABEL={main:"【メイン】",mc:"【マイクラ】",other:"",post:"【投稿】"};
   // tasks: [{text,cat,star,subs:[{text,star}]}] or [{sub:true,text,star}]
   function clipText(tasks){
     return tasks.map(t=>t.sub?t.text:[t.text,...(t.subs||[]).map(s=>"　"+s.text)].join("\n")).join("\n");
@@ -768,7 +778,7 @@ button{-webkit-tap-highlight-color:transparent}
       let t=raw.replace(/^[ \t　]+/,"").replace(/^([・•\-\*]\s*)/,"").replace(/^(\[[ xX]?\]|[☐□☑✓✔])\s*/,"").trim();
       let star=false,cat=null;
       if(/^[★⭐]/.test(t)){star=true;t=t.replace(/^[★⭐️\s]+/,"")}
-      const m=t.match(/^【(メイン|マイクラ|その他)】\s*/);if(m){cat={"メイン":"main","マイクラ":"mc","その他":"other"}[m[1]];t=t.slice(m[0].length)}
+      const m=t.match(/^【(メイン|マイクラ|その他|投稿)】\s*/);if(m){cat={"メイン":"main","マイクラ":"mc","その他":"other","投稿":"post"}[m[1]];t=t.slice(m[0].length)}
       if(/^[★⭐]/.test(t)){star=true;t=t.replace(/^[★⭐️\s]+/,"")}
       if(!t)return;
       if(sub)out[out.length-1].subs.push({text:t,star});
@@ -1187,7 +1197,7 @@ button{-webkit-tap-highlight-color:transparent}
   const daysBetween=(a,b)=>Math.round((parse(b)-parse(a))/864e5);
   function weekStats(start,docs){
     const today=todayKey();
-    const st={main:0,mc:0,other:0,total:0,perDay:{},dPoss:0,dDone:0,per:{},old:[],lastDay:null};
+    const st={main:0,mc:0,other:0,post:0,total:0,perDay:{},dPoss:0,dDone:0,per:{},old:[],lastDay:null};
     for(let i=0;i<7;i++){
       const k=shift(start,i);
       const doc=docs[k]||emptyDoc();
@@ -1221,7 +1231,7 @@ button{-webkit-tap-highlight-color:transparent}
   }
   function computeAll(){
     if(!allDocs){allStats=null;return}
-    const acc={main:0,mc:0,other:0,total:0,daily:0,perDaily:{}};
+    const acc={main:0,mc:0,other:0,post:0,total:0,daily:0,perDaily:{}};
     const keys=new Set([...Object.keys(allDocs),cur]);
     keys.forEach(k=>tallyDoc(k===cur?{items,rdone}:(week.data[k]||allDocs[k]||emptyDoc()),k,acc));
     allStats=acc;
@@ -1242,7 +1252,7 @@ button{-webkit-tap-highlight-color:transparent}
     if(!allStats){box.hidden=true;return}
     box.hidden=false;
     box.append(el("span","lbl","これまでの積み上げ"));
-    [["メイン",allStats.main],["マイクラ",allStats.mc],["その他",allStats.other],["合計",allStats.total]].forEach(([l,v])=>{const sp=el("span",null,l+" ");sp.append(el("b",null,String(v)));box.append(sp)});
+    [["メイン",allStats.main],["マイクラ",allStats.mc],["その他",allStats.other],["投稿",allStats.post],["合計",allStats.total]].forEach(([l,v])=>{const sp=el("span",null,l+" ");sp.append(el("b",null,String(v)));box.append(sp)});
   }
   function renderDailySum(st,start){
     const ids=Object.keys(st.per);
@@ -1263,7 +1273,7 @@ button{-webkit-tap-highlight-color:transparent}
     const docs={};for(let i=0;i<7;i++){const k=shift(start,i);docs[k]=k===cur?{items,rdone}:(week.data[k]||emptyDoc())}
     const st=weekStats(start,docs);
     computeAll();renderAllTime();
-    const tally={main:st.main,mc:st.mc,other:st.other};
+    const tally={main:st.main,mc:st.mc,other:st.other,post:st.post};
     renderDailySum(st,start);
     renderGoals(start);
     const box=$("days");box.textContent="";
@@ -1276,8 +1286,8 @@ button{-webkit-tap-highlight-color:transparent}
       b.onclick=()=>{if(k!==cur)open(k)};
       box.append(b);
     }
-    $("wMain").textContent=tally.main;$("wMc").textContent=tally.mc;$("wOther").textContent=tally.other;
-    $("wTotal").textContent=tally.main+tally.mc+tally.other;
+    $("wMain").textContent=tally.main;$("wMc").textContent=tally.mc;$("wOther").textContent=tally.other;$("wPost").textContent=tally.post;
+    $("wTotal").textContent=tally.main+tally.mc+tally.other+tally.post;
     $("weekRange").textContent=rangeLabel(start);
     const isThis=start===mondayOf(todayKey());
     $("goals").querySelector("b").textContent=isThis?"今週の目標":rangeShort(start)+" の目標";
@@ -1299,7 +1309,7 @@ button{-webkit-tap-highlight-color:transparent}
       else data=JSON.parse(localStorage.getItem("todo:week:"+start)||"null");
     }catch(e){}
     weekInfo[start]=data?{goals:(data.goals||[]).map(g=>({id:g.id||uid(),text:String(g.text||""),result:g.result||null})),seen:!!data.seen,
-      plan:(data.plan||[]).map(p=>({id:p.id||uid(),text:String(p.text||""),cat:normCat(p.cat),day:p.day}))}:goalsDefault(start);
+      plan:(data.plan||[]).map(p=>({id:p.id||uid(),text:String(p.text||""),cat:normCat(p.cat),day:p.day,...(p.star?{star:true}:{}),...(p.memo?{memo:String(p.memo)}:{})})),defaultUsed:!!data.defaultUsed}:goalsDefault(start);
     return weekInfo[start];
   }
   function saveWeekInfo(start){
@@ -1331,6 +1341,25 @@ button{-webkit-tap-highlight-color:transparent}
 
   // ---- weekly plan (weeks/<monday>.plan: [{id,text,cat,day}], day = the day first planned) ----
   let planStart=null,planDocs=null,planShift=null,planCat="main";
+  // plans received in the chat; shown as a one-tap "put it in" button on that week
+  const DEFAULT_PLANS={"2026-10-19":[
+    ["2026-10-19","main","5日目ゲーム"],
+    ["2026-10-19","mc","ジガルデmeshy案件",{memo:"→ガルマさんこっち優先してっていう（提出間に合わなさそうなら）"}],
+    ["2026-10-20","main","字幕入れ①",{star:true}],
+    ["2026-10-20","mc","mod制作：闇の力"],
+    ["2026-10-21","main","字幕入れ②"],
+    ["2026-10-21","mc","roco kingdo→ざっくりカット指示"],
+    ["2026-10-22","main","文字起こし、効果音入れ①"],
+    ["2026-10-22","main","ポケモン日程仮決め",{star:true}],
+    ["2026-10-23","main","文字起こし、効果音入れ②"],
+    ["2026-10-23","other","shorts案件費振込"],
+    ["2026-10-24","main","ED、サムネ"],
+    ["2026-10-24","main","編集者募集",{star:true}],
+    ["2026-10-24","post","ジガルデmeshy初稿期限",{star:true}],
+    ["2026-10-25","main","ジオゲカット（前から）"],
+    ["2026-10-25","other","ポケモン配信"],
+    ["2026-10-25","post","roco初稿期限",{star:true}]
+  ]};
   const planOf=start=>(weekInfo[start]&&weekInfo[start].plan)||[];
   // where each planned task is now, and how it went
   function planStatus(start,docs){
@@ -1376,6 +1405,9 @@ button{-webkit-tap-highlight-color:transparent}
     const stats=planStatus(start,docs);const sm=planSummary(stats);
     const sp=(l,v)=>"<span class=\"k\">"+l+" <b>"+v+"</b></span>";
     $("planSum").innerHTML=sm.n?sp("予定",sm.n+"件")+sp("予定どおり完了",sm.onPlan)+sp("ずらして完了",sm.shiftedDone)+sp("ずらし中",sm.shifting)+sp("未完",sm.pending)+(sm.nextWeek?sp("来週へ",sm.nextWeek):"")+"<br>"+sp("最初の予定からずれたもの",sm.shifted+"件")+sp("合計",sm.shiftDays+"日分"):"まだ予定がありません。曜日ごとに入れていくと、その日のリストにも自動で入ります。";
+    const def=DEFAULT_PLANS[start];const db_=$("planDefault");
+    db_.hidden=!(def&&!info.defaultUsed&&!readOnly);
+    if(!db_.hidden)db_.textContent="チャットで送った予定を入れる（"+def.length+"件）";
     const box=$("planDays");box.textContent="";
     const today=todayKey();
     for(let i=0;i<7;i++){
@@ -1383,7 +1415,12 @@ button{-webkit-tap-highlight-color:transparent}
       const day=el("div","pday"+(k<today?" past":"")+(d.getDay()===0?" sun":"")+(d.getDay()===6?" sat":""));
       const h=el("div","pday-h");h.append(el("span",null,WD[d.getDay()]+" "+(d.getMonth()+1)+"/"+d.getDate()));if(k===today)h.append(el("span","today","今日"));
       day.append(h);
-      stats.filter(s=>s.p.day===k).forEach(s=>day.append(planRow(s)));
+      // grouped by category so メイン / マイクラ / その他 / 投稿 are easy to tell apart
+      CAT_IDS.forEach(c=>{
+        const ss=stats.filter(s=>s.p.day===k&&s.p.cat===c);if(!ss.length)return;
+        const g=el("div","pcat");g.dataset.cat=c;g.append(el("span",null,CAT[c]));day.append(g);
+        ss.forEach(s=>day.append(planRow(s)));
+      });
       const add=el("div","padd");const inp=el("input");inp.placeholder="予定を追加（Enter）";inp.maxLength=200;inp.dataset.day=k;
       inp.onkeydown=e=>{if(isEnter(e)){e.preventDefault();const v=inp.value.trim();if(v){addPlan(k,v,planCat).then(()=>{const n=box.querySelector('input[data-day="'+k+'"]');if(n)n.focus()})}}};
       add.append(inp);day.append(add);box.append(day);
@@ -1394,7 +1431,7 @@ button{-webkit-tap-highlight-color:transparent}
       case"shifting":return["→ "+wd(s.liveDay)+"へ（"+(s.shift>0?"+":"")+s.shift+"日）","go"];case"pending":return["未","no"];case"nextWeek":return["→ 来週へ","go"];default:return["取りやめ","drop"]}};
   function planRow(s){
     const row=el("div","pitem");row.dataset.cat=s.p.cat;
-    const t=el("span","ptxt",s.p.text);
+    const t=el("span","ptxt",(s.p.star?"★":"")+s.p.text);
     const [lbl,cls]=ST_LABEL(s);
     const acts=el("span","pacts");
     if(s.live&&!s.live.done){const b=el("button",null,"⇢");b.type="button";b.title="ずらす";b.onclick=()=>{planShift=planShift===s.p.id?null:s.p.id;renderPlan()};acts.append(b)}
@@ -1415,11 +1452,13 @@ button{-webkit-tap-highlight-color:transparent}
     else{const doc=await readDay(k);const its=norm(doc.items);its.forEach(i=>{if(i.id===s.live.id||i.parent===s.live.id)i.cat=c});const after={...cloneDoc(doc),items:its};writeDay(k,after);cacheDay(k,after)}
     refreshPlanDocs();
   }
-  async function addPlan(day,text,cat){
+  async function addPlan(day,text,cat,extra){
     if(readOnly)return;
+    extra=extra||{};
     const start=mondayOf(day);const info=await loadWeekInfo(start);
-    const p={id:uid(),text,cat,day};info.plan=[...(info.plan||[]),p];saveWeekInfo(start);
-    const task={id:uid(),text,done:false,cat,star:false,parent:null,planId:p.id,planDay:day};
+    const p={id:uid(),text,cat,day,...(extra.star?{star:true}:{}),...(extra.memo?{memo:extra.memo}:{})};info.plan=[...(info.plan||[]),p];
+    if(extra.noSave!==true)saveWeekInfo(start);
+    const task={id:uid(),text,done:false,cat,star:!!extra.star,parent:null,planId:p.id,planDay:day,...(extra.memo?{memo:extra.memo}:{})};
     if(day===cur){items.push(task);order=[...viewKeys().filter(k=>k!==task.id),task.id];commit()}
     else{const doc=await readDay(day);const after={...cloneDoc(doc),items:[...norm(doc.items),task],order:[...(doc.order||[]),task.id]};writeDay(day,after);cacheDay(day,after);if(!editing)renderWeek()}
     await refreshPlanDocs();
@@ -1439,6 +1478,16 @@ button{-webkit-tap-highlight-color:transparent}
     const t=todayKey();const d=parse(t);
     // on Sunday the next week is planned; otherwise this week
     openPlan(d.getDay()===0?shift(mondayOf(t),7):mondayOf(t));
+  };
+  $("planDefault").onclick=async()=>{
+    const start=planStart,def=DEFAULT_PLANS[start];if(!def)return;
+    const info=await loadWeekInfo(start);if(info.defaultUsed)return;
+    info.defaultUsed=true;$("planDefault").hidden=true;
+    for(const [day,cat,text,extra] of def){
+      if((info.plan||[]).some(p=>p.day===day&&p.text===text))continue;
+      await addPlan(day,text,cat,{...(extra||{}),noSave:true});
+    }
+    saveWeekInfo(start);await refreshPlanDocs();toast(def.length+"件の予定を入れました");
   };
   $("planClose").onclick=()=>{$("plan").hidden=true;planShift=null};
   $("planWeek").onclick=e=>{const b=e.target.closest("button[data-w]");if(!b)return;openPlan(shift(mondayOf(todayKey()),7*+b.dataset.w))};
@@ -1477,9 +1526,9 @@ button{-webkit-tap-highlight-color:transparent}
     });
     const stx=$("rvStats");stx.textContent="";$("review").querySelectorAll(".rv-all").forEach(x=>x.remove());
     const tile=(label,val,cat,cls)=>{const d=el("div","sc"+(cls?" "+cls:""));if(cat)d.dataset.cat=cat;d.append(el("small",null,label),el("strong",null,String(val)));return d};
-    stx.append(tile("メイン",st.main,"main"),tile("マイクラ",st.mc,"mc"),tile("その他",st.other,"other"),tile("合計",st.total,null,"total"),
+    stx.append(tile("メイン",st.main,"main"),tile("マイクラ",st.mc,"mc"),tile("その他",st.other,"other"),tile("投稿",st.post,"post"),tile("合計",st.total,null,"total"),
       tile("毎日タスク",st.dDone+"回"));
-    if(allStats){const a=el("p","rv-note");a.textContent="これまでの積み上げ：メイン "+allStats.main+"・マイクラ "+allStats.mc+"・その他 "+allStats.other+"（合計 "+allStats.total+"）／毎日タスク "+allStats.daily+"回";stx.after(a);a.className="rv-note rv-all";}
+    if(allStats){const a=el("p","rv-note");a.textContent="これまでの積み上げ：メイン "+allStats.main+"・マイクラ "+allStats.mc+"・その他 "+allStats.other+"・投稿 "+allStats.post+"（合計 "+allStats.total+"）／毎日タスク "+allStats.daily+"回";stx.after(a);a.className="rv-note rv-all";}
     const adv=$("rvAdvice");adv.textContent="";
     advice(info,st).forEach(t=>{const p=el("p");p.innerHTML=t;adv.append(p)});
   }
@@ -1541,10 +1590,10 @@ button{-webkit-tap-highlight-color:transparent}
     const st=rvStats,info=weekInfo[rvStart];
     const lines=["【日めくりTodo 週のふりかえり "+rangeShort(rvStart)+"】",
       "目標："+(info.goals.length?info.goals.map(g=>g.text+"（"+(RESULT[g.result]||"未評価")+"）").join(" / "):"なし"),
-      "完了：メイン"+st.main+"・マイクラ"+st.mc+"・その他"+st.other+"（合計"+st.total+"）",
+      "完了：メイン"+st.main+"・マイクラ"+st.mc+"・その他"+st.other+"・投稿"+st.post+"（合計"+st.total+"）",
       "毎日タスク："+st.dDone+"回"+(allStats?"（これまで "+allStats.daily+"回）":"")];
     Object.entries(st.per).forEach(([id,p])=>lines.push("　・"+p.text+" "+p.done+"回"+(allStats?"（累計 "+(allStats.perDaily[id]||0)+"）":"")));
-    if(allStats)lines.push("これまでの積み上げ：メイン"+allStats.main+"・マイクラ"+allStats.mc+"・その他"+allStats.other+"（合計"+allStats.total+"）");
+    if(allStats)lines.push("これまでの積み上げ：メイン"+allStats.main+"・マイクラ"+allStats.mc+"・その他"+allStats.other+"・投稿"+allStats.post+"（合計"+allStats.total+"）");
     if(st.plan&&st.plan.n)lines.push("週の計画：予定"+st.plan.n+"件／予定どおり完了"+st.plan.onPlan+"・ずらして完了"+st.plan.shiftedDone+"・ずらし中"+st.plan.shifting+"・未完"+st.plan.pending+"・来週へ"+st.plan.nextWeek+"／ずれ"+st.plan.shifted+"件（"+st.plan.shiftDays+"日分）");
     if(st.old.length)lines.push("3日以上の持ち越し："+st.old.map(o=>o.text+"（"+o.days+"日）").join("、"));
     lines.push("","この週が目標に合っていたか、総評と来週へのアドバイスをください。");
