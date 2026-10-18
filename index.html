@@ -114,7 +114,7 @@ button{font:inherit;color:inherit}
 .rv-seg{display:flex;gap:6px;flex-wrap:wrap}
 .rv-seg button{border:1.5px solid var(--line);background:none;border-radius:14px;padding:2px 12px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted)}
 .rv-seg button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--sheet)}
-.rv-stats{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.rv-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
 .rv-stats .sc{padding:5px 8px}
 .rv-stats .sc strong{font-size:22px}
 .rv-advice{display:grid;gap:8px;font-size:14px;line-height:1.75;background:var(--soft);border-radius:6px;padding:10px 12px}
@@ -169,12 +169,24 @@ button{font:inherit;color:inherit}
 .padd input:focus{outline:none;border-bottom:1px solid var(--ink)}
 @media (max-width:520px){.plan{padding-inline:12px}.memo,.shiftbar{padding-left:40px}}
 
+/* 付箋 (notes at the top of the day) */
+.notes{display:grid;gap:6px;padding:0 22px 12px}
+.note-card{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px 8px;background:var(--post-soft);border-left:4px solid var(--post);border-radius:4px;padding:7px 8px 7px 10px;font-size:14px}
+.note-t{flex:1;min-width:0;font-weight:700;overflow-wrap:anywhere;cursor:text}
+.note-m{flex-basis:100%;order:3;font-size:12px;color:var(--muted);white-space:pre-wrap}
+.note-acts{display:flex;gap:2px;flex:none}
+.note-acts button{border:0;background:none;color:var(--muted);font-size:15px;cursor:pointer;border-radius:4px;padding:0 6px;min-height:26px}
+.note-acts .note-ok{color:var(--post);font-weight:900;border:1px solid var(--post);background:var(--sheet)}
+.note-card .shiftbar{flex-basis:100%;order:4;padding:4px 0 0}
+.note-card input.edit{flex:1}
+@media (max-width:420px){.notes{padding-inline:16px}}
+
 /* weekly score */
 .week{border-top:1px solid var(--line);padding:12px 18px 14px;display:grid;gap:10px;background:var(--soft)}
 .week-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .week-h b{font-size:14px;font-weight:900;letter-spacing:.04em}
 .week-h span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-.score{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;gap:8px}
+.score{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:8px}
 .sc{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:6px 10px 8px;min-width:0}
 .sc small{display:block;font-size:11px;font-weight:700;color:var(--c,var(--muted));letter-spacing:.04em}
 .sc strong{font-family:var(--display);font-size:28px;font-weight:900;line-height:1.1;color:var(--c,var(--ink));font-variant-numeric:tabular-nums}
@@ -332,8 +344,8 @@ body{margin:0;padding-top:calc(16px + env(safe-area-inset-top,0px))!important;pa
 }
 button{-webkit-tap-highlight-color:transparent}
 @media (max-width:520px){
-  .score{grid-template-columns:repeat(4,1fr)!important;gap:6px}
-  .sc[data-cat="main"]{grid-column:1/-1!important;display:flex;align-items:baseline;gap:8px}
+  .score{grid-template-columns:1.3fr 1fr 1fr 1fr!important;gap:6px}
+  .sc[data-cat="main"]{grid-column:auto!important}
   .sc{padding:5px 8px 6px}
   .sc small{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .sc strong{font-size:24px}.sc[data-cat="main"] strong{font-size:28px}
@@ -389,7 +401,7 @@ button{-webkit-tap-highlight-color:transparent}
     </section>
     <section class="pane">
       <h3>使い方</h3>
-      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に先週のふりかえりが出ます。</p>
+      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に先週のふりかえりが出ます。</p>
       <p class="hint">ホーム画面に追加：iPhoneはSafariの共有ボタン →「ホーム画面に追加」、AndroidはChromeのメニュー →「ホーム画面に追加」。</p>
     </section>
   </div>
@@ -410,6 +422,7 @@ button{-webkit-tap-highlight-color:transparent}
         <span id="pct">0%</span>
       </div>
     </div>
+    <div class="notes" id="notesBar" hidden></div>
     <div class="today" id="todayChips"></div>
     <section class="week" aria-label="今週の成績">
       <div class="week-h"><b>今週やった数</b><span id="weekRange">10/12（月）〜 10/18（日）</span></div>
@@ -417,7 +430,6 @@ button{-webkit-tap-highlight-color:transparent}
         <div class="sc" data-cat="main"><small>メイン</small><strong id="wMain">0</strong><em>個</em></div>
         <div class="sc" data-cat="mc"><small>マイクラ</small><strong id="wMc">0</strong><em>個</em></div>
         <div class="sc" data-cat="other"><small>その他</small><strong id="wOther">0</strong><em>個</em></div>
-        <div class="sc" data-cat="post"><small>投稿</small><strong id="wPost">0</strong><em>個</em></div>
         <div class="sc total"><small>合計</small><strong id="wTotal">0</strong><em>個</em></div>
       </div>
       <div class="dsum" id="dailySum" hidden>
@@ -444,7 +456,7 @@ button{-webkit-tap-highlight-color:transparent}
           <button type="button" data-cat="main" aria-pressed="true">メイン</button>
           <button type="button" data-cat="mc" aria-pressed="false">マイクラ</button>
           <button type="button" data-cat="other" aria-pressed="false">その他</button>
-          <button type="button" data-cat="post" aria-pressed="false">投稿</button>
+          <button type="button" data-cat="post" aria-pressed="false">付箋</button>
         </div>
       </div>
       <button type="button" class="pl-default" id="planDefault" hidden></button>
@@ -476,7 +488,7 @@ button{-webkit-tap-highlight-color:transparent}
         <button type="button" data-cat="main" aria-pressed="true">メイン</button>
         <button type="button" data-cat="mc" aria-pressed="false">マイクラ</button>
         <button type="button" data-cat="other" aria-pressed="false">その他</button>
-        <button type="button" data-cat="post" aria-pressed="false">投稿</button>
+        <button type="button" data-cat="post" aria-pressed="false">付箋</button>
         <button type="button" class="dailyToggle" id="dailyToggle" aria-pressed="false">↻ 毎日</button>
       </div>
       <div class="addrow">
@@ -491,7 +503,7 @@ button{-webkit-tap-highlight-color:transparent}
 
 <script>
 (function(){
-  const CAT={main:"メイン",mc:"マイクラ",other:"その他",post:"投稿"};
+  const CAT={main:"メイン",mc:"マイクラ",other:"その他",post:"付箋"};
   const CAT_IDS=["main","mc","other","post"];
   const WD=["日","月","火","水","木","金","土"];
   const pad=n=>String(n).padStart(2,"0");
@@ -504,7 +516,10 @@ button{-webkit-tap-highlight-color:transparent}
   const GRIP='<svg viewBox="0 0 10 16" fill="currentColor"><circle cx="2.5" cy="3" r="1.5"/><circle cx="7.5" cy="3" r="1.5"/><circle cx="2.5" cy="8" r="1.5"/><circle cx="7.5" cy="8" r="1.5"/><circle cx="2.5" cy="13" r="1.5"/><circle cx="7.5" cy="13" r="1.5"/></svg>';
   const $=id=>document.getElementById(id);
   const el=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
-  const nextCat=c=>CAT_IDS[(CAT_IDS.indexOf(c)+1)%CAT_IDS.length];
+  // 付箋 (cat "post") is a note shown at the top of the day, not a task: it isn't counted and is cleared when done
+  const TASK_CATS=["main","mc","other"];
+  const isNote=i=>i&&i.cat==="post";
+  const nextCat=c=>TASK_CATS[(TASK_CATS.indexOf(c)+1)%TASK_CATS.length];
 
   let cur=todayKey(), items=[], rdone={}, order=[], carriedFrom=null;
   let prevItems=[], daily=[], db=null, unsub=null, readOnly=false;
@@ -644,7 +659,7 @@ button{-webkit-tap-highlight-color:transparent}
   }
   // unfinished big tasks that would move (daily tasks recur on their own)
   function leftovers(){
-    return items.filter(p=>!p.parent&&!p.moved).filter(p=>!p.done||items.some(c=>c.parent===p.id&&!c.done));
+    return items.filter(p=>!p.parent&&!p.moved&&!isNote(p)).filter(p=>!p.done||items.some(c=>c.parent===p.id&&!c.done));
   }
   let pushArm=null;
   function updatePushBtn(){
@@ -683,7 +698,7 @@ button{-webkit-tap-highlight-color:transparent}
   let doneCollapsed=false;
   try{doneCollapsed=localStorage.getItem("todo:doneCollapsed")==="1"}catch(e){}
   function viewKeys(){
-    const tops=items.filter(i=>!i.parent).map(i=>i.id);
+    const tops=items.filter(i=>!i.parent&&!isNote(i)).map(i=>i.id);
     const dks=activeDaily(cur).map(d=>"d:"+d.id); // includes ones skipped today, so they keep their place
     const valid=new Set([...tops,...dks]);
     const seen=new Set();const out=[];
@@ -751,7 +766,7 @@ button{-webkit-tap-highlight-color:transparent}
   // ---- copy & paste ----
   let toastT=null;
   function toast(msg){const t=$("toast");t.textContent=msg;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true},1600)}
-  const CAT_LABEL={main:"【メイン】",mc:"【マイクラ】",other:"",post:"【投稿】"};
+  const CAT_LABEL={main:"【メイン】",mc:"【マイクラ】",other:"",post:"【付箋】"};
   // tasks: [{text,cat,star,subs:[{text,star}]}] or [{sub:true,text,star}]
   function clipText(tasks){
     return tasks.map(t=>t.sub?t.text:[t.text,...(t.subs||[]).map(s=>"　"+s.text)].join("\n")).join("\n");
@@ -778,7 +793,7 @@ button{-webkit-tap-highlight-color:transparent}
       let t=raw.replace(/^[ \t　]+/,"").replace(/^([・•\-\*]\s*)/,"").replace(/^(\[[ xX]?\]|[☐□☑✓✔])\s*/,"").trim();
       let star=false,cat=null;
       if(/^[★⭐]/.test(t)){star=true;t=t.replace(/^[★⭐️\s]+/,"")}
-      const m=t.match(/^【(メイン|マイクラ|その他|投稿)】\s*/);if(m){cat={"メイン":"main","マイクラ":"mc","その他":"other","投稿":"post"}[m[1]];t=t.slice(m[0].length)}
+      const m=t.match(/^【(メイン|マイクラ|その他|投稿|付箋)】\s*/);if(m){cat={"メイン":"main","マイクラ":"mc","その他":"other","投稿":"post","付箋":"post"}[m[1]];t=t.slice(m[0].length)}
       if(/^[★⭐]/.test(t)){star=true;t=t.replace(/^[★⭐️\s]+/,"")}
       if(!t)return;
       if(sub)out[out.length-1].subs.push({text:t,star});
@@ -880,6 +895,32 @@ button{-webkit-tap-highlight-color:transparent}
     if(!quiet){const d=parse(dst);toast((d.getMonth()+1)+"/"+d.getDate()+"（"+WD[d.getDay()]+"）に移しました")}
     if(!$("plan").hidden)renderPlan();
     return true;
+  }
+
+  // ---- 付箋: notes at the top of the day; ✓ clears it (undo brings it back) ----
+  let noteEdit=null;
+  function renderNotes(){
+    const bar=$("notesBar");bar.textContent="";
+    const notes=items.filter(i=>!i.parent&&isNote(i)&&!i.moved&&!i.done);
+    bar.hidden=!notes.length;
+    notes.forEach(n=>{
+      const card=el("div","note-card");
+      const t=el("span","note-t",(n.star?"★":"")+n.text);
+      t.onclick=()=>{if(readOnly)return;editText(card,t,()=>n.text,v=>{n.text=v})};
+      card.append(t);
+      if(n.memo){const m=el("span","note-m",n.memo);card.append(m)}
+      const acts=el("span","note-acts");
+      if(!readOnly){
+        const ok=el("button","note-ok","✓");ok.type="button";ok.title="済んだので消す";ok.setAttribute("aria-label","済んだので消す");
+        ok.onclick=()=>{items=items.filter(x=>x!==n&&x.parent!==n.id);commit();toast("付箋を消しました（↶で戻せます）")};
+        const mv=el("button",null,"⇢");mv.type="button";mv.title="別の日に移す";mv.setAttribute("aria-label","別の日に移す");
+        mv.onclick=()=>{shiftFor=shiftFor===n.id?null:n.id;render()};
+        acts.append(mv,ok);
+      }
+      card.append(acts);
+      if(shiftFor===n.id)card.append(shiftBar(n));
+      bar.append(card);
+    });
   }
 
   function itemRow(it){
@@ -1086,7 +1127,8 @@ button{-webkit-tap-highlight-color:transparent}
     // today's tally by category
     const counted=dayItems(cur);
     const chips=$("todayChips");chips.textContent="";
-    CAT_IDS.forEach(c=>{
+    renderNotes();
+    TASK_CATS.forEach(c=>{
       const inC=counted.filter(x=>x.cat===c);if(!inC.length)return;
       const dn=inC.filter(x=>x.done).length;
       const ch=el("span","chip");ch.dataset.cat=c;
@@ -1191,7 +1233,7 @@ button{-webkit-tap-highlight-color:transparent}
   function dayItems(k){
     const doc=k===cur?{items,rdone}:(week.data[k]||emptyDoc());
     const gone=new Set(doc.items.filter(x=>x.moved).map(x=>x.id));
-    return doc.items.filter(x=>!x.moved&&!gone.has(x.parent)).concat(shownDaily(k,doc.rdone).map(d=>({cat:d.cat,done:(doc.rdone||{})[d.id]===true})));
+    return doc.items.filter(x=>!x.moved&&!gone.has(x.parent)&&!isNote(x)).concat(shownDaily(k,doc.rdone).map(d=>({cat:d.cat,done:(doc.rdone||{})[d.id]===true})));
   }
   // ---- week numbers: tasks by category, daily tasks counted separately ----
   const daysBetween=(a,b)=>Math.round((parse(b)-parse(a))/864e5);
@@ -1202,7 +1244,7 @@ button{-webkit-tap-highlight-color:transparent}
       const k=shift(start,i);
       const doc=docs[k]||emptyDoc();
       const its=norm(doc.items);const gone=new Set(its.filter(x=>x.moved).map(x=>x.id));
-      const live=its.filter(x=>!x.moved&&!gone.has(x.parent));
+      const live=its.filter(x=>!x.moved&&!gone.has(x.parent)&&!isNote(x));
       const n=live.filter(x=>x.done).length;st.perDay[k]=n;
       live.forEach(x=>{if(x.done){st[x.cat]++;st.total++}});
       if(k>today)continue;
@@ -1226,7 +1268,7 @@ button{-webkit-tap-highlight-color:transparent}
   let allDocs=null,allStats=null,allLoading=false;
   function tallyDoc(doc,k,acc){
     const its=norm(doc.items);const gone=new Set(its.filter(x=>x.moved).map(x=>x.id));
-    its.filter(x=>!x.moved&&!gone.has(x.parent)&&x.done).forEach(x=>{acc[x.cat]++;acc.total++});
+    its.filter(x=>!x.moved&&!gone.has(x.parent)&&x.done&&!isNote(x)).forEach(x=>{acc[x.cat]++;acc.total++});
     Object.entries(doc.rdone||{}).forEach(([id,v])=>{if(v===true){acc.daily++;acc.perDaily[id]=(acc.perDaily[id]||0)+1}});
   }
   function computeAll(){
@@ -1252,7 +1294,7 @@ button{-webkit-tap-highlight-color:transparent}
     if(!allStats){box.hidden=true;return}
     box.hidden=false;
     box.append(el("span","lbl","これまでの積み上げ"));
-    [["メイン",allStats.main],["マイクラ",allStats.mc],["その他",allStats.other],["投稿",allStats.post],["合計",allStats.total]].forEach(([l,v])=>{const sp=el("span",null,l+" ");sp.append(el("b",null,String(v)));box.append(sp)});
+    [["メイン",allStats.main],["マイクラ",allStats.mc],["その他",allStats.other],["合計",allStats.total]].forEach(([l,v])=>{const sp=el("span",null,l+" ");sp.append(el("b",null,String(v)));box.append(sp)});
   }
   function renderDailySum(st,start){
     const ids=Object.keys(st.per);
@@ -1273,7 +1315,7 @@ button{-webkit-tap-highlight-color:transparent}
     const docs={};for(let i=0;i<7;i++){const k=shift(start,i);docs[k]=k===cur?{items,rdone}:(week.data[k]||emptyDoc())}
     const st=weekStats(start,docs);
     computeAll();renderAllTime();
-    const tally={main:st.main,mc:st.mc,other:st.other,post:st.post};
+    const tally={main:st.main,mc:st.mc,other:st.other};
     renderDailySum(st,start);
     renderGoals(start);
     const box=$("days");box.textContent="";
@@ -1286,8 +1328,8 @@ button{-webkit-tap-highlight-color:transparent}
       b.onclick=()=>{if(k!==cur)open(k)};
       box.append(b);
     }
-    $("wMain").textContent=tally.main;$("wMc").textContent=tally.mc;$("wOther").textContent=tally.other;$("wPost").textContent=tally.post;
-    $("wTotal").textContent=tally.main+tally.mc+tally.other+tally.post;
+    $("wMain").textContent=tally.main;$("wMc").textContent=tally.mc;$("wOther").textContent=tally.other;
+    $("wTotal").textContent=tally.main+tally.mc+tally.other;
     $("weekRange").textContent=rangeLabel(start);
     const isThis=start===mondayOf(todayKey());
     $("goals").querySelector("b").textContent=isThis?"今週の目標":rangeShort(start)+" の目標";
@@ -1382,6 +1424,7 @@ button{-webkit-tap-highlight-color:transparent}
     return out;
   }
   function planSummary(stats){
+    stats=stats.filter(s=>!isNote(s.p));
     const c=k=>stats.filter(s=>s.state===k).length;
     const shifted=stats.filter(s=>s.shift!==0&&(s.live||s.state==="nextWeek"));
     const shiftDays=shifted.reduce((a,s)=>a+Math.abs(s.shift),0);
@@ -1415,7 +1458,7 @@ button{-webkit-tap-highlight-color:transparent}
       const day=el("div","pday"+(k<today?" past":"")+(d.getDay()===0?" sun":"")+(d.getDay()===6?" sat":""));
       const h=el("div","pday-h");h.append(el("span",null,WD[d.getDay()]+" "+(d.getMonth()+1)+"/"+d.getDate()));if(k===today)h.append(el("span","today","今日"));
       day.append(h);
-      // grouped by category so メイン / マイクラ / その他 / 投稿 are easy to tell apart
+      // grouped by category so メイン / マイクラ / その他 / 付箋 are easy to tell apart
       CAT_IDS.forEach(c=>{
         const ss=stats.filter(s=>s.p.day===k&&s.p.cat===c);if(!ss.length)return;
         const g=el("div","pcat");g.dataset.cat=c;g.append(el("span",null,CAT[c]));day.append(g);
@@ -1432,11 +1475,13 @@ button{-webkit-tap-highlight-color:transparent}
   function planRow(s){
     const row=el("div","pitem");row.dataset.cat=s.p.cat;
     const t=el("span","ptxt",(s.p.star?"★":"")+s.p.text);
-    const [lbl,cls]=ST_LABEL(s);
+    const [lbl,cls]=isNote(s.p)?(s.live?["付箋","no"]:["済み","ok"]):ST_LABEL(s);
     const acts=el("span","pacts");
     if(s.live&&!s.live.done){const b=el("button",null,"⇢");b.type="button";b.title="ずらす";b.onclick=()=>{planShift=planShift===s.p.id?null:s.p.id;renderPlan()};acts.append(b)}
     const x=el("button",null,"×");x.type="button";x.title="予定から外す";x.onclick=()=>removePlan(s);acts.append(x);
-    row.append(catTag(s.p.cat,c=>{s.p.cat=c;saveWeekInfo(planStart);if(s.live)setLiveCat(s,c);else renderPlan()}),t,el("span","pst "+cls,lbl),acts);
+    const tag=isNote(s.p)?el("span","ctag",CAT.post):catTag(s.p.cat,c=>{s.p.cat=c;saveWeekInfo(planStart);if(s.live)setLiveCat(s,c);else renderPlan()});
+    if(isNote(s.p))tag.dataset.cat="post";
+    row.append(tag,t,el("span","pst "+cls,lbl),acts);
     if(planShift===s.p.id&&s.live){
       const bar=el("div","shiftbar");bar.append(el("span",null,"ずらす先："));
       for(let i=0;i<7;i++){const k=shift(planStart,i);if(k===s.liveDay)continue;const d=parse(k);
@@ -1526,9 +1571,9 @@ button{-webkit-tap-highlight-color:transparent}
     });
     const stx=$("rvStats");stx.textContent="";$("review").querySelectorAll(".rv-all").forEach(x=>x.remove());
     const tile=(label,val,cat,cls)=>{const d=el("div","sc"+(cls?" "+cls:""));if(cat)d.dataset.cat=cat;d.append(el("small",null,label),el("strong",null,String(val)));return d};
-    stx.append(tile("メイン",st.main,"main"),tile("マイクラ",st.mc,"mc"),tile("その他",st.other,"other"),tile("投稿",st.post,"post"),tile("合計",st.total,null,"total"),
+    stx.append(tile("メイン",st.main,"main"),tile("マイクラ",st.mc,"mc"),tile("その他",st.other,"other"),tile("合計",st.total,null,"total"),
       tile("毎日タスク",st.dDone+"回"));
-    if(allStats){const a=el("p","rv-note");a.textContent="これまでの積み上げ：メイン "+allStats.main+"・マイクラ "+allStats.mc+"・その他 "+allStats.other+"・投稿 "+allStats.post+"（合計 "+allStats.total+"）／毎日タスク "+allStats.daily+"回";stx.after(a);a.className="rv-note rv-all";}
+    if(allStats){const a=el("p","rv-note");a.textContent="これまでの積み上げ：メイン "+allStats.main+"・マイクラ "+allStats.mc+"・その他 "+allStats.other+"（合計 "+allStats.total+"）／毎日タスク "+allStats.daily+"回";stx.after(a);a.className="rv-note rv-all";}
     const adv=$("rvAdvice");adv.textContent="";
     advice(info,st).forEach(t=>{const p=el("p");p.innerHTML=t;adv.append(p)});
   }
@@ -1590,10 +1635,10 @@ button{-webkit-tap-highlight-color:transparent}
     const st=rvStats,info=weekInfo[rvStart];
     const lines=["【日めくりTodo 週のふりかえり "+rangeShort(rvStart)+"】",
       "目標："+(info.goals.length?info.goals.map(g=>g.text+"（"+(RESULT[g.result]||"未評価")+"）").join(" / "):"なし"),
-      "完了：メイン"+st.main+"・マイクラ"+st.mc+"・その他"+st.other+"・投稿"+st.post+"（合計"+st.total+"）",
+      "完了：メイン"+st.main+"・マイクラ"+st.mc+"・その他"+st.other+"（合計"+st.total+"）",
       "毎日タスク："+st.dDone+"回"+(allStats?"（これまで "+allStats.daily+"回）":"")];
     Object.entries(st.per).forEach(([id,p])=>lines.push("　・"+p.text+" "+p.done+"回"+(allStats?"（累計 "+(allStats.perDaily[id]||0)+"）":"")));
-    if(allStats)lines.push("これまでの積み上げ：メイン"+allStats.main+"・マイクラ"+allStats.mc+"・その他"+allStats.other+"・投稿"+allStats.post+"（合計"+allStats.total+"）");
+    if(allStats)lines.push("これまでの積み上げ：メイン"+allStats.main+"・マイクラ"+allStats.mc+"・その他"+allStats.other+"（合計"+allStats.total+"）");
     if(st.plan&&st.plan.n)lines.push("週の計画：予定"+st.plan.n+"件／予定どおり完了"+st.plan.onPlan+"・ずらして完了"+st.plan.shiftedDone+"・ずらし中"+st.plan.shifting+"・未完"+st.plan.pending+"・来週へ"+st.plan.nextWeek+"／ずれ"+st.plan.shifted+"件（"+st.plan.shiftDays+"日分）");
     if(st.old.length)lines.push("3日以上の持ち越し："+st.old.map(o=>o.text+"（"+o.days+"日）").join("、"));
     lines.push("","この週が目標に合っていたか、総評と来週へのアドバイスをください。");
@@ -1639,7 +1684,7 @@ button{-webkit-tap-highlight-color:transparent}
     return items.some(i=>!i.parent&&((i.fromDay===src&&i.fromId===p.id)||(!i.fromId&&i.from&&i.text===p.text)));
   }
   function carryList(){
-    return prevItems.filter(p=>!p.parent&&!p.moved).filter(p=>{
+    return prevItems.filter(p=>!p.parent&&!p.moved&&!isNote(p)).filter(p=>{
       const kids=prevItems.filter(k=>k.parent===p.id);
       return (!p.done||kids.some(k=>!k.done))&&!alreadyHere(p);
     });
@@ -1671,7 +1716,7 @@ button{-webkit-tap-highlight-color:transparent}
     // automatic carry-over is not an undo step
     if(!src){carriedFrom="none";restoring=true;save();restoring=false;setBase();return}
     const old=norm(doc.items);
-    const list=old.filter(p=>!p.parent&&!p.moved)
+    const list=old.filter(p=>!p.parent&&!p.moved&&!isNote(p))
       .filter(p=>!p.done||old.some(c=>c.parent===p.id&&!c.done))
       .filter(p=>!alreadyHere(p,src));
     const map=pullIn(old,list,src);
