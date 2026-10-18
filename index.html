@@ -146,6 +146,21 @@ button{font:inherit;color:inherit}
 .pcat{padding:4px 10px 0;font-size:11px;font-weight:900;color:var(--c);letter-spacing:.06em;border-top:1px solid var(--line);display:flex;align-items:center;gap:6px}
 .pcat::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--c)}
 .pcat+.pitem{border-top:0}
+.future{display:grid;gap:6px;border:1px solid var(--line);border-radius:6px;padding:8px 10px;background:var(--sheet)}
+.flist{display:grid;gap:2px}
+.ftog{display:grid;border-radius:6px}
+.ftog-h{display:flex;align-items:center;gap:4px}
+.ftog-h .tw{border:0;background:none;color:var(--muted);width:26px;height:28px;cursor:pointer;font-size:12px;transition:transform .15s;flex:none}
+.ftog.open .tw{transform:rotate(90deg)}
+.ftog-h input{flex:1;min-width:0;font:inherit;font-size:16px;font-weight:700;color:var(--ink);background:none;border:0;border-bottom:1px solid transparent;padding:3px 2px}
+.ftog-h input:focus{outline:none;border-bottom-color:var(--line)}
+.ftog-h .fdel{border:0;background:none;color:var(--muted);cursor:pointer;font-size:15px;opacity:.5;padding:0 6px}
+.ftog-h .fdel:hover{opacity:1}
+.ftog-h .fdot{font-size:10px;color:var(--muted)}
+.ftog textarea{margin:0 0 6px 30px;width:calc(100% - 30px);font:inherit;font-size:15px;line-height:1.7;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:8px 10px;resize:vertical;min-height:5em}
+.fadd{display:flex;align-items:center;gap:6px;color:var(--muted);padding-left:8px}
+.fadd input{flex:1;min-width:0;font:inherit;font-size:16px;border:0;background:none;color:var(--ink);padding:5px 0}
+.fadd input:focus{outline:none;border-bottom:1px solid var(--ink)}
 .pl-default{justify-self:start;border:0;background:var(--ink);color:var(--sheet);border-radius:18px;padding:7px 16px;font-size:13px;font-weight:700;cursor:pointer}
 .pday-h{display:flex;align-items:baseline;gap:8px;padding:5px 10px;background:var(--soft);font-size:13px;font-weight:900}
 .pday-h .today{font-size:11px;color:var(--main)}
@@ -401,7 +416,7 @@ button{-webkit-tap-highlight-color:transparent}
     </section>
     <section class="pane">
       <h3>使い方</h3>
-      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に先週のふりかえりが出ます。</p>
+      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。「週の計画」の下には、再来週以降のことを見出しごとに開いたり閉じたりして書けるメモがあります。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に先週のふりかえりが出ます。</p>
       <p class="hint">ホーム画面に追加：iPhoneはSafariの共有ボタン →「ホーム画面に追加」、AndroidはChromeのメニュー →「ホーム画面に追加」。</p>
     </section>
   </div>
@@ -462,6 +477,11 @@ button{-webkit-tap-highlight-color:transparent}
       <button type="button" class="pl-default" id="planDefault" hidden></button>
       <p class="pl-sum" id="planSum"></p>
       <div class="pl-days" id="planDays"></div>
+      <div class="future">
+        <div class="goals-h"><b>再来週以降のメモ</b><span class="rv-note" id="futureState"></span></div>
+        <div class="flist" id="futureList"></div>
+        <div class="fadd"><span>＋</span><input id="futureNew" placeholder="見出しを追加して Enter（例：11月、年末企画）" maxlength="120"></div>
+      </div>
       <p class="rv-note">ここに入れた予定は、その曜日のリストに自動で入ります。予定をずらしても、最初に決めた曜日はここに残るので、どれだけずれたかが分かります。</p>
     </section>
     <section class="review" id="review" hidden aria-label="先週のふりかえり">
@@ -1351,6 +1371,7 @@ button{-webkit-tap-highlight-color:transparent}
       else data=JSON.parse(localStorage.getItem("todo:week:"+start)||"null");
     }catch(e){}
     weekInfo[start]=data?{goals:(data.goals||[]).map(g=>({id:g.id||uid(),text:String(g.text||""),result:g.result||null})),seen:!!data.seen,
+      defaultVer:data.defaultVer||(data.defaultUsed?1:0),
       plan:(data.plan||[]).map(p=>({id:p.id||uid(),text:String(p.text||""),cat:normCat(p.cat),day:p.day,...(p.star?{star:true}:{}),...(p.memo?{memo:String(p.memo)}:{})})),defaultUsed:!!data.defaultUsed}:goalsDefault(start);
     return weekInfo[start];
   }
@@ -1384,8 +1405,9 @@ button{-webkit-tap-highlight-color:transparent}
   // ---- weekly plan (weeks/<monday>.plan: [{id,text,cat,day}], day = the day first planned) ----
   let planStart=null,planDocs=null,planShift=null,planCat="main";
   // plans received in the chat; shown as a one-tap "put it in" button on that week
+  // plans received in the chat; each week can have several versions (the newest replaces the older one)
   const DEFAULT_PLANS={"2026-10-19":[
-    ["2026-10-19","main","5日目ゲーム"],
+   [["2026-10-19","main","5日目ゲーム"],
     ["2026-10-19","mc","ジガルデmeshy案件",{memo:"→ガルマさんこっち優先してっていう（提出間に合わなさそうなら）"}],
     ["2026-10-20","main","字幕入れ①",{star:true}],
     ["2026-10-20","mc","mod制作：闇の力"],
@@ -1400,8 +1422,31 @@ button{-webkit-tap-highlight-color:transparent}
     ["2026-10-24","post","ジガルデmeshy初稿期限",{star:true}],
     ["2026-10-25","main","ジオゲカット（前から）"],
     ["2026-10-25","other","ポケモン配信"],
-    ["2026-10-25","post","roco初稿期限",{star:true}]
+    ["2026-10-25","post","roco初稿期限",{star:true}]],
+   [
+    ["2026-10-19","main","5日目ゲーム"],
+    ["2026-10-19","mc","撮影：ジガルデmeshy案件",{memo:"→ガルマさんこっち優先してっていう（提出間に合わなさそうなら）"}],
+    ["2026-10-20","main","字幕入れ①",{star:true}],
+    ["2026-10-20","mc","mod制作：闇の力"],
+    ["2026-10-21","main","字幕入れ②"],
+    ["2026-10-21","mc","撮影：roco kingdo→ざっくりカット指示"],
+    ["2026-10-22","main","文字起こし、効果音入れ①"],
+    ["2026-10-22","main","ポケモン日程仮決め",{star:true}],
+    ["2026-10-22","mc","撮影：闇の力"],
+    ["2026-10-23","main","文字起こし、効果音入れ②"],
+    ["2026-10-23","mc","mod制作：巨大なクモ"],
+    ["2026-10-23","post","shorts案件費振込"],
+    ["2026-10-24","main","ED、サムネ"],
+    ["2026-10-24","main","編集者募集",{star:true}],
+    ["2026-10-24","mc","撮影：巨大なクモ"],
+    ["2026-10-24","post","ジガルデmeshy初稿期限",{star:true}],
+    ["2026-10-25","main","ジオゲカット（前から）"],
+    ["2026-10-25","mc","mod制作：合体"],
+    ["2026-10-25","post","roco初稿期限",{star:true}],
+    ["2026-10-25","post","20:00ポケモン配信"]
+   ]
   ]};
+  const latestDefault=start=>{const v=DEFAULT_PLANS[start];return v?{ver:v.length,list:v[v.length-1],older:v.slice(0,-1)}:null};
   const planOf=start=>(weekInfo[start]&&weekInfo[start].plan)||[];
   // where each planned task is now, and how it went
   function planStatus(start,docs){
@@ -1432,6 +1477,7 @@ button{-webkit-tap-highlight-color:transparent}
   }
   async function openPlan(start){
     planStart=start;await loadWeekInfo(start);
+    if(!futureLoaded)loadFuture();else renderFuture();
     planDocs=await weekDocs(start);
     $("plan").hidden=false;renderPlan();
     $("plan").scrollIntoView({behavior:"smooth",block:"start"});
@@ -1448,9 +1494,10 @@ button{-webkit-tap-highlight-color:transparent}
     const stats=planStatus(start,docs);const sm=planSummary(stats);
     const sp=(l,v)=>"<span class=\"k\">"+l+" <b>"+v+"</b></span>";
     $("planSum").innerHTML=sm.n?sp("予定",sm.n+"件")+sp("予定どおり完了",sm.onPlan)+sp("ずらして完了",sm.shiftedDone)+sp("ずらし中",sm.shifting)+sp("未完",sm.pending)+(sm.nextWeek?sp("来週へ",sm.nextWeek):"")+"<br>"+sp("最初の予定からずれたもの",sm.shifted+"件")+sp("合計",sm.shiftDays+"日分"):"まだ予定がありません。曜日ごとに入れていくと、その日のリストにも自動で入ります。";
-    const def=DEFAULT_PLANS[start];const db_=$("planDefault");
-    db_.hidden=!(def&&!info.defaultUsed&&!readOnly);
-    if(!db_.hidden)db_.textContent="チャットで送った予定を入れる（"+def.length+"件）";
+    const def=latestDefault(start);const db_=$("planDefault");
+    const used=info.defaultVer||(info.defaultUsed?1:0);
+    db_.hidden=!(def&&used<def.ver&&!readOnly);
+    if(!db_.hidden)db_.textContent=used?"チャットで送った新しい予定に入れ替える（"+def.list.length+"件）":"チャットで送った予定を入れる（"+def.list.length+"件）";
     const box=$("planDays");box.textContent="";
     const today=todayKey();
     for(let i=0;i<7;i++){
@@ -1525,14 +1572,105 @@ button{-webkit-tap-highlight-color:transparent}
     openPlan(d.getDay()===0?shift(mondayOf(t),7):mondayOf(t));
   };
   $("planDefault").onclick=async()=>{
-    const start=planStart,def=DEFAULT_PLANS[start];if(!def)return;
-    const info=await loadWeekInfo(start);if(info.defaultUsed)return;
-    info.defaultUsed=true;$("planDefault").hidden=true;
-    for(const [day,cat,text,extra] of def){
-      if((info.plan||[]).some(p=>p.day===day&&p.text===text))continue;
-      await addPlan(day,text,cat,{...(extra||{}),noSave:true});
+    const start=planStart,def=latestDefault(start);if(!def)return;
+    const info=await loadWeekInfo(start);
+    const used=info.defaultVer||(info.defaultUsed?1:0);if(used>=def.ver)return;
+    info.defaultVer=def.ver;info.defaultUsed=true;$("planDefault").hidden=true;
+    const key=(day,text)=>day+"|"+text;
+    const want=new Set(def.list.map(([d,,t])=>key(d,t)));
+    // items from an older version that are not in the new one come out (unfinished tasks too; finished ones stay as records)
+    const oldKeys=new Set(def.older.flat().map(([d,,t])=>key(d,t)));
+    const stats=planStatus(start,{...planDocs,...(cur>=start&&cur<=shift(start,6)?{[cur]:{items,rdone}}:{})});
+    let removed=0;
+    for(const st of stats){
+      if(!oldKeys.has(key(st.p.day,st.p.text))||want.has(key(st.p.day,st.p.text)))continue;
+      info.plan=info.plan.filter(p=>p.id!==st.p.id);removed++;
+      if(st.live&&!st.live.done){
+        const k=st.liveDay,id=st.live.id;
+        if(k===cur){items=items.filter(i=>i.id!==id&&i.parent!==id);commit()}
+        else{const doc=await readDay(k);const after={...cloneDoc(doc),items:norm(doc.items).filter(i=>i.id!==id&&i.parent!==id),order:(doc.order||[]).filter(o=>o!==id)};writeDay(k,after);cacheDay(k,after)}
+      }
     }
-    saveWeekInfo(start);await refreshPlanDocs();toast(def.length+"件の予定を入れました");
+    let added=0;
+    for(const [day,cat,text,extra] of def.list){
+      const same=(info.plan||[]).find(p=>p.day===day&&p.text===text);
+      if(same){ // already there: take over a changed category / star
+        const e=extra||{};
+        if(same.cat!==cat||!!same.star!==!!e.star){
+          same.cat=cat;if(e.star)same.star=true;else delete same.star;
+          const st=stats.find(x=>x.p.id===same.id);
+          if(st&&st.live){
+            const fix=its=>its.forEach(i=>{if(i.id===st.live.id||i.parent===st.live.id){i.cat=cat;if(i.id===st.live.id)i.star=!!e.star}});
+            if(st.liveDay===cur){fix(items);commit()}
+            else{const doc=await readDay(st.liveDay);const its=norm(doc.items);fix(its);const after={...cloneDoc(doc),items:its};writeDay(st.liveDay,after);cacheDay(st.liveDay,after)}
+          }
+        }
+        continue;
+      }
+      await addPlan(day,text,cat,{...(extra||{}),noSave:true});added++;
+    }
+    saveWeekInfo(start);await refreshPlanDocs();
+    toast(used?"予定を入れ替えました（追加 "+added+"・外した "+removed+"）":def.list.length+"件の予定を入れました");
+  };
+  // ---- notes for the week after next and later: toggles (title + free notes), saved as you type ----
+  let futureLoaded=false,futureT=null,future=[];
+  async function loadFuture(){
+    let data=null;
+    try{
+      if(db){const s_=await db.doc("settings/future").get();data=s_.exists?s_.data():null}
+      else data=JSON.parse(localStorage.getItem("todo:future")||"null");
+    }catch(e){}
+    data=data||{};
+    future=(data.toggles||[]).map(t=>({id:t.id||uid(),title:String(t.title||""),body:String(t.body||""),open:!!t.open}));
+    if(!future.length&&data.text)future=[{id:uid(),title:"メモ",body:String(data.text),open:true}];
+    futureLoaded=true;
+    const a=document.activeElement;if(!a||!a.closest||!a.closest("#futureList"))renderFuture();
+  }
+  function saveFuture(now){
+    if(!futureLoaded||readOnly)return;
+    clearTimeout(futureT);
+    const go=()=>{
+      const body={toggles:future.map(t=>({...t})),updatedAt:new Date().toISOString()};
+      const d=db;
+      if(!d){try{localStorage.setItem("todo:future",JSON.stringify(body))}catch(e){saveFailed(e)}}
+      else writing=writing.then(()=>d.doc("settings/future").set(body)).catch(onErr);
+      $("futureState").textContent="保存しました";
+    };
+    if(now)go();else{$("futureState").textContent="…";futureT=setTimeout(go,700)}
+  }
+  function renderFuture(){
+    const box=$("futureList");box.textContent="";
+    future.forEach(t=>{
+      const w=el("div","ftog"+(t.open?" open":""));
+      const h=el("div","ftog-h");
+      const tw=el("button","tw","▶");tw.type="button";tw.setAttribute("aria-label",t.open?"閉じる":"開く");tw.setAttribute("aria-expanded",String(t.open));
+      tw.onclick=()=>{t.open=!t.open;saveFuture(true);renderFuture()};
+      const ti=el("input");ti.value=t.title;ti.placeholder="見出し";ti.maxLength=120;ti.setAttribute("aria-label","見出し");
+      ti.oninput=()=>{t.title=ti.value;saveFuture()};
+      ti.onkeydown=e=>{if(isEnter(e)){e.preventDefault();t.open=true;saveFuture(true);renderFuture();const ta=box.querySelector('[data-id="'+CSS.escape(t.id)+'"] textarea');if(ta)ta.focus()}};
+      h.append(tw,ti);
+      if(!t.open&&t.body.trim())h.append(el("span","fdot","メモあり"));
+      const del=el("button","fdel","×");del.type="button";del.title="消す";del.setAttribute("aria-label","この見出しを消す");
+      let armed=false;
+      del.onclick=()=>{
+        if(t.body.trim()&&!armed){armed=true;del.textContent="消す？";setTimeout(()=>{armed=false;del.textContent="×"},3000);return}
+        future=future.filter(x=>x!==t);saveFuture(true);renderFuture();
+      };
+      h.append(del);w.append(h);w.dataset.id=t.id;
+      if(t.open){
+        const ta=el("textarea");ta.value=t.body;ta.placeholder="自由にメモ";ta.rows=Math.min(12,Math.max(3,t.body.split("\n").length+1));
+        ta.oninput=()=>{t.body=ta.value;saveFuture()};ta.onblur=()=>saveFuture(true);
+        w.append(ta);
+      }
+      box.append(w);
+    });
+  }
+  $("futureNew").onkeydown=e=>{
+    if(!isEnter(e))return;e.preventDefault();
+    const v=$("futureNew").value.trim();if(!v||readOnly)return;
+    const t={id:uid(),title:v,body:"",open:true};future.push(t);$("futureNew").value="";
+    saveFuture(true);renderFuture();
+    const ta=$("futureList").querySelector('[data-id="'+CSS.escape(t.id)+'"] textarea');if(ta)ta.focus();
   };
   $("planClose").onclick=()=>{$("plan").hidden=true;planShift=null};
   $("planWeek").onclick=e=>{const b=e.target.closest("button[data-w]");if(!b)return;openPlan(shift(mondayOf(todayKey()),7*+b.dataset.w))};
@@ -1830,7 +1968,7 @@ button{-webkit-tap-highlight-color:transparent}
   open(cur);
   // hooks for app.js (cloud sync)
   let dailyUnsub=null;
-  const reset=()=>{Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
+  const reset=()=>{futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
   window.todoCore={
     connect(d){
       if(dailyUnsub)dailyUnsub();db=d;reset();
