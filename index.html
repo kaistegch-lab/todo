@@ -136,6 +136,19 @@ button{font:inherit;color:inherit}
 .planbtn{border-style:solid;border-color:var(--ink)}
 .plan{border-top:1px solid var(--line);padding:14px 18px 16px;display:grid;gap:12px;background:var(--sheet)}
 .pl-top{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between}
+.pl-add{display:flex;gap:6px;flex-wrap:wrap;align-items:center;border:1px solid var(--line);border-radius:10px;padding:6px;background:var(--soft)}
+.pl-pick{display:flex;gap:6px}
+.pl-pick select{font:inherit;font-size:14px;font-weight:700;color:var(--ink);background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:6px 8px;cursor:pointer}
+.pl-pick select[data-cat]{border-left:4px solid var(--c);color:var(--c)}
+.pl-in{display:flex;gap:6px;flex:1;min-width:200px}
+.pl-in input{flex:1;min-width:0;font:inherit;font-size:16px;color:var(--ink);background:var(--sheet);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+.pl-in button{border:0;background:var(--ink);color:var(--sheet);border-radius:8px;padding:6px 14px;font:inherit;font-size:14px;font-weight:700;cursor:pointer}
+.pg-plus{display:block;width:100%;border:1px dashed transparent;background:none;color:var(--muted);border-radius:5px;padding:2px 0;font:inherit;font-size:13px;line-height:1.2;cursor:pointer;opacity:0;transition:opacity .12s}
+.pg-cell:hover .pg-plus,.pg-plus:focus{opacity:.8;border-color:var(--line)}
+@media (hover:none){.pg-plus{opacity:.35}}
+.pg-cell{cursor:cell}
+.pcard+.pg-plus{margin-top:2px}
+.pg-in{width:100%;min-width:0;font:inherit;font-size:16px;border:1.5px solid var(--ink);border-radius:5px;background:var(--sheet);color:var(--ink);padding:3px 5px;margin-top:2px}
 .pl-top .seg button{border:1.5px solid var(--line);background:none;border-radius:16px;padding:3px 12px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted)}
 .pl-week button[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--sheet)}
 .pl-sum{margin:0;font-size:13px;line-height:1.7;background:var(--soft);border-radius:6px;padding:8px 10px}
@@ -143,6 +156,36 @@ button{font:inherit;color:inherit}
 .pl-sum .k{white-space:nowrap;margin-right:10px;display:inline-block}
 .pl-days{display:grid;gap:10px}
 .pday{border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.pgrid-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:8px}
+.pgrid{border-collapse:separate;border-spacing:0;width:100%;min-width:620px;table-layout:fixed;font-size:12px}
+.pgrid th,.pgrid td{border-bottom:1px solid var(--line);border-left:1px solid var(--line);vertical-align:top;padding:4px}
+.pgrid tr>*:first-child{border-left:0}
+.pgrid tbody tr:last-child>*{border-bottom:0}
+.pg-corner{width:52px}
+@media (min-width:760px){#pagePlan{width:min(960px,calc(100vw - 32px));margin-left:calc((600px - min(960px,calc(100vw - 32px)))/2)}}
+.pg-day{background:var(--soft);font-weight:900;text-align:center;padding:5px 2px!important;line-height:1.2}
+.pg-day .w{display:block;font-size:13px}.pg-day .d{display:block;font-size:10px;color:var(--muted);font-weight:700}
+.pg-day .t{display:block;font-size:10px;color:var(--main)}
+.pg-day.sun .w{color:var(--sun)}.pg-day.sat .w{color:var(--sat)}
+.pg-day.is-today,.pg-cell.is-today{background:color-mix(in srgb,var(--main) 7%,var(--sheet))}
+.pg-cell.past{background:color-mix(in srgb,var(--soft) 60%,var(--sheet))}
+.pg-cat{position:sticky;left:0;z-index:1;background:var(--sheet);font-size:11px;font-weight:900;color:var(--c,var(--muted));text-align:left;white-space:nowrap;padding:6px 4px!important;border-left:3px solid var(--c,transparent)!important}
+.pgrid thead .pg-corner{position:sticky;left:0;z-index:2;background:var(--soft)}
+.pg-cell{display:table-cell}
+.pcard{display:grid;gap:1px;width:100%;text-align:left;border:1px solid var(--line);border-left:3px solid var(--c);background:var(--sheet);color:var(--ink);border-radius:5px;padding:4px 5px;margin-bottom:4px;font:inherit;font-size:12px;line-height:1.35;cursor:pointer;word-break:break-word}
+.pcard:last-child{margin-bottom:0}
+.pcard.sel{outline:2px solid var(--ink);outline-offset:-1px}
+.pc-s{font-size:10px;color:var(--muted);font-weight:700}
+.pcard.st-ok .pc-t{color:var(--muted);text-decoration:line-through}
+.pcard.st-ok .pc-s{color:var(--mc)}
+.pcard.st-go .pc-s{color:var(--main)}
+.pg-add input{width:100%;min-width:0;font:inherit;font-size:12px;border:1px dashed var(--line);border-radius:5px;background:none;color:var(--ink);padding:4px 5px}
+.pg-add input:focus{outline:none;border-style:solid;border-color:var(--ink)}
+.pg-add .pg-cat{color:var(--muted)}
+.psel{border:1px solid var(--ink);border-radius:8px;overflow:hidden;margin-top:10px}
+.psel-h{display:flex;justify-content:space-between;align-items:center;padding:5px 10px;background:var(--soft);font-size:13px;font-weight:900}
+.psel-h button{border:0;background:none;color:var(--muted);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.psel .pitem{border-top:0}
 .pcat{padding:4px 10px 0;font-size:11px;font-weight:900;color:var(--c);letter-spacing:.06em;border-top:1px solid var(--line);display:flex;align-items:center;gap:6px}
 .pcat::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--c)}
 .pcat+.pitem{border-top:0}
@@ -600,18 +643,16 @@ button{-webkit-tap-highlight-color:transparent}
       <div class="rv-h"><b id="planTitle">週の計画</b></div>
       <div class="pl-top">
         <div class="seg pl-week" id="planWeek"><button type="button" data-w="0" aria-pressed="true">今週</button><button type="button" data-w="1" aria-pressed="false">来週</button></div>
-        <div class="seg" id="planCat">
-          <button type="button" data-cat="main" aria-pressed="true">メイン</button>
-          <button type="button" data-cat="mc" aria-pressed="false">マイクラ</button>
-          <button type="button" data-cat="other" aria-pressed="false">その他</button>
-          <button type="button" data-cat="post" aria-pressed="false">付箋</button>
-        </div>
+      </div>
+      <div class="pl-add" id="planAdd">
+        <div class="pl-pick"><select id="planDay" aria-label="曜日"></select><select id="planCatSel" aria-label="項目"><option value="main">メイン</option><option value="mc">マイクラ</option><option value="other">その他</option><option value="post">付箋</option></select></div>
+        <div class="pl-in"><input id="planText" placeholder="予定を入れて Enter" maxlength="200"><button type="button" id="planAddBtn">追加</button></div>
       </div>
       <button type="button" class="pl-default" id="planDefault" hidden></button>
       <p class="pl-sum" id="planSum"></p>
       <div class="wmemo" id="weekMemoPlan"></div>
       <div class="pl-days" id="planDays"></div>
-      <p class="rv-note">ここに入れた予定は、その曜日のリストに自動で入ります。予定をずらしても、最初に決めた曜日はここに残るので、どれだけずれたかが分かります。</p>
+      <p class="rv-note">表のマスをタップすると、その曜日・項目にそのまま書き込めます。予定をタップすると、ずらす・メモ・外すができます。ここに入れた予定は、その曜日のリストに自動で入ります。予定をずらしても、最初に決めた曜日はここに残るので、どれだけずれたかが分かります。</p>
     </section>
   </div>
   <div class="sheet page" id="pageMore" hidden>
@@ -1950,7 +1991,7 @@ button{-webkit-tap-highlight-color:transparent}
     return{n:stats.length,onPlan:c("onPlan"),shiftedDone:c("shiftedDone"),shifting:c("shifting"),pending:c("pending"),nextWeek:c("nextWeek"),dropped:c("dropped"),shifted:shifted.length,shiftDays};
   }
   async function openPlan(start){
-    planStart=start;await loadWeekInfo(start);
+    if(planStart!==start)planScroll=null;planStart=start;await loadWeekInfo(start);
     if(!futureLoaded)loadFuture();else renderFuture();
     planDocs=await weekDocs(start);
     renderPlan();
@@ -1972,23 +2013,77 @@ button{-webkit-tap-highlight-color:transparent}
     const used=info.defaultVer||(info.defaultUsed?1:0);
     db_.hidden=!(def&&used<def.ver&&!readOnly);
     if(!db_.hidden)db_.textContent=used?"チャットで送った新しい予定に入れ替える（"+def.list.length+"件）":"チャットで送った予定を入れる（"+def.list.length+"件）";
+    // a table: days across, categories down (like the plan sheet); tap an item to edit / move / memo it
+    fillPlanDay();$("planAdd").hidden=readOnly;
     const box=$("planDays");box.textContent="";
     const today=todayKey();
-    for(let i=0;i<7;i++){
-      const k=shift(start,i);const d=parse(k);
-      const day=el("div","pday"+(k<today?" past":"")+(d.getDay()===0?" sun":"")+(d.getDay()===6?" sat":""));
-      const h=el("div","pday-h");h.append(el("span",null,WD[d.getDay()]+" "+(d.getMonth()+1)+"/"+d.getDate()));if(k===today)h.append(el("span","today","今日"));
-      day.append(h);
-      // grouped by category so メイン / マイクラ / その他 / 付箋 are easy to tell apart
-      CAT_IDS.forEach(c=>{
-        const ss=stats.filter(s=>s.p.day===k&&s.p.cat===c);if(!ss.length)return;
-        const g=el("div","pcat");g.dataset.cat=c;g.append(el("span",null,CAT[c]));day.append(g);
-        ss.forEach(s=>day.append(planRow(s)));
+    const days=[...Array(7)].map((_,i)=>shift(start,i));
+    const wrap=el("div","pgrid-wrap");const tb=el("table","pgrid");
+    const hr=el("tr");hr.append(el("th","pg-corner",""));
+    days.forEach(k=>{const d=parse(k);const th=el("th","pg-day"+(k<today?" past":"")+(k===today?" is-today":"")+(d.getDay()===0?" sun":"")+(d.getDay()===6?" sat":""));
+      th.append(el("span","w",WD[d.getDay()]),el("span","d",(d.getMonth()+1)+"/"+d.getDate()));if(k===today)th.append(el("span","t","今日"));hr.append(th)});
+    const thead=el("thead");thead.append(hr);tb.append(thead);
+    const tbody=el("tbody");
+    CAT_IDS.forEach(c=>{
+      const inCat=stats.filter(s=>s.p.cat===c);
+      if(!inCat.length&&c==="post")return;
+      const tr=el("tr");tr.dataset.cat=c;
+      const th=el("th","pg-cat");th.dataset.cat=c;th.append(el("span",null,CAT[c]));tr.append(th);
+      days.forEach(k=>{
+        const td=el("td","pg-cell"+(k<today?" past":"")+(k===today?" is-today":""));
+        inCat.filter(s=>s.p.day===k).forEach(s=>td.append(planCard(s)));
+        if(!readOnly){
+          if(planCell&&planCell.day===k&&planCell.cat===c)td.append(cellInput(k,c));
+          else{const pl=el("button","pg-plus","＋");pl.type="button";pl.setAttribute("aria-label",WD[parse(k).getDay()]+"の"+CAT[c]+"に追加");pl.onclick=e=>{e.stopPropagation();openCell(k,c)};td.append(pl)}
+          td.onclick=e=>{if(e.target===td)openCell(k,c)};
+        }
+        tr.append(td);
       });
-      const add=el("div","padd");const inp=el("input");inp.placeholder="予定を追加（Enter）";inp.maxLength=200;inp.dataset.day=k;
-      inp.onkeydown=e=>{if(isEnter(e)){e.preventDefault();const v=inp.value.trim();if(v){addPlan(k,v,planCat).then(()=>{const n=box.querySelector('input[data-day="'+k+'"]');if(n)n.focus()})}}};
-      add.append(inp);day.append(add);box.append(day);
-    }
+      tbody.append(tr);
+    });
+    tb.append(tbody);wrap.append(tb);box.append(wrap);
+    // keep the horizontal position between redraws; on first show, bring today into view
+    if(planScroll!=null)wrap.scrollLeft=planScroll;
+    else{const t=tb.querySelector(".pg-day.is-today");if(t&&wrap.scrollWidth>wrap.clientWidth)requestAnimationFrame(()=>{wrap.scrollLeft=Math.max(0,t.offsetLeft-56);planScroll=wrap.scrollLeft})}
+    wrap.onscroll=()=>{planScroll=wrap.scrollLeft};
+    // the chosen item, with all its buttons, under the table
+    const sel=planSel&&stats.find(s=>s.p.id===planSel);
+    if(sel){
+      const d=parse(sel.p.day);
+      const pane=el("div","psel");
+      const h=el("div","psel-h");h.append(el("span",null,WD[d.getDay()]+" "+(d.getMonth()+1)+"/"+d.getDate()+" の予定"));
+      const x=el("button",null,"閉じる");x.type="button";x.onclick=()=>{planSel=null;planShift=null;renderPlan()};h.append(x);
+      pane.append(h,planRow(sel));box.append(pane);
+    }else if(planSel){planSel=null}
+  }
+  let planSel=null,planCell=null,planScroll=null;
+  function openCell(day,cat){planCell={day,cat};planSel=null;planShift=null;renderPlan()}
+  // typing straight into a cell of the table: Enter adds and keeps the cell open for the next one
+  function cellInput(day,cat){
+    const inp=el("input","pg-in");inp.placeholder=CAT[cat]+"を追加";inp.maxLength=200;
+    queueMicrotask(()=>inp.focus());
+    let busy=false;
+    const add=async keep=>{const v=inp.value.trim();if(!v||busy)return false;busy=true;inp.value="";
+      if(!keep)planCell=null;await addPlan(day,v,cat);return true};
+    inp.onkeydown=e=>{
+      if(isEnter(e)){e.preventDefault();if(!inp.value.trim()){planCell=null;renderPlan();return}add(true)}
+      else if(e.key==="Escape"){planCell=null;renderPlan()}
+    };
+    inp.onblur=()=>{setTimeout(async()=>{if(busy)return;if(!(await add(false))&&planCell&&planCell.day===day&&planCell.cat===cat){planCell=null;renderPlan()}},120)};
+    return inp;
+  }
+  function planCard(s){
+    const b=el("button","pcard"+(planSel===s.p.id?" sel":""));b.type="button";b.dataset.cat=s.p.cat;
+    const [lbl,cls]=isNote(s.p)?(s.live?["付箋","no"]:["済み","ok"]):ST_LABEL(s);
+    b.classList.add("st-"+cls);
+    b.append(el("span","pc-t",(s.p.star?"★":"")+s.p.text));
+    const quiet=cls==="no";
+    const meta=el("span","pc-s",quiet?"":lbl.replace(/（.*?）/,""));
+    if((s.p.memo||"").trim())meta.append(el("span","pc-m","✎ メモ"));
+    if(meta.textContent)b.append(meta);
+    b.onclick=()=>{planSel=planSel===s.p.id?null:s.p.id;planShift=null;renderPlan();
+      if(planSel)queueMicrotask(()=>{const p=$("planDays").querySelector(".psel");if(p&&p.scrollIntoView)p.scrollIntoView({block:"nearest",behavior:"smooth"})})};
+    return b;
   }
   const ST_LABEL=(s)=>{const wd=k=>WD[parse(k).getDay()];
     switch(s.state){case"onPlan":return["✓ 完了","ok"];case"shiftedDone":return["✓ "+wd(s.liveDay)+"に完了（"+(s.shift>0?"+":"")+s.shift+"日）","ok"];
@@ -2392,7 +2487,22 @@ button{-webkit-tap-highlight-color:transparent}
   };
 
   $("planWeek").onclick=e=>{const b=e.target.closest("button[data-w]");if(!b)return;openPlan(shift(mondayOf(todayKey()),7*+b.dataset.w))};
-  $("planCat").onclick=e=>{const b=e.target.closest("button[data-cat]");if(!b)return;planCat=b.dataset.cat;[...$("planCat").children].forEach(x=>x.setAttribute("aria-pressed",String(x===b)))};
+  // add form: choose the day and the item, type, Enter
+  let planAddDay=null;
+  function fillPlanDay(){
+    const sel=$("planDay");const start=planStart;if(!start)return;
+    const days=[...Array(7)].map((_,i)=>shift(start,i));
+    if(!days.includes(planAddDay))planAddDay=days.includes(todayKey())?todayKey():days[0];
+    sel.textContent="";days.forEach(k=>{const d=parse(k);const o=el("option",null,WD[d.getDay()]+" "+(d.getMonth()+1)+"/"+d.getDate()+(k===todayKey()?"（今日）":""));o.value=k;sel.append(o)});
+    sel.value=planAddDay;
+  }
+  $("planDay").onchange=()=>{planAddDay=$("planDay").value};
+  $("planCatSel").onchange=()=>{planCat=$("planCatSel").value;$("planCatSel").dataset.cat=planCat};
+  $("planCatSel").dataset.cat=planCat;
+  const planAddGo=async()=>{const v=$("planText").value.trim();if(!v||readOnly)return;$("planText").value="";await addPlan(planAddDay,v,planCat);$("planText").focus();
+    const d=parse(planAddDay);toast(WD[d.getDay()]+"曜の"+CAT[planCat]+"に入れました")};
+  $("planText").onkeydown=e=>{if(isEnter(e)){e.preventDefault();planAddGo()}};
+  $("planAddBtn").onclick=planAddGo;
 
   // ---- last week's review ----
   async function weekDocs(start){
