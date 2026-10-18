@@ -470,7 +470,7 @@ button{-webkit-tap-highlight-color:transparent}
           <div class="btns"><button type="button" class="pri" id="goalSave">保存</button><button type="button" id="goalCancel">やめる</button></div>
         </div>
       </div>
-      <div class="weekbtns"><button type="button" class="reviewbtn planbtn" id="planBtn">週の計画</button><button type="button" class="reviewbtn" id="reviewBtn">先週のふりかえり</button></div>
+      <div class="weekbtns"><button type="button" class="reviewbtn planbtn" id="planBtn">週の計画</button><button type="button" class="reviewbtn" id="reviewBtn">先週のふりかえり</button><button type="button" class="reviewbtn" id="futureBtn">再来週以降のメモ</button></div>
     </section>
     <section class="plan" id="plan" hidden aria-label="週の計画">
       <div class="rv-h"><b id="planTitle">週の計画</b><button type="button" class="linkbtn" id="planClose">閉じる</button></div>
@@ -487,7 +487,7 @@ button{-webkit-tap-highlight-color:transparent}
       <p class="pl-sum" id="planSum"></p>
       <div class="wmemo" id="weekMemoPlan"></div>
       <div class="pl-days" id="planDays"></div>
-      <div class="future">
+      <div class="future" id="futureSec">
         <div class="goals-h"><b>再来週以降のメモ</b><span class="rv-note" id="futureState"></span></div>
         <div class="flist" id="futureList"></div>
         <div class="fadd"><span>＋</span><input id="futureNew" placeholder="見出しを追加して Enter（例：11月、年末企画）" maxlength="120"></div>
@@ -1782,6 +1782,10 @@ button{-webkit-tap-highlight-color:transparent}
     const t={id:uid(),title:v,body:"",open:true};future.push(t);$("futureNew").value="";
     saveFuture(true);renderFuture();
     const ta=$("futureList").querySelector('[data-id="'+CSS.escape(t.id)+'"] textarea');if(ta)ta.focus();
+  };
+  $("futureBtn").onclick=async()=>{
+    if($("plan").hidden){const t=todayKey();await openPlan(parse(t).getDay()===0?shift(mondayOf(t),7):mondayOf(t))}
+    setTimeout(()=>$("futureSec").scrollIntoView({behavior:"smooth",block:"start"}),100);
   };
   $("planClose").onclick=()=>{$("plan").hidden=true;planShift=null};
   $("planWeek").onclick=e=>{const b=e.target.closest("button[data-w]");if(!b)return;openPlan(shift(mondayOf(todayKey()),7*+b.dataset.w))};

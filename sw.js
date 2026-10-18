@@ -1,5 +1,5 @@
 // 日めくりTodo service worker: app works offline
-const VERSION="v11";
+const VERSION="v12";
 const SHELL=["./","./index.html","./app.js","./config.js","./manifest.webmanifest",
   "./vendor/firebase-app-compat.js","./vendor/firebase-auth-compat.js","./vendor/firebase-firestore-compat.js",
   "./icons/icon-192.png","./icons/icon-512.png","./icons/apple-touch-icon.png"];
