@@ -194,6 +194,7 @@ button{font:inherit;color:inherit}
 /* 付箋 (notes at the top of the day) */
 .notes{display:grid;gap:6px;padding:0 22px 12px}
 .note-card{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px 8px;background:var(--post-soft);border-left:4px solid var(--post);border-radius:4px;padding:7px 8px 7px 10px;font-size:14px}
+.note-card .ctag{flex:none;align-self:center}
 .note-t{flex:1;min-width:0;font-weight:700;overflow-wrap:anywhere;cursor:text}
 .note-m{flex-basis:100%;order:3;font-size:12px;color:var(--muted);white-space:pre-wrap}
 .note-acts{display:flex;gap:2px;flex:none}
@@ -423,7 +424,7 @@ button{-webkit-tap-highlight-color:transparent}
     </section>
     <section class="pane">
       <h3>使い方</h3>
-      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます（週の計画・目標・メモの操作も含めて全部）。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。週の欄と「週の計画」には「この週のメモ」があり、計画の予定にも ✎ でメモを付けられます。「週の計画」の下には、再来週以降のことを見出しごとに開いたり閉じたりして書けるメモがあります。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に先週のふりかえりが出ます。</p>
+      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます（週の計画・目標・メモの操作も含めて全部）。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。週の欄と「週の計画」には「この週のメモ」があり、計画の予定にも ✎ でメモを付けられます。「週の計画」の下には、再来週以降のことを見出しごとに開いたり閉じたりして書けるメモがあります。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。色のタグをタップすると メイン→マイクラ→その他→付箋 と切り替わるので、タスクを付箋にしたり付箋をタスクに戻したりできます。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に先週のふりかえりが出ます。</p>
       <p class="hint">ホーム画面に追加：iPhoneはSafariの共有ボタン →「ホーム画面に追加」、AndroidはChromeのメニュー →「ホーム画面に追加」。</p>
     </section>
   </div>
@@ -548,7 +549,7 @@ button{-webkit-tap-highlight-color:transparent}
   // 付箋 (cat "post") is a note shown at the top of the day, not a task: it isn't counted and is cleared when done
   const TASK_CATS=["main","mc","other"];
   const isNote=i=>i&&i.cat==="post";
-  const nextCat=c=>TASK_CATS[(TASK_CATS.indexOf(c)+1)%TASK_CATS.length];
+  const nextCat=c=>CAT_IDS[(CAT_IDS.indexOf(c)+1)%CAT_IDS.length]; // メイン→マイクラ→その他→付箋→メイン
 
   let cur=todayKey(), items=[], rdone={}, order=[], carriedFrom=null;
   let prevItems=[], daily=[], db=null, unsub=null, readOnly=false;
@@ -968,6 +969,8 @@ button{-webkit-tap-highlight-color:transparent}
     bar.hidden=!notes.length;
     notes.forEach(n=>{
       const card=el("div","note-card");
+      const tg=catTag(n.cat,c=>{n.cat=c;commit();toast("「"+CAT[c]+"」のタスクに戻しました")});tg.title="タップで分類を変える（付箋→メイン→…）";
+      card.append(tg);
       const t=el("span","note-t",(n.star?"★":"")+n.text);
       t.onclick=()=>{if(readOnly)return;editText(card,t,()=>n.text,v=>{n.text=v})};
       card.append(t);
@@ -994,7 +997,7 @@ button{-webkit-tap-highlight-color:transparent}
     const row=el("div","row");
     const t=textEl(it.text,it.star);
     const tags=el("span","tags");
-    tags.append(catTag(it.cat,c=>{it.cat=c;items.forEach(k=>{if(k.parent===it.id)k.cat=c});commit()}));
+    tags.append(catTag(it.cat,c=>{it.cat=c;items.forEach(k=>{if(k.parent===it.id)k.cat=c});commit();if(c==="post")toast("付箋にしました（いちばん上に出ます）")}));
     if(kids.length)tags.append(el("span","badge",kids.filter(k=>k.done).length+"/"+kids.length));
     if(it.planId){const pd=it.planDay;const lbl=!pd||pd===cur?"予定":"予定 "+WD[parse(pd).getDay()]+(pd<cur?"→ずらし":"←前倒し");tags.append(el("span","ptag",lbl))}
     {const mt=memoTag(it.id,!!it.memo);if(mt)tags.append(mt)}
@@ -1595,8 +1598,25 @@ button{-webkit-tap-highlight-color:transparent}
     if(s.live&&!s.live.done){const b=el("button",null,"⇢");b.type="button";b.title="ずらす";b.onclick=()=>{planShift=planShift===s.p.id?null:s.p.id;renderPlan()};acts.append(b)}
     const mb=el("button",null,"✎");mb.type="button";mb.title="メモ";mb.onclick=()=>{if(pmOpen.has(s.p.id))pmOpen.delete(s.p.id);else pmOpen.add(s.p.id);renderPlan()};acts.append(mb);
     const x=el("button",null,"×");x.type="button";x.title="予定から外す";x.onclick=()=>removePlan(s);acts.append(x);
-    const tag=isNote(s.p)?el("span","ctag",CAT.post):catTag(s.p.cat,c=>grouped(async()=>{s.p.cat=c;saveWeekInfo(planStart);if(s.live)await setLiveCat_(s,c);else renderPlan()}));
-    if(isNote(s.p))tag.dataset.cat="post";
+    const tag=catTag(s.p.cat,c=>grouped(async()=>{s.p.cat=c;saveWeekInfo(planStart);if(s.live)await setLiveCat_(s,c);else renderPlan()}));
+    tag.title="タップで分類を変える（メイン→マイクラ→その他→付箋）";
+    t.title="タップで書き換え";t.style.cursor="text";
+    t.onclick=()=>{
+      if(readOnly)return;
+      const inp=el("input","edit");inp.value=s.p.text;inp.maxLength=200;row.replaceChild(inp,t);inp.focus();
+      let fin=false;
+      const done=ok=>{if(fin)return;fin=true;const v=inp.value.trim();
+        if(!ok||!v||v===s.p.text){renderPlan();return}
+        grouped(async()=>{
+          s.p.text=v;saveWeekInfo(planStart);
+          if(s.live){const k=s.liveDay,id=s.live.id;
+            if(k===cur){const it=items.find(i=>i.id===id);if(it)it.text=v;commit()}
+            else{const doc=await readDay(k);const its=norm(doc.items);its.forEach(i=>{if(i.id===id)i.text=v});const after={...cloneDoc(doc),items:its};trackDay(k,cloneDoc(doc),after);writeDay(k,after);cacheDay(k,after)}}
+        }).then(refreshPlanDocs);
+      };
+      inp.onkeydown=e=>{if(isEnter(e)){e.preventDefault();done(true)}else if(e.key==="Escape")done(false)};
+      inp.onblur=()=>done(true);
+    };
     row.append(tag,t,el("span","pst "+cls,lbl),acts);
     if(pmOpen.has(s.p.id)){
       // memo of a planned item; also kept on the task in that day's list
