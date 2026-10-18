@@ -306,6 +306,15 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .swready{box-shadow:0 2px 10px rgba(0,0,0,.12),inset 3px 0 0 var(--ink)}
 .swhint{position:absolute;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;color:var(--muted);pointer-events:none;white-space:nowrap;z-index:1}
 .swhint.on{color:var(--ink)}
+.kghost{position:fixed;z-index:60;pointer-events:none;background:var(--sheet);border-radius:8px;box-shadow:0 10px 28px rgba(0,0,0,.22);opacity:.96;list-style:none;margin:0;padding:0;overflow:hidden}
+.kghost>li{border:0!important;margin:0}
+.kghost ul.subs{margin:0;padding:2px 8px}
+.kghost .acts,.kghost .more{visibility:hidden}
+.kdragging>.row,li.sub.kdragging,.kdragging>ul.subs{opacity:.25}
+.kline{position:absolute;z-index:59;height:3px;border-radius:2px;background:var(--ink);pointer-events:none}
+.kline[hidden]{display:none}
+.kline::after{content:attr(data-label);position:absolute;right:0;top:-18px;font-size:11px;font-weight:700;color:var(--sheet);background:var(--ink);border-radius:8px;padding:1px 7px}
+@media (hover:none){#list .row,#list .sub{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}}
 .sub.dragging{background:var(--sheet)}
 .sub .handle{width:18px;align-self:stretch;opacity:.45}
 .sub.dragging{box-shadow:0 4px 12px rgba(0,0,0,.18);z-index:5;border-radius:4px}
@@ -480,7 +489,7 @@ button{-webkit-tap-highlight-color:transparent}
     </section>
     <section class="pane">
       <h3>使い方</h3>
-      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます（週の計画・目標・メモの操作も含めて全部）。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。週の欄と「週の計画」には「この週のメモ」があり、計画の予定にも ✎ でメモを付けられます。「週の計画」の下には、再来週以降のことを見出しごとに開いたり閉じたりして書けるメモがあります。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。色のタグをタップすると メイン→マイクラ→その他→付箋 と切り替わるので、タスクを付箋にしたり付箋をタスクに戻したりできます。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に先週のふりかえりが出ます。スマホでは、タスクを右にスライドすると上の大タスクの小タスクに、小タスクを左にスライドすると大タスクになります。保存した中身は全部「変更の記録」に残るので、消してしまったものも「設定・同期」→「記録を開く」から探して戻せます。</p>
+      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます（週の計画・目標・メモの操作も含めて全部）。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。週の欄と「週の計画」には「この週のメモ」があり、計画の予定にも ✎ でメモを付けられます。「週の計画」の下には、再来週以降のことを見出しごとに開いたり閉じたりして書けるメモがあります。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。色のタグをタップすると メイン→マイクラ→その他→付箋 と切り替わるので、タスクを付箋にしたり付箋をタスクに戻したりできます。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に先週のふりかえりが出ます。スマホでは、タスクを右にスライドすると上の大タスクの小タスクに、小タスクを左にスライドすると大タスクになります。スマホでは行を長押しすると、大タスクも小タスクもつかんで動かせます（上下で並べ替え、右に寄せると小タスク、左に寄せると大タスク）。PCは左の ⠿ をつかんで同じように動かせます。保存した中身は全部「変更の記録」に残るので、消してしまったものも「設定・同期」→「記録を開く」から探して戻せます。</p>
       <p class="hint">ホーム画面に追加：iPhoneはSafariの共有ボタン →「ホーム画面に追加」、AndroidはChromeのメニュー →「ホーム画面に追加」。</p>
     </section>
   </div>
@@ -1411,7 +1420,7 @@ button{-webkit-tap-highlight-color:transparent}
   const SW_GO=48,SW_MAX=80;
   document.addEventListener("pointerdown",e=>{
     sw=null;
-    if(e.pointerType==="mouse"||readOnly||drag||!e.isPrimary)return;
+    if(e.pointerType==="mouse"||readOnly||drag||kd||!e.isPrimary)return;
     const t=e.target;if(!t.closest||t.closest("input,textarea,a,.handle,.xpop,.subadd"))return;
     if(!t.closest("#list,#doneList"))return;
     const sub=t.closest("li.sub"),task=t.closest("li.task");
@@ -1421,7 +1430,7 @@ button{-webkit-tap-highlight-color:transparent}
     sw={pid:e.pointerId,x0:e.clientX,y0:e.clientY,task,sub,rowEl,on:false,v:0,hint:null};
   },true);
   document.addEventListener("pointermove",e=>{
-    if(!sw||e.pointerId!==sw.pid)return;
+    if(!sw||e.pointerId!==sw.pid||kd)return;
     const dx=e.clientX-sw.x0,dy=e.clientY-sw.y0;
     if(!sw.on){
       if(Math.abs(dy)>10&&Math.abs(dy)>=Math.abs(dx)){sw=null;return}
@@ -1493,35 +1502,135 @@ button{-webkit-tap-highlight-color:transparent}
     const pi=items.findIndex(x=>x.id===pid);items.splice(pi+1,0,...kids);
   }
   sheetEl.addEventListener("mousedown",e=>{if(e.target.closest(".handle"))e.preventDefault()});
+  // ---- drag like Google Keep: grab ⠿ (or long-press a row on a phone), move up/down to reorder,
+  // and move right/left to make it a subtask of the task above / a big task. Works for big tasks and subtasks.
+  let kd=null;
+  function dragRows(skip){
+    const R=[];
+    [...$("list").children].forEach(li=>{
+      if(!li.dataset.key||li===skip)return;
+      const daily=li.dataset.key.startsWith("d:");
+      R.push({type:"top",key:li.dataset.key,daily,moved:li.classList.contains("moved"),el:li.querySelector(":scope>.row")||li});
+      li.querySelectorAll(":scope>ul.subs>li.sub").forEach(x=>{if(x!==skip&&x.dataset.id)R.push({type:"sub",id:x.dataset.id,parentKey:li.dataset.key,daily,el:x})});
+    });
+    return R;
+  }
+  function startKDrag(li,x,y,pid){
+    if(!li||readOnly)return;
+    const sub=li.classList.contains("sub")?li:null;
+    const task=sub?li.closest("li.task"):li;
+    if(!task||task.parentElement.id!=="list"&&!sub)return;
+    if(!task.closest("#list"))return;
+    if(sub&&task.classList.contains("daily"))return;
+    const rowEl=sub||task.querySelector(":scope>.row");if(!rowEl)return;
+    const r=rowEl.getBoundingClientRect();
+    // the floating copy keeps the same surroundings as the list so it looks the same
+    const ghost=el("ul","kghost");const tw=task.cloneNode(false);tw.classList.remove("kdragging");
+    if(sub){const su=el("ul","subs");su.append(sub.cloneNode(true));tw.append(su)}else tw.append(rowEl.cloneNode(true));
+    ghost.append(tw);
+    ghost.style.width=r.width+"px";ghost.style.left=r.left+"px";ghost.style.top=r.top+"px";
+    document.body.append(ghost);
+    const line=el("div","kline");document.body.append(line);
+    li.classList.add("kdragging");
+    editing=true;
+    kd={pid,li,sub:!!sub,daily:task.dataset.key.startsWith("d:"),key:task.dataset.key,id:sub?sub.dataset.id:task.dataset.key,
+        x0:x,y0:y,r,ghost,line,R:dragRows(li),gap:null,level:null,moved:false};
+    kdMove(x,y);
+  }
+  function kdTarget(x,y){
+    const R=kd.R;let i=R.length;
+    for(let j=0;j<R.length;j++){const b=R[j].el.getBoundingClientRect();if(y<b.top+b.height/2){i=j;break}}
+    const prev=R[i-1],next=R[i];
+    const canTop=!next||next.type==="top";
+    let parentKey=null;
+    if(prev&&!kd.daily){const pk=prev.type==="top"?prev.key:prev.parentKey;const pr=R.find(r=>r.type==="top"&&r.key===pk);if(pr&&!pr.daily&&!pr.moved&&pk!==kd.id)parentKey=pk}
+    const dx=x-kd.x0;let want=kd.sub?"sub":"top";if(dx>36)want="sub";else if(dx<-36)want="top";
+    let level=want==="sub"?(parentKey?"sub":canTop?"top":null):(canTop?"top":parentKey?"sub":null);
+    return{i,level,parentKey,prev,next};
+  }
+  function kdMove(x,y){
+    const dx=x-kd.x0,dy=y-kd.y0;
+    if(Math.abs(dx)>3||Math.abs(dy)>3)kd.moved=true;
+    kd.ghost.style.transform="translate("+Math.max(-60,Math.min(80,dx))+"px,"+dy+"px)";
+    const t=kdTarget(x,y);kd.t=t;
+    const lr=$("list").getBoundingClientRect();
+    if(!t.level){kd.line.hidden=true;return}
+    kd.line.hidden=false;
+    let ly;if(t.next)ly=t.next.el.getBoundingClientRect().top;else if(t.prev)ly=t.prev.el.getBoundingClientRect().bottom;else ly=lr.top;
+    const ind=t.level==="sub"?46:6;
+    kd.line.style.top=(ly+window.scrollY-1)+"px";kd.line.style.left=(lr.left+ind+window.scrollX)+"px";kd.line.style.width=(lr.width-ind-8)+"px";
+    kd.line.dataset.label=t.level==="sub"?"小タスク":"大タスク";
+    if(y<70)window.scrollBy(0,-10);else if(y>window.innerHeight-70)window.scrollBy(0,10);
+  }
+  function kdDrop(){
+    const d=kd;kd=null;
+    d.ghost.remove();d.line.remove();d.li.classList.remove("kdragging");editing=false;
+    swSuppress=true;setTimeout(()=>{swSuppress=false},450);
+    const t=d.t;if(!d.moved||!t||!t.level){render();return}
+    const {prev,next}=t;
+    if(t.level==="top"){
+      const key=d.sub?d.id:d.key;
+      if(d.sub){const it=items.find(x=>x.id===d.id);if(!it){render();return}
+        const op=items.find(x=>x.id===it.parent);delete it.parent;
+        if(op){const rest=items.filter(x=>x.parent===op.id);if(rest.length)op.done=rest.every(x=>x.done)}}
+      const keys=viewKeys().filter(k=>k!==key);
+      let at=next?keys.indexOf(next.key):-1;
+      if(at<0){const lastTop=[...d.R].reverse().find(r=>r.type==="top");at=lastTop?keys.indexOf(lastTop.key)+1:0}
+      keys.splice(at,0,key);order=keys;
+      commit();if(d.sub)toast("大タスクにしました（↶で元に戻せます）");
+      return;
+    }
+    const it=items.find(x=>x.id===d.id),P=items.find(x=>x.id===t.parentKey);
+    if(!it||!P||it===P){render();return}
+    const op=it.parent&&it.parent!==P.id?items.find(x=>x.id===it.parent):null;
+    const wasTop=!it.parent;
+    const move=[it,...items.filter(x=>x.parent===it.id)];
+    items=items.filter(x=>!move.includes(x));
+    move.forEach(x=>{x.parent=P.id;x.cat=P.cat});
+    const ai=prev.type==="sub"?items.findIndex(x=>x.id===prev.id):items.indexOf(P);
+    items.splice((ai<0?items.indexOf(P):ai)+1,0,...move);
+    order=viewKeys();
+    P.done=items.filter(x=>x.parent===P.id).every(x=>x.done);
+    if(op){const rest=items.filter(x=>x.parent===op.id);if(rest.length)op.done=rest.every(x=>x.done)}
+    commit();
+    if(wasTop||op)toast("「"+P.text+"」の小タスクにしました（↶で元に戻せます）");
+  }
+  function kdCancel(){if(!kd)return;const d=kd;kd=null;d.ghost.remove();d.line.remove();d.li.classList.remove("kdragging");editing=false;render()}
+  // grip: starts right away (mouse or finger)
   sheetEl.addEventListener("pointerdown",e=>{
-    const h=e.target.closest(".handle");if(!h||readOnly||h.style.visibility==="hidden")return;
-    const sub=h.closest(".sub");const li=sub||h.closest(".task");if(!li)return;
-    if(!sub&&li.parentElement.id!=="list")return;
-    e.preventDefault();h.setPointerCapture(e.pointerId);
-    editing=true;drag={li,id:e.pointerId,moved:false,sub:!!sub,box:li.parentElement};
-    li.classList.add("dragging");
+    const h=e.target.closest("#list .handle");if(!h||readOnly||h.style.visibility==="hidden"||kd)return;
+    e.preventDefault();
+    startKDrag(h.closest(".sub")||h.closest(".task"),e.clientX,e.clientY,e.pointerId);
   });
-  sheetEl.addEventListener("pointermove",e=>{
-    if(!drag||e.pointerId!==drag.id)return;
-    const y=e.clientY;drag.moved=true;
-    const box=drag.box;
-    const others=(drag.sub?subPeers(box,drag.li):[...box.children]).filter(x=>x!==drag.li&&!x.classList.contains("newtask"));
-    if(!others.length)return;
-    let before=null;
-    for(const o of others){const r=o.getBoundingClientRect();if(y<r.top+r.height/2){before=o;break}}
-    if(before){if(before!==drag.li.nextElementSibling)box.insertBefore(drag.li,before)}
-    else{const last=others[others.length-1];if(last.nextElementSibling!==drag.li)last.after(drag.li)}
-    if(y<60)window.scrollBy(0,-12);else if(y>window.innerHeight-60)window.scrollBy(0,12);
-  });
-  const endDrag=e=>{
-    if(!drag||(e&&e.pointerId!==drag.id))return;
-    const d=drag;drag=null;d.li.classList.remove("dragging");
-    if(!d.moved){editing=false;return}
-    if(d.sub){reorderKids(d.box.closest(".task").dataset.key,[...d.box.querySelectorAll(":scope > .sub")].map(x=>x.dataset.id));commit()}
-    else{const all=viewKeys();order=[...$("list").children].filter(x=>x.dataset.key).map(x=>x.dataset.key).concat(all.filter(k=>isFinished(k)||isSkipped(k)));commit()}
-  };
-  sheetEl.addEventListener("pointerup",endDrag);
-  sheetEl.addEventListener("pointercancel",endDrag);
+  document.addEventListener("pointermove",e=>{if(kd&&e.pointerId===kd.pid){e.preventDefault();kdMove(e.clientX,e.clientY)}},{passive:false});
+  document.addEventListener("pointerup",e=>{if(kd&&e.pointerId===kd.pid)kdDrop()});
+  document.addEventListener("pointercancel",e=>{if(kd&&e.pointerId===kd.pid)kdCancel()});
+  // while dragging with a finger the page must not scroll
+  document.addEventListener("touchmove",e=>{if(kd||lp&&lp.armed)e.preventDefault()},{passive:false});
+  document.addEventListener("contextmenu",e=>{if(kd||(lp&&e.target.closest&&e.target.closest("#list")))e.preventDefault()});
+  document.addEventListener("keydown",e=>{if(kd&&e.key==="Escape")kdCancel()});
+  // long-press on a phone
+  let lp=null,lpT=null;
+  document.addEventListener("pointerdown",e=>{
+    clearTimeout(lpT);lp=null;
+    if(e.pointerType==="mouse"||readOnly||kd||!e.isPrimary)return;
+    const t=e.target;if(!t.closest||t.closest("input,textarea,a,.handle,.xpop,.subadd"))return;
+    const task=t.closest("#list li.task");if(!task||task.classList.contains("newtask")||task.classList.contains("moved"))return;
+    const sub=t.closest("li.sub");if(sub&&(task.classList.contains("daily")||!sub.dataset.id))return;
+    lp={pid:e.pointerId,x:e.clientX,y:e.clientY,li:sub||task};
+    lpT=setTimeout(()=>{
+      if(!lp||(sw&&sw.on))return;
+      lp.armed=true;sw=null;
+      try{navigator.vibrate&&navigator.vibrate(12)}catch(_){}
+      startKDrag(lp.li,lp.x,lp.y,lp.pid);
+    },380);
+  },true);
+  document.addEventListener("pointermove",e=>{
+    if(!lp||e.pointerId!==lp.pid||lp.armed)return;
+    if(Math.hypot(e.clientX-lp.x,e.clientY-lp.y)>9){clearTimeout(lpT);lp=null}
+  },true);
+  const lpEnd=()=>{clearTimeout(lpT);lp=null};
+  document.addEventListener("pointerup",lpEnd);document.addEventListener("pointercancel",lpEnd);
   sheetEl.addEventListener("keydown",e=>{
     const h=e.target.closest(".handle");if(!h||readOnly)return;
     if(e.key!=="ArrowUp"&&e.key!=="ArrowDown")return;
