@@ -17,9 +17,9 @@
 
   function syncLabel(){
     const s=$("syncState");s.classList.remove("on","off");
-    if(!user){s.textContent=cfg?"この端末に保存（同期はログインで）":"この端末に保存";return}
+    if(!user){s.textContent="この端末に保存";s.title=cfg?"この端末に保存（同期はログインで）":"この端末に保存";return}
     if(navigator.onLine){s.classList.add("on");s.textContent="同期中"}
-    else{s.classList.add("off");s.textContent="オフライン（つながったら同期）"}
+    else{s.classList.add("off");s.textContent="オフライン";s.title="オフライン（つながったら同期）"}
   }
   addEventListener("online",syncLabel);addEventListener("offline",syncLabel);
 

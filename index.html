@@ -97,7 +97,10 @@ button{font:inherit;color:inherit}
 .goals-h b{font-size:13px;font-weight:900}
 .linkbtn{border:0;background:none;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;padding:2px 4px;text-decoration:underline;text-underline-offset:3px}
 .goal-list{list-style:none;margin:0;padding:0;display:grid;gap:4px;font-size:14px}
-.goal-list li{display:flex;gap:8px;align-items:baseline}
+.goal-list li{display:flex;gap:8px;align-items:baseline;min-width:0;overflow-wrap:anywhere;word-break:break-word}
+.goal-list li>*{min-width:0}
+.week,.goals,.dsum,.wmemo{min-width:0}
+.wm-prev,.dsum-list .nm{overflow-wrap:anywhere;min-width:0}
 .goal-list li::before{content:"◎";color:var(--main);font-size:11px}
 .goal-list .empty{color:var(--muted);font-size:12px}
 .goal-list .empty::before{content:none}
@@ -284,8 +287,11 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .lg-b{display:flex;gap:6px;flex-wrap:wrap}
 .lg-b .warn{border-color:var(--main);color:var(--main)}
 .lg pre{margin:0;font:inherit;font-size:12px;line-height:1.6;white-space:pre-wrap;word-break:break-word;background:var(--soft);border-radius:6px;padding:8px}
-.rvbanner{display:block;width:calc(100% - 44px);margin:0 22px 12px;border:1px dashed var(--ink);background:var(--soft);color:var(--ink);border-radius:6px;padding:8px 12px;font-size:13px;font-weight:700;text-align:left;cursor:pointer}
-@media (max-width:420px){.rvbanner{width:calc(100% - 32px);margin-inline:16px}.later{padding-inline:14px}}
+/* floats above the page so it never pushes the list down */
+.rvbanner{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:30;display:flex;align-items:center;gap:2px;max-width:calc(100% - 24px);background:var(--ink);color:var(--sheet);border-radius:22px;box-shadow:0 6px 20px rgba(0,0,0,.25);padding:2px 4px 2px 2px}
+.rvbanner button{border:0;background:none;color:inherit;font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:8px 12px;text-align:left}
+.rvbanner #rvX{padding:8px 10px;opacity:.75}
+@media (max-width:420px){.later{padding-inline:14px}}
 
 /* weekly score */
 .week{border-top:1px solid var(--line);padding:12px 18px 14px;display:grid;gap:10px;background:var(--soft)}
@@ -474,7 +480,7 @@ body{margin:0;padding-top:calc(16px + env(safe-area-inset-top,0px))!important;pa
 .hist button:disabled{opacity:.3;cursor:default}
 .chatbtn{border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:16px;padding:5px 12px;font-size:13px;font-weight:700;text-decoration:none;white-space:nowrap}
 .chatbtn:hover{background:var(--soft)}
-@media (max-width:420px){.appbar{gap:6px}.hist{gap:2px}.hist button{width:32px}.chatbtn,.menubtn{padding:5px 9px;font-size:12px;white-space:nowrap}.sync{max-width:6em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+@media (max-width:420px){.appbar{gap:6px}.hist{gap:2px}.hist button{width:32px}.chatbtn,.menubtn{padding:5px 9px;font-size:12px;white-space:nowrap}.sync{max-width:8em;overflow:hidden;white-space:nowrap}}
 .menubtn{border:1px solid var(--line);background:var(--sheet);border-radius:16px;padding:5px 14px;font-size:13px;font-weight:700;cursor:pointer}
 .panel{background:var(--sheet);border:1px solid var(--line);border-radius:6px;margin-bottom:12px;display:grid}
 .pane{padding:14px 16px;border-top:1px solid var(--line);display:grid;gap:8px}
@@ -597,7 +603,7 @@ button{-webkit-tap-highlight-color:transparent}
         <span id="pct">0%</span>
       </div>
     </div>
-    <button type="button" class="rvbanner" id="rvBanner" hidden>新しい週です。先週の結果と目標を確認 →</button>
+    <div class="rvbanner" id="rvBanner" hidden><button type="button" id="rvGo">新しい週です。先週の結果と目標を確認 →</button><button type="button" id="rvX" aria-label="閉じる" title="閉じる">×</button></div>
     <div class="notes" id="notesBar" hidden></div>
     <div class="today" id="todayChips"></div>
     <ul class="list" id="list"></ul>
@@ -699,7 +705,7 @@ button{-webkit-tap-highlight-color:transparent}
     <section class="later logp">
       <button type="button" class="backlink" data-go="more">‹ その他</button>
       <div class="rv-h"><b>変更の記録</b><span class="rv-note" id="logState"></span></div>
-      <p class="rv-note">保存するたびに、その時の中身を残しています（同じ場所は1分ごとにまとめて記録）。「この版に戻す」で前の状態にでき、戻したあとも ↶ で取り消せます。</p>
+      <p class="rv-note">保存するたびに、その時の中身を残しています（同じ場所は15秒ごとにまとめて記録）。「この版に戻す」で前の状態にでき、戻したあとも ↶ で取り消せます。</p>
       <div class="seg" id="logKind"><button type="button" data-k="all" aria-pressed="true">すべて</button><button type="button" data-k="day" aria-pressed="false">日のタスク</button><button type="button" data-k="daily" aria-pressed="false">毎日</button><button type="button" data-k="week" aria-pressed="false">週</button><button type="button" data-k="future" aria-pressed="false">先のメモ</button></div>
       <div class="logtools"><input id="logQ" type="search" placeholder="言葉で探す"><button type="button" id="logCopy">表示中の記録をコピー</button></div>
       <div id="logList" class="loglist"></div>
@@ -770,7 +776,7 @@ button{-webkit-tap-highlight-color:transparent}
   // Every save also keeps a copy in the log (one copy per place per minute; the last one in that minute wins),
   // and the first save of a place in a session also keeps the version from before the change.
   // Nothing is ever removed from the log in the account. Logs are separate from undo and never sync back.
-  const LOG_MIN=60000,logSeen={};
+  const LOG_MIN=15000,logSeen={};
   const LOCAL_KEY=path=>{const m=path.match(/^days\/(.+)$/);if(m)return "todo:"+m[1];
     if(path==="settings/daily")return "todo:daily";if(path==="settings/future")return "todo:future";
     const w=path.match(/^weeks\/(.+)$/);return w?"todo:week:"+w[1]:null};
@@ -838,10 +844,24 @@ button{-webkit-tap-highlight-color:transparent}
       if(base.aux.future&&now.aux.future&&!jeq(base.aux.future,now.aux.future))e.future={before:base.aux.future,after:now.aux.future};
       xs.forEach(x=>{if(x.day===cur)return;
         if(e.days[x.day])e.days[x.day].after=cloneDoc(x.after);else e.days[x.day]={before:cloneDoc(x.before),after:cloneDoc(x.after)}});
-      if(Object.keys(e.days).length||e.daily||Object.keys(e.weeks).length||e.future){undoStack.push(e);if(undoStack.length>80)undoStack.shift();redoStack=[]}
+      if(Object.keys(e.days).length||e.daily||Object.keys(e.weeks).length||e.future){
+        // typing in the same memo/notes in a row is one step, not one per pause
+        const last=undoStack[undoStack.length-1],ck=recordCk,t=Date.now();
+        if(ck&&last&&last.ck===ck&&t-last.t<60000&&!redoStack.length){histMerge(last,e);last.t=t}
+        else{e.ck=ck;e.t=t;undoStack.push(e);if(undoStack.length>80)undoStack.shift()}
+        redoStack=[];
+      }
     }
     baseSnap=s;histButtons();
   }
+  let recordCk=null;
+  function histMerge(last,e){
+    Object.entries(e.days).forEach(([k,v])=>{if(last.days[k])last.days[k].after=v.after;else last.days[k]=v});
+    if(e.daily){if(last.daily)last.daily.after=e.daily.after;else last.daily=e.daily}
+    Object.entries(e.weeks).forEach(([k,v])=>{if(last.weeks[k])last.weeks[k].after=v.after;else last.weeks[k]=v});
+    if(e.future){if(last.future)last.future.after=e.future.after;else last.future=e.future}
+  }
+  const withCk=(ck,fn)=>{const o=recordCk;recordCk=ck;try{return fn()}finally{recordCk=o}};
   // run several changes as one undo step
   async function grouped(fn){
     groupDepth++;
@@ -849,6 +869,16 @@ button{-webkit-tap-highlight-color:transparent}
     finally{groupDepth--;if(!groupDepth){pendingX=groupX.length?groupX:pendingX;groupX=[];record()}}
   }
   function setBase(){if(groupDepth>0)return;baseSnap=snapshot();histButtons()}
+  // data that arrived from storage for one part only: move just that part of the baseline,
+  // so unsaved edits elsewhere (a memo being typed) still become an undo step
+  function setBasePart(part){
+    if(groupDepth>0)return;
+    if(!baseSnap){setBase();return}
+    const b=JSON.parse(baseSnap),n=JSON.parse(snapshot());
+    if(part==="doc"){if(b.day!==n.day){setBase();return}b.doc=n.doc}
+    else if(part==="daily")b.daily=n.daily;
+    baseSnap=JSON.stringify(b);histButtons();
+  }
   // data loaded from storage (not a user change) joins the baseline without becoming a step
   function baseAdd(fn){if(!baseSnap)return;const b=JSON.parse(baseSnap);fn(b);baseSnap=JSON.stringify(b)}
   function applyStep(e,which){
@@ -874,15 +904,25 @@ button{-webkit-tap-highlight-color:transparent}
     if(e.future)renderFuture();
   }
   const dayLabel=k=>{const d=parse(k);return (d.getMonth()+1)+"/"+d.getDate()};
+  // what a step touched, for the message (undo works across pages, so say where)
+  function stepLabel(e){
+    const parts=[];
+    const ds=Object.keys(e.days||{});
+    if(ds.length)parts.push(ds.length===1&&ds[0]===todayKey()?"今日のタスク":ds.sort().map(k=>dayLabel(k)).join("・")+"のタスク");
+    if(e.daily)parts.push("毎日タスク");
+    if(Object.keys(e.weeks||{}).length)parts.push("週の目標・予定");
+    if(e.future)parts.push("先のメモ");
+    return parts.length?"（"+parts.join("、")+"）":"";
+  }
   function undo(){
     if(!undoStack.length||readOnly)return;
     const e=undoStack.pop();applyStep(e,"before");redoStack.push(e);
-    toast("元に戻しました"+(e.view!==todayKey()?"（"+dayLabel(e.view)+"）":""));histButtons();
+    toast("元に戻しました"+stepLabel(e));histButtons();
   }
   function redo(){
     if(!redoStack.length||readOnly)return;
     const e=redoStack.pop();applyStep(e,"after");undoStack.push(e);
-    toast("やり直しました"+(e.view!==todayKey()?"（"+dayLabel(e.view)+"）":""));histButtons();
+    toast("やり直しました"+stepLabel(e));histButtons();
   }
   document.addEventListener("keydown",e=>{
     if(!(e.ctrlKey||e.metaKey)||e.altKey)return;
@@ -1142,8 +1182,9 @@ button{-webkit-tap-highlight-color:transparent}
     const box=el("div","memo");
     const ta=el("textarea");ta.rows=3;ta.placeholder="メモ";ta.value=get()||"";ta.setAttribute("aria-label","メモ");
     ta.onfocus=()=>{editing=true};
-    ta.oninput=()=>{set(ta.value);clearTimeout(memoT);memoT=setTimeout(persist,700)};
-    ta.onblur=()=>{clearTimeout(memoT);set(ta.value.replace(/\s+$/,""));persist();editing=false;setTimeout(()=>{if(!editing)render()},250)};
+    const keep=()=>withCk("memo:"+key,persist);
+    ta.oninput=()=>{set(ta.value);clearTimeout(memoT);memoT=setTimeout(keep,700)};
+    ta.onblur=()=>{clearTimeout(memoT);set(ta.value.replace(/\s+$/,""));keep();editing=false;setTimeout(()=>{if(!editing)render()},250)};
     const close=el("button","linkbtn","閉じる");close.type="button";close.onclick=()=>{memoOpen.delete(key);render()};
     box.append(ta,close);
     if(memoOpen.has(key)&&!get())queueMicrotask(()=>ta.focus());
@@ -1176,6 +1217,10 @@ button{-webkit-tap-highlight-color:transparent}
     else{const d={items:norm(srcDoc.items),order:[...(srcDoc.order||[])]};moved=take(d);const after={...cloneDoc(srcDoc),items:d.items,order:d.order};x.push({day:src,before:cloneDoc(srcDoc),after});writeDay(src,after);cacheDay(src,after)}
     if(!moved.length){render();return false}
     moved=moved.map(m=>{const c={...m};delete c.moved;delete c.movedTo;delete c.movedId;if(fix)fix(c);return c});
+    // a planned task moved out of its plan's week: the plan remembers where it went
+    const pm=moved.find(m=>m.id===id&&m.planId);
+    if(pm){try{const ps=mondayOf(pm.planDay||src);const info=await loadWeekInfo(ps);const pp=(info.plan||[]).find(x=>x.id===pm.planId);
+      if(pp){const out=mondayOf(dst)!==ps?dst:null;if((pp.outTo||null)!==out){if(out)pp.outTo=out;else delete pp.outTo;store("weeks/"+ps,{...info,updatedAt:new Date().toISOString()})}}}catch(e){}}
     if(dst===cur){items=[...items,...moved];order=[...viewKeys().filter(k=>k!==id),id]}
     else{const after={...cloneDoc(dstDoc),items:[...norm(dstDoc.items).filter(i=>!moved.some(m=>m.id===i.id)),...moved],order:[...(dstDoc.order||[]).filter(o=>o!==id),id]};x.push({day:dst,before:cloneDoc(dstDoc),after});writeDay(dst,after);cacheDay(dst,after)}
     pendingX=x;commit();
@@ -1428,8 +1473,8 @@ button{-webkit-tap-highlight-color:transparent}
   }
 
   function render(){
-    if(!editing&&pendingDoc){applyDoc(pendingDoc);pendingDoc=null;setBase()}
-    if(!editing&&pendingDaily){daily=pendingDaily;pendingDaily=null;setBase()}
+    if(!editing&&pendingDoc){applyDoc(pendingDoc);pendingDoc=null;setBasePart("doc")}
+    if(!editing&&pendingDaily){daily=pendingDaily;pendingDaily=null;setBasePart("daily")}
     const ul=$("list");ul.textContent="";
     const dl=$("doneList");dl.textContent="";
     const dmap=Object.fromEntries(shownDaily(cur,rdone).map(d=>[d.id,d]));
@@ -1505,6 +1550,7 @@ button{-webkit-tap-highlight-color:transparent}
     commit();toast("大タスクにしました（↶で元に戻せます）");
   }
   let sw=null,swSuppress=false;
+  document.addEventListener("pointerdown",()=>{swSuppress=false;pdSuppress=false},true);
   const SW_GO=48,SW_MAX=80;
   document.addEventListener("pointerdown",e=>{
     sw=null;
@@ -1750,7 +1796,7 @@ button{-webkit-tap-highlight-color:transparent}
     e.preventDefault();
     const key=t.dataset.key;const all=viewKeys();const ks=all.filter(k=>!isFinished(k)&&!isSkipped(k));const i=ks.indexOf(key);const j=e.key==="ArrowUp"?i-1:i+1;
     if(i<0||j<0||j>=ks.length)return;
-    [ks[i],ks[j]]=[ks[j],ks[i]];order=ks.concat(all.filter(k=>isFinished(k)||isSkipped(k)));commit();
+    const a=all.indexOf(ks[i]),b=all.indexOf(ks[j]);[all[a],all[b]]=[all[b],all[a]];order=all;commit();
     const nh=document.querySelector('.task[data-key="'+CSS.escape(key)+'"] > .row .handle');if(nh)nh.focus();
   });
 
@@ -1881,14 +1927,41 @@ button{-webkit-tap-highlight-color:transparent}
       else data=JSON.parse(localStorage.getItem("todo:week:"+start)||"null");
     }catch(e){}
     const fresh=!weekInfo[start];
-    weekInfo[start]=data?normWeek(data):goalsDefault(start);
+    if(fresh||force)weekInfo[start]=data?normWeek(data):goalsDefault(start);
     if(fresh)baseAdd(b=>{if(b.aux){const w=JSON.parse(JSON.stringify(weekInfo[start]));delete w.seen;b.aux.weeks[start]=w}});
+    watchWeek(start);
     return weekInfo[start];
   }
+  // the week's goals / plan / memo stay live, so a change made on the other device shows up here
+  // and a save from here never writes back an old copy over it
+  const weekUnsub={},weekPending={};
+  const weekCore=w=>{const x=JSON.parse(JSON.stringify(w));delete x.seen;delete x.updatedAt;return JSON.stringify(x)};
+  const weekBusy=()=>{const a=document.activeElement;return editing||!!(a&&a.closest&&a.closest("#weekMemoMain,#weekMemoPlan,#goalEditor,#planDays input,#planDays textarea,#planText"))};
+  function watchWeek(start){
+    if(!db||weekUnsub[start])return;
+    const d=db;
+    weekUnsub[start]=d.doc("weeks/"+start).onSnapshot(s_=>{
+      if(d!==db)return;
+      const m=s_.metadata||{};if(m.hasPendingWrites||!s_.exists)return;
+      const nw=normWeek(s_.data());
+      if(weekInfo[start]&&weekCore(weekInfo[start])===weekCore(nw))return;
+      if(weekBusy()){weekPending[start]=nw;return}
+      applyWeek(start,nw);
+    },()=>{});
+  }
+  function applyWeek(start,nw){
+    delete weekPending[start];
+    weekInfo[start]=nw;
+    baseAdd(b=>{if(b.aux){const w=JSON.parse(JSON.stringify(nw));delete w.seen;b.aux.weeks[start]=w}});
+    if(page==="week"&&viewStart()===start)renderWeek();
+    if(page==="plan"&&planStart===start)refreshPlanDocs();
+  }
+  document.addEventListener("focusout",()=>setTimeout(()=>{if(weekBusy())return;Object.keys(weekPending).forEach(k=>applyWeek(k,weekPending[k]))},300));
+  function stopWeeks(){Object.keys(weekUnsub).forEach(k=>{try{weekUnsub[k]()}catch(e){}delete weekUnsub[k]});Object.keys(weekPending).forEach(k=>delete weekPending[k])}
   function normWeek(data){
     return {goals:(data.goals||[]).map(g=>({id:g.id||uid(),text:String(g.text||""),result:g.result||null})),seen:!!data.seen,memo:String(data.memo||""),
       defaultVer:data.defaultVer||(data.defaultUsed?1:0),
-      plan:(data.plan||[]).map(p=>({id:p.id||uid(),text:String(p.text||""),cat:normCat(p.cat),day:p.day,...(p.star?{star:true}:{}),...(p.memo?{memo:String(p.memo)}:{})})),defaultUsed:!!data.defaultUsed};
+      plan:(data.plan||[]).map(p=>({id:p.id||uid(),text:String(p.text||""),cat:normCat(p.cat),day:p.day,...(p.star?{star:true}:{}),...(p.memo?{memo:String(p.memo)}:{}),...(p.outTo?{outTo:p.outTo}:{})})),defaultUsed:!!data.defaultUsed};
   }
   function saveWeekInfo(start){
     record();
@@ -1908,8 +1981,8 @@ button{-webkit-tap-highlight-color:transparent}
     if(!wmOpen.has(key)){if(has){const pv=el("div","wm-prev",info.memo);pv.onclick=()=>{wmOpen.add(key);renderWeekMemo(boxId,start)};box.append(pv)}return}
     const ta=el("textarea");ta.rows=Math.min(10,Math.max(3,(info.memo||"").split("\n").length+1));ta.value=info.memo||"";ta.placeholder="この週について自由にメモ";
     let tm=null;
-    ta.oninput=()=>{info.memo=ta.value;clearTimeout(tm);tm=setTimeout(()=>saveWeekInfo(start),800)};
-    ta.onblur=()=>{clearTimeout(tm);info.memo=ta.value.replace(/\s+$/,"");saveWeekInfo(start)};
+    ta.oninput=()=>{info.memo=ta.value;clearTimeout(tm);tm=setTimeout(()=>withCk("wmemo:"+start,()=>saveWeekInfo(start)),800)};
+    ta.onblur=()=>{clearTimeout(tm);info.memo=ta.value.replace(/\s+$/,"");withCk("wmemo:"+start,()=>saveWeekInfo(start))};
     box.append(ta);
     if(!has)queueMicrotask(()=>ta.focus());
   }
@@ -2007,9 +2080,11 @@ button{-webkit-tap-highlight-color:transparent}
       let state,shift=0;
       if(live){shift=daysBetween(p.day,liveDay);state=live.done?(shift?"shiftedDone":"onPlan"):(shift?"shifting":"pending")}
       else if(outDay){shift=daysBetween(p.day,outDay);state="nextWeek"}
+      else if(p.outTo){shift=daysBetween(p.day,p.outTo);state="nextWeek"}
       else state="dropped";
       // the category follows the task in the day list (it can be changed there too)
-      out.push({p,live,liveDay,shift,state,cat:live?live.cat:p.cat});
+      out.push({p,live,liveDay,shift,state,cat:live?live.cat:p.cat,
+        text:live?live.text:p.text,star:live?!!live.star:!!p.star,memo:String((live?live.memo:p.memo)||p.memo||"")});
     });
     return out;
   }
@@ -2198,10 +2273,10 @@ button{-webkit-tap-highlight-color:transparent}
     const b=el("button","pcard"+(planSel===s.p.id?" sel":""));b.type="button";b.dataset.cat=s.cat;
     const [lbl,cls]=isNote(s)?(s.live?[CAT[s.cat],"no"]:["済み","ok"]):ST_LABEL(s);
     b.classList.add("st-"+cls);
-    b.append(el("span","pc-t",(s.p.star?"★":"")+s.p.text));
+    b.append(el("span","pc-t",(s.star?"★":"")+s.text));
     const quiet=cls==="no";
     const meta=el("span","pc-s",quiet?"":lbl.replace(/（.*?）/,""));
-    if((s.p.memo||"").trim())meta.append(el("span","pc-m","✎ メモ"));
+    if(s.memo.trim())meta.append(el("span","pc-m","✎ メモ"));
     if(meta.textContent)b.append(meta);
     b.dataset.id=s.p.id;
     b.onpointerdown=e=>pdStart(e,s,b);
@@ -2216,11 +2291,11 @@ button{-webkit-tap-highlight-color:transparent}
   const pmOpen=new Set();
   function planRow(s){
     const row=el("div","pitem");row.dataset.cat=s.cat;
-    const t=el("span","ptxt",(s.p.star?"★":"")+s.p.text);
-    if((s.p.memo||"").trim()&&!pmOpen.has(s.p.id))t.append(el("span","mk","✎メモ"));
+    const t=el("span","ptxt",(s.star?"★":"")+s.text);
+    if(s.memo.trim()&&!pmOpen.has(s.p.id))t.append(el("span","mk","✎メモ"));
     const [lbl,cls]=isNote(s)?(s.live?[CAT[s.cat],"no"]:["済み","ok"]):ST_LABEL(s);
     const acts=el("span","pacts");
-    if(s.live&&!s.live.done){const b=el("button",null,"⇢");b.type="button";b.title="ずらす";b.onclick=()=>{planShift=planShift===s.p.id?null:s.p.id;renderPlan()};acts.append(b)}
+    if(s.live&&!s.live.done&&!s.live.parent){const b=el("button",null,"⇢");b.type="button";b.title="ずらす";b.onclick=()=>{planShift=planShift===s.p.id?null:s.p.id;renderPlan()};acts.append(b)}
     const mb=el("button",null,"✎");mb.type="button";mb.title="メモ";mb.onclick=()=>{if(pmOpen.has(s.p.id))pmOpen.delete(s.p.id);else pmOpen.add(s.p.id);renderPlan()};acts.append(mb);
     const x=el("button",null,"×");x.type="button";x.title="予定から外す";x.onclick=()=>removePlan(s);acts.append(x);
     const tag=catTag(s.cat,c=>grouped(async()=>{s.p.cat=c;s.cat=c;saveWeekInfo(planStart);if(s.live)await setLiveCat_(s,c);else renderPlan()}));
@@ -2228,10 +2303,10 @@ button{-webkit-tap-highlight-color:transparent}
     t.title="タップで書き換え";t.style.cursor="text";
     t.onclick=()=>{
       if(readOnly)return;
-      const inp=el("input","edit");inp.value=s.p.text;inp.maxLength=200;row.replaceChild(inp,t);inp.focus();
+      const inp=el("input","edit");inp.value=s.text;inp.maxLength=200;row.replaceChild(inp,t);inp.focus();
       let fin=false;
       const done=ok=>{if(fin)return;fin=true;const v=inp.value.trim();
-        if(!ok||!v||v===s.p.text){renderPlan();return}
+        if(!ok||!v||v===s.text){renderPlan();return}
         grouped(async()=>{
           s.p.text=v;saveWeekInfo(planStart);
           if(s.live){const k=s.liveDay,id=s.live.id;
@@ -2245,10 +2320,10 @@ button{-webkit-tap-highlight-color:transparent}
     row.append(tag,t,el("span","pst "+cls,lbl),acts);
     if(pmOpen.has(s.p.id)){
       // memo of a planned item; also kept on the task in that day's list
-      const w=el("div","pmemo");const ta=el("textarea");ta.rows=3;ta.value=s.p.memo||s.live&&s.live.memo||"";ta.placeholder="メモ";
+      const w=el("div","pmemo");const ta=el("textarea");ta.rows=3;ta.value=s.memo;ta.placeholder="メモ";
       ta.onfocus=()=>{editing=true};
       ta.onblur=()=>{editing=false;const v=ta.value.replace(/\s+$/,"");
-        if(v===(s.p.memo||""))return;
+        if(v===s.memo)return;
         grouped(async()=>{
           if(v)s.p.memo=v;else delete s.p.memo;saveWeekInfo(planStart);
           if(s.live){const k=s.liveDay,id=s.live.id;
@@ -2257,7 +2332,7 @@ button{-webkit-tap-highlight-color:transparent}
         }).then(refreshPlanDocs);
       };
       w.append(ta);row.append(w);
-      if(!(s.p.memo||"").trim())queueMicrotask(()=>ta.focus());
+      if(!s.memo.trim())queueMicrotask(()=>ta.focus());
     }
     if(planShift===s.p.id&&s.live){
       const bar=el("div","shiftbar");bar.append(el("span",null,"ずらす先："));
@@ -2310,7 +2385,9 @@ button{-webkit-tap-highlight-color:transparent}
     Object.entries(PAGES).forEach(([k,id])=>{$(id).hidden=k!==p});
     const tp=TAB_OF[p]||p;
     [...$("tabs").children].forEach(b=>{if(b.dataset.page===tp)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
-    if(!noHash){try{history.replaceState(null,"",p==="today"?location.pathname+location.search:"#"+p)}catch(e){}}
+    if(!noHash){try{const url=p==="today"?location.pathname+location.search:"#"+p;
+      // データ / 先のメモ / 変更の記録 open on top of その他, so the back button returns there
+      if(TAB_OF[p]&&location.hash==="#more")history.pushState(null,"",url);else history.replaceState(null,"",url)}catch(e){}}
     window.scrollTo(0,0);
     if(p==="week"){Object.keys(otherWeeks).forEach(k=>delete otherWeeks[k]);renderWeek()}
     if(p==="plan"){const t=todayKey();
@@ -2481,7 +2558,10 @@ button{-webkit-tap-highlight-color:transparent}
   $("logOpen").onclick=()=>{$("panel").hidden=true;$("menuBtn").setAttribute("aria-expanded","false");showPage("log")};
   $("tabs").onclick=e=>{const b=e.target.closest("button[data-page]");if(!b)return;if(b.dataset.page==="week")weekOff=0;showPage(b.dataset.page)};
   window.addEventListener("hashchange",()=>showPage((location.hash||"").slice(1)||"today",true));
-  $("rvBanner").onclick=()=>{$("rvBanner").hidden=true;if(cur!==todayKey())open(todayKey());weekOff=-1;showPage("week")};
+  $("rvGo").onclick=()=>{$("rvBanner").hidden=true;if(cur!==todayKey())open(todayKey());weekOff=-1;showPage("week")};
+  // closing it also counts as seen, so it doesn't come back every time the app opens
+  $("rvX").onclick=async()=>{$("rvBanner").hidden=true;const last=shift(mondayOf(todayKey()),-7);const info=await loadWeekInfo(last);
+    if(!info.seen){info.seen=true;store("weeks/"+last,{...JSON.parse(JSON.stringify(info)),updatedAt:new Date().toISOString()})}};
   $("planDefault").onclick=()=>grouped(planDefault_);
   async function planDefault_(){
     const start=planStart,def=latestDefault(start);if(!def)return;
@@ -2562,12 +2642,12 @@ button{-webkit-tap-highlight-color:transparent}
       applyFuture(futureFrom(s_.exists?s_.data():null));
     },()=>{if(g!==futureGen)return;$("futureState").textContent="読み込めませんでした（つながったらもう一度開いてください）"});
   }
-  function saveFuture(now){
+  function saveFuture(now,ck){
     if(!futureLoaded||readOnly)return;
     clearTimeout(futureT);
     const go=()=>{
       futureT=null;futurePending=null;
-      record();
+      withCk(ck||null,record);
       const body={toggles:future.map(t=>({...t})),updatedAt:new Date().toISOString()};
       store("settings/future",body);
       $("futureState").textContent="保存しました";
@@ -2583,7 +2663,7 @@ button{-webkit-tap-highlight-color:transparent}
       const tw=el("button","tw","▶");tw.type="button";tw.setAttribute("aria-label",t.open?"閉じる":"開く");tw.setAttribute("aria-expanded",String(t.open));
       tw.onclick=()=>{t.open=!t.open;saveFuture(true);renderFuture()};
       const ti=el("input");ti.value=t.title;ti.placeholder="見出し";ti.maxLength=120;ti.setAttribute("aria-label","見出し");
-      ti.oninput=()=>{t.title=ti.value;saveFuture()};
+      ti.oninput=()=>{t.title=ti.value;saveFuture(false,"future:"+t.id)};
       ti.onkeydown=e=>{if(isEnter(e)){e.preventDefault();t.open=true;saveFuture(true);renderFuture();const ta=box.querySelector('[data-id="'+CSS.escape(t.id)+'"] textarea');if(ta)ta.focus()}};
       h.append(tw,ti);
       if(!t.open&&t.body.trim())h.append(el("span","fdot","メモあり"));
@@ -2596,7 +2676,7 @@ button{-webkit-tap-highlight-color:transparent}
       h.append(del);w.append(h);w.dataset.id=t.id;
       if(t.open){
         const ta=el("textarea");ta.value=t.body;ta.placeholder="自由にメモ";ta.rows=Math.min(12,Math.max(3,t.body.split("\n").length+1));
-        ta.oninput=()=>{t.body=ta.value;saveFuture()};ta.onblur=()=>{saveFuture(true);futureFlush()};
+        ta.oninput=()=>{t.body=ta.value;saveFuture(false,"future:"+t.id)};ta.onblur=()=>{saveFuture(true,"future:"+t.id);futureFlush()};
         w.append(ta);
       }
       box.append(w);
@@ -2607,7 +2687,7 @@ button{-webkit-tap-highlight-color:transparent}
     const v=$("futureNew").value.trim();if(!v||readOnly)return;
     if(!futureLoaded){toast("読み込み中です。表示が出てからもう一度押してください");return}
     const t={id:uid(),title:v,body:"",open:true};future.push(t);$("futureNew").value="";
-    saveFuture(true);renderFuture();
+    saveFuture(true,"future:"+t.id);renderFuture();
     const ta=$("futureList").querySelector('[data-id="'+CSS.escape(t.id)+'"] textarea');if(ta)ta.focus();
   };
 
@@ -2739,7 +2819,8 @@ button{-webkit-tap-highlight-color:transparent}
         if(k!==cur)return;
         const data=s.exists?s.data():emptyDoc();
         if(editing&&loaded){pendingDoc=data;return} // applied when the edit ends
-        applyDoc(data);setBase();loaded=true;
+        const first=!loaded||!baseSnap||JSON.parse(baseSnap).day!==k;
+        applyDoc(data);if(first)setBase();else setBasePart("doc");loaded=true;
         if(!editing)render();
         if(!s.metadata||!s.metadata.fromCache)autoCarry(k);
       },()=>{});
@@ -2757,8 +2838,8 @@ button{-webkit-tap-highlight-color:transparent}
   };
   window.addEventListener("storage",e=>{
     if(db||!e.key||editing)return;
-    if(e.key==="todo:daily"){daily=normDaily(local.get("daily").items);setBase();render()}
-    else if(e.key==="todo:"+cur){applyDoc(local.get(cur));setBase();render()}
+    if(e.key==="todo:daily"){daily=normDaily(local.get("daily").items);setBasePart("daily");render()}
+    else if(e.key==="todo:"+cur){applyDoc(local.get(cur));setBasePart("doc");render()}
   });
   $("undoBtn").onclick=undo;$("redoBtn").onclick=redo;
   $("doneToggle").onclick=()=>{doneCollapsed=!doneCollapsed;try{localStorage.setItem("todo:doneCollapsed",doneCollapsed?"1":"0")}catch(e){}render()};
@@ -2808,7 +2889,11 @@ button{-webkit-tap-highlight-color:transparent}
     toast(Object.keys(map).length+"件を引き継ぎました");
   };
   let lastToday=todayKey();
-  setInterval(()=>{const t=todayKey();if(t!==lastToday){const was=cur===lastToday;lastToday=t;if(was)open(t);else renderDate()}},60000);
+  setInterval(()=>{const t=todayKey();if(t!==lastToday){const was=cur===lastToday;lastToday=t;
+    if(!was){renderDate();return}
+    // an edit in progress is saved to the old day before the page turns
+    const a=document.activeElement;if(a&&(a.tagName==="INPUT"||a.tagName==="TEXTAREA")&&a.blur)a.blur();
+    setTimeout(()=>open(t),600)}},60000);
 
   daily=normDaily(local.get("daily").items);
   open(cur);
@@ -2817,7 +2902,7 @@ button{-webkit-tap-highlight-color:transparent}
   let dailyUnsub=null;
   // after login/logout the page on screen reads the account's data again
   function afterSwitch(){if(page==="log")loadLogs();else if(page==="later")loadFuture();else if(page==="plan"&&planStart)openPlan(planStart);else if(page==="week")renderWeek();else if(page==="data")renderData()}
-  const reset=()=>{Object.keys(otherWeeks).forEach(k=>delete otherWeeks[k]);stopFuture();clearTimeout(futureT);futureT=null;futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
+  const reset=()=>{stopWeeks();Object.keys(otherWeeks).forEach(k=>delete otherWeeks[k]);stopFuture();clearTimeout(futureT);futureT=null;futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
   window.todoCore={
     connect(d){
       if(futureT&&futureLoaded)saveFuture(true);
@@ -2825,7 +2910,7 @@ button{-webkit-tap-highlight-color:transparent}
       afterSwitch();
       dailyUnsub=d.doc("settings/daily").onSnapshot(s=>{const nd=normDaily(s.exists?s.data().items:[]);
         if(editing){pendingDaily=nd;return}
-        daily=nd;setBase();render()},()=>{});
+        daily=nd;setBasePart("daily");render()},()=>{});
       open(cur);
     },
     disconnect(){
