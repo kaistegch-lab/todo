@@ -151,12 +151,15 @@ button{font:inherit;color:inherit}
 .pgrid.narrow th.pg-day{position:sticky;left:0;z-index:1;background:var(--soft);padding:6px 2px!important}
 .pgrid.narrow th.pg-day.is-today{background:color-mix(in srgb,var(--main) 10%,var(--soft))}
 .pgrid.narrow tr.pg-drow>*{border-bottom:0}
-.pgrid.narrow tr.pg-nrow>td{border-top:0;padding:0 4px 4px 46px;border-left:0}
+.pgrid.narrow tr.pg-nrow>*{border-top:1px dashed var(--line)}
+.pgrid.narrow tr.pg-nrow>td{padding:4px}
+.pg-ntag{position:sticky;left:0;z-index:1;background:var(--soft);padding:4px 2px!important;text-align:center;vertical-align:middle!important}
+.pg-ntag span{display:block;font-size:10px;font-weight:900;line-height:1.5;border-radius:6px;margin:1px 0}
+.pg-ntag .nt-post{color:var(--post);background:var(--post-soft)}
+.pg-ntag .nt-pub{color:var(--pub);background:var(--pub-soft)}
+.pgrid.narrow .pg-nplus{display:inline-block;width:auto;padding:2px 8px;margin:0 4px 0 0;font-size:11px;color:var(--c);border:1px dashed var(--line);opacity:.75}
 .pgrid.narrow tr.pg-nrow>td .pcard{display:inline-grid;width:auto;max-width:100%;margin:0 4px 4px 0;vertical-align:top}
-.pgrid.narrow tr.pg-nrow>td .pg-plus{display:inline-block;width:auto;padding:2px 8px}
-.pgrid.narrow tr.pg-nrow.pg-opt>td{padding:0;height:0}
-/* on a phone, empty 付箋 lines stay hidden while dragging so nothing jumps under the finger */
-.pgrid.narrow.dragging tr.pg-nrow.pg-opt{display:none}
+
 .pgrid.narrow tbody tr.pg-nrow>*{border-bottom:0}
 .pgrid.narrow tbody tr.pg-drow>*{border-top:1px solid var(--line)}
 .pgrid.narrow thead th{border-bottom:0}
@@ -2171,9 +2174,17 @@ button{-webkit-tap-highlight-color:transparent}
         const tr=el("tr","pg-drow");tr.append(dayHead(k,"th"));
         cols.forEach(c=>tr.append(mkCell(k,c,stats.filter(s=>s.cat===c&&s.p.day===k))));
         tbody.append(tr);
+        // the bottom line of every day: 付箋・投稿 (no item columns), with its own tag on the left
         const notes=stats.filter(s=>isNote(s)&&s.p.day===k);
-        const nr=el("tr","pg-nrow"+(notes.length||(planCell&&planCell.day===k&&isNote({cat:planCell.cat}))?"":" pg-opt"));
-        const td=mkCell(k,planCell&&planCell.day===k&&planCell.cat==="pub"?"pub":"post",notes,"pg-notes");td.colSpan=cols.length+1;
+        const nr=el("tr","pg-nrow");
+        const tag=el("th","pg-ntag");tag.append(el("span","nt-post","付箋"),el("span","nt-pub","投稿"));nr.append(tag);
+        const td=el("td","pg-cell pg-notes"+(k<today?" past":"")+(k===today?" is-today":""));td.dataset.day=k;td.dataset.cat="post";td.colSpan=cols.length;
+        notes.forEach(s=>td.append(planCard(s)));
+        if(!readOnly){
+          if(planCell&&planCell.day===k&&isNote({cat:planCell.cat}))td.append(cellInput(k,planCell.cat));
+          else["post","pub"].forEach(c=>{const pl=el("button","pg-plus pg-nplus","＋"+CAT[c]);pl.type="button";pl.dataset.cat=c;pl.setAttribute("aria-label",WD[parse(k).getDay()]+"の"+CAT[c]+"に追加");pl.onclick=e=>{e.stopPropagation();openCell(k,c)};td.append(pl)});
+          td.onclick=e=>{if(e.target===td)openCell(k,"post")};
+        }
         nr.append(td);tbody.append(nr);
       });
       tb.append(tbody);wrap.append(tb);box.append(wrap);
