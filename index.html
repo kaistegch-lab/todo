@@ -234,6 +234,31 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 /* weekly score */
 .week{border-top:1px solid var(--line);padding:12px 18px 14px;display:grid;gap:10px;background:var(--soft)}
 .week-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.wk-nav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.wk-nav b{font-size:16px;font-weight:900}
+.wk-nav button{border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:16px;padding:4px 12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.wk-nav button[disabled]{visibility:hidden}
+.g-res{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}
+.g-res button{border:1px solid var(--line);background:var(--sheet);color:var(--muted);border-radius:14px;padding:3px 10px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.g-res button[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--sheet)}
+.goal-list li.rated{display:grid;grid-template-columns:auto 1fr;column-gap:8px}
+.goal-list li.rated .g-res{grid-column:2}
+.mlink{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;text-align:left;width:100%;border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:10px;padding:14px 16px;font:inherit;cursor:pointer}
+.mlink b{font-size:15px;font-weight:900}
+.mlink span{grid-column:1;font-size:12px;color:var(--muted)}
+.mlink i{grid-row:1/3;grid-column:2;font-style:normal;font-size:22px;color:var(--muted)}
+.mlink:hover{background:var(--soft)}
+.backlink{justify-self:start;border:0;background:none;color:var(--muted);font:inherit;font-size:13px;font-weight:700;padding:2px 0;cursor:pointer}
+.dt-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.dt-tiles .sc{border:1px solid var(--line);border-radius:8px;padding:8px;display:grid;gap:2px;text-align:center}
+.dt-tiles .sc small{font-size:11px;color:var(--muted);font-weight:700}
+.dt-tiles .sc strong{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums;color:var(--c,var(--ink))}
+.dt-h{font-size:13px;font-weight:900;margin:10px 0 4px}
+.dt-table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+.dt-table th,.dt-table td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:right}
+.dt-table th:first-child,.dt-table td:first-child{text-align:left}
+.dt-table th{font-size:11px;color:var(--muted);font-weight:700}
+.dt-table tr.cur td{font-weight:900}
 .week-h b{font-size:14px;font-weight:900;letter-spacing:.04em}
 .week-h span{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 .score{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:8px}
@@ -489,7 +514,7 @@ button{-webkit-tap-highlight-color:transparent}
     </section>
     <section class="pane">
       <h3>使い方</h3>
-      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます（週の計画・目標・メモの操作も含めて全部）。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。週の欄と「週の計画」には「この週のメモ」があり、計画の予定にも ✎ でメモを付けられます。「週の計画」の下には、再来週以降のことを見出しごとに開いたり閉じたりして書けるメモがあります。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。色のタグをタップすると メイン→マイクラ→その他→付箋 と切り替わるので、タスクを付箋にしたり付箋をタスクに戻したりできます。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に先週のふりかえりが出ます。スマホでは、タスクを右にスライドすると上の大タスクの小タスクに、小タスクを左にスライドすると大タスクになります。スマホでは行を長押しすると、大タスクも小タスクもつかんで動かせます（上下で並べ替え、右に寄せると小タスク、左に寄せると大タスク）。PCは左の ⠿ をつかんで同じように動かせます。保存した中身は全部「変更の記録」に残るので、消してしまったものも「設定・同期」→「記録を開く」から探して戻せます。</p>
+      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます（週の計画・目標・メモの操作も含めて全部）。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。週の欄と「週の計画」には「この週のメモ」があり、計画の予定にも ✎ でメモを付けられます。「週の計画」の下には、再来週以降のことを見出しごとに開いたり閉じたりして書けるメモがあります。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。色のタグをタップすると メイン→マイクラ→その他→付箋 と切り替わるので、タスクを付箋にしたり付箋をタスクに戻したりできます。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に「今週」ページの「‹ 前の週」で先週の数と目標を確認できます（目標ごとに「できた／半分／できなかった」を付けられます）。これまでの積み上げと週ごとの数は「その他」→「データ」、再来週以降のメモと変更の記録も「その他」にあります。スマホでは、タスクを右にスライドすると上の大タスクの小タスクに、小タスクを左にスライドすると大タスクになります。スマホでは行を長押しすると、大タスクも小タスクもつかんで動かせます（上下で並べ替え、右に寄せると小タスク、左に寄せると大タスク）。PCは左の ⠿ をつかんで同じように動かせます。保存した中身は全部「変更の記録」に残るので、消してしまったものも「設定・同期」→「記録を開く」から探して戻せます。</p>
       <p class="hint">ホーム画面に追加：iPhoneはSafariの共有ボタン →「ホーム画面に追加」、AndroidはChromeのメニュー →「ホーム画面に追加」。</p>
     </section>
   </div>
@@ -497,7 +522,7 @@ button{-webkit-tap-highlight-color:transparent}
     <button type="button" data-page="today" aria-current="page">今日</button>
     <button type="button" data-page="week">今週</button>
     <button type="button" data-page="plan">予定</button>
-    <button type="button" data-page="later">先のメモ</button>
+    <button type="button" data-page="more">その他</button>
   </nav>
   <div class="sheet page" id="pageToday">
     <div class="binding">
@@ -516,7 +541,7 @@ button{-webkit-tap-highlight-color:transparent}
         <span id="pct">0%</span>
       </div>
     </div>
-    <button type="button" class="rvbanner" id="rvBanner" hidden>先週のふりかえりができました →</button>
+    <button type="button" class="rvbanner" id="rvBanner" hidden>新しい週です。先週の結果と目標を確認 →</button>
     <div class="notes" id="notesBar" hidden></div>
     <div class="today" id="todayChips"></div>
     <ul class="list" id="list"></ul>
@@ -546,7 +571,8 @@ button{-webkit-tap-highlight-color:transparent}
   </div>
   <div class="sheet page" id="pageWeek" hidden>
     <section class="week" aria-label="今週の成績">
-      <div class="week-h"><b>今週やった数</b><span id="weekRange">10/12（月）〜 10/18（日）</span></div>
+      <div class="wk-nav"><button type="button" id="wkPrev" aria-label="前の週">‹ 前の週</button><b id="wkTitle">今週</b><button type="button" id="wkNext" aria-label="次の週">次の週 ›</button></div>
+      <div class="week-h"><b id="wkHead">やった数</b><span id="weekRange">10/12（月）〜 10/18（日）</span></div>
       <div class="score">
         <div class="sc" data-cat="main"><small>メイン</small><strong id="wMain">0</strong><em>個</em></div>
         <div class="sc" data-cat="mc"><small>マイクラ</small><strong id="wMc">0</strong><em>個</em></div>
@@ -558,7 +584,6 @@ button{-webkit-tap-highlight-color:transparent}
         <ul class="dsum-list" id="dailyList"></ul>
       </div>
       <div class="days" id="days"></div>
-      <div class="alltime" id="allTime" hidden></div>
       <div class="goals" id="goals">
         <div class="goals-h"><b>今週の目標</b><button type="button" class="linkbtn" id="goalEdit">書く</button></div>
         <ul class="goal-list" id="goalList"></ul>
@@ -568,15 +593,6 @@ button{-webkit-tap-highlight-color:transparent}
           <div class="btns"><button type="button" class="pri" id="goalSave">保存</button><button type="button" id="goalCancel">やめる</button></div>
         </div>
       </div>
-      <div class="weekbtns"><button type="button" class="reviewbtn" id="reviewBtn">先週のふりかえり</button></div>
-    </section>
-    <section class="review" id="review" hidden aria-label="先週のふりかえり">
-      <div class="rv-h"><b id="rvTitle">先週のふりかえり</b><button type="button" class="linkbtn" id="rvClose">閉じる</button></div>
-      <div class="rv-goals" id="rvGoals"></div>
-      <div class="rv-stats" id="rvStats"></div>
-      <div class="rv-advice" id="rvAdvice"></div>
-      <div class="btns"><button type="button" class="pri" id="rvAsk">Claudeに相談する</button><button type="button" id="rvNext">今週の目標を書く</button></div>
-      <p class="rv-note">「Claudeに相談する」は、この週のまとめをコピーしてチャットを開きます。貼り付けて送ってください。</p>
     </section>
   </div>
   <div class="sheet page" id="pagePlan" hidden>
@@ -598,8 +614,24 @@ button{-webkit-tap-highlight-color:transparent}
       <p class="rv-note">ここに入れた予定は、その曜日のリストに自動で入ります。予定をずらしても、最初に決めた曜日はここに残るので、どれだけずれたかが分かります。</p>
     </section>
   </div>
+  <div class="sheet page" id="pageMore" hidden>
+    <section class="later more-menu">
+      <div class="rv-h"><b>その他</b></div>
+      <button type="button" class="mlink" data-go="data"><b>データ</b><span>これまでの積み上げ・週ごとの数</span><i>›</i></button>
+      <button type="button" class="mlink" data-go="later"><b>先のメモ</b><span>再来週以降のことを見出しごとに</span><i>›</i></button>
+      <button type="button" class="mlink" data-go="log"><b>変更の記録</b><span>消したものを探して戻す</span><i>›</i></button>
+    </section>
+  </div>
+  <div class="sheet page" id="pageData" hidden>
+    <section class="later datap">
+      <button type="button" class="backlink" data-go="more">‹ その他</button>
+      <div class="rv-h"><b>データ</b><span class="rv-note" id="dataState"></span></div>
+      <div id="dataBox"></div>
+    </section>
+  </div>
   <div class="sheet page" id="pageLater" hidden>
     <section class="later">
+      <button type="button" class="backlink" data-go="more">‹ その他</button>
       <div class="rv-h"><b>再来週以降のメモ</b></div>
       <div class="future" id="futureSec">
         <div class="goals-h"><span class="rv-note">見出しごとに開いたり閉じたりできます</span><span class="rv-note" id="futureState"></span></div>
@@ -610,6 +642,7 @@ button{-webkit-tap-highlight-color:transparent}
   </div>
   <div class="sheet page" id="pageLog" hidden>
     <section class="later logp">
+      <button type="button" class="backlink" data-go="more">‹ その他</button>
       <div class="rv-h"><b>変更の記録</b><span class="rv-note" id="logState"></span></div>
       <p class="rv-note">保存するたびに、その時の中身を残しています（同じ場所は1分ごとにまとめて記録）。「この版に戻す」で前の状態にでき、戻したあとも ↶ で取り消せます。</p>
       <div class="seg" id="logKind"><button type="button" data-k="all" aria-pressed="true">すべて</button><button type="button" data-k="day" aria-pressed="false">日のタスク</button><button type="button" data-k="daily" aria-pressed="false">毎日</button><button type="button" data-k="week" aria-pressed="false">週</button><button type="button" data-k="future" aria-pressed="false">先のメモ</button></div>
@@ -783,7 +816,6 @@ button{-webkit-tap-highlight-color:transparent}
     if(e.view!==cur)open(e.view);else{render();setBase()}
     if(planVisible())refreshPlanDocs();
     if(e.future)renderFuture();
-    if(!$("review").hidden&&rvStart)renderReview();
   }
   const dayLabel=k=>{const d=parse(k);return (d.getMonth()+1)+"/"+d.getDate()};
   function undo(){
@@ -1713,34 +1745,33 @@ button{-webkit-tap-highlight-color:transparent}
       allDocs=out;
     }catch(e){}
     allLoading=false;
-    if(!editing)renderWeek();
-  }
-  function renderAllTime(){
-    const box=$("allTime");box.textContent="";
-    if(!allStats){box.hidden=true;return}
-    box.hidden=false;
-    box.append(el("span","lbl","これまでの積み上げ"));
-    [["メイン",allStats.main],["マイクラ",allStats.mc],["その他",allStats.other],["合計",allStats.total]].forEach(([l,v])=>{const sp=el("span",null,l+" ");sp.append(el("b",null,String(v)));box.append(sp)});
+    if(!editing){renderWeek();if(page==="data")renderData()}
   }
   function renderDailySum(st,start){
     const ids=Object.keys(st.per);
     $("dailySum").hidden=!ids.length;if(!ids.length)return;
     // counts only go up: this week's count and the running total, no misses or percentages
     $("wDaily").textContent=st.dDone;
-    $("wDailyPct").textContent=allStats?"これまで "+allStats.daily+"回":"";
+    $("wDailyPct").textContent="";
     const ul=$("dailyList");ul.textContent="";
     ids.forEach(id=>{
       const p=st.per[id];const li=el("li");
       const dots=el("span","dots");
       p.marks.forEach(m=>{if(m==="y")dots.append(el("i","y"))});
-      li.append(el("span","nm",p.text),dots,el("span","ct",p.done+"回"),el("span","tot",allStats?"累計 "+(allStats.perDaily[id]||0):""));ul.append(li);
+      li.append(el("span","nm",p.text),dots,el("span","ct",p.done+"回"));ul.append(li);
     });
   }
+  // the week page can show other weeks: weekOff 0 = the week of the shown day, -1 = the week before, ...
+  let weekOff=0;const otherWeeks={};
+  const viewStart=()=>shift(mondayOf(cur),7*weekOff);
   function renderWeek(){
-    const start=mondayOf(cur);
-    const docs={};for(let i=0;i<7;i++){const k=shift(start,i);docs[k]=k===cur?{items,rdone}:(week.data[k]||emptyDoc())}
+    const start=viewStart();
+    let docs;
+    if(weekOff===0){docs={};for(let i=0;i<7;i++){const k=shift(start,i);docs[k]=k===cur?{items,rdone}:(week.data[k]||emptyDoc())}}
+    else if(otherWeeks[start])docs=otherWeeks[start];
+    else{docs={};weekDocs(start).then(d=>{otherWeeks[start]=d;if(viewStart()===start&&!editing)renderWeek()})}
     const st=weekStats(start,docs);
-    computeAll();renderAllTime();
+    computeAll();
     const tally={main:st.main,mc:st.mc,other:st.other};
     renderDailySum(st,start);
     renderGoals(start);
@@ -1751,17 +1782,21 @@ button{-webkit-tap-highlight-color:transparent}
       const b=el("button","day"+(k===cur?" cur":"")+(n?"":" zero")+(d.getDay()===0?" sun":"")+(d.getDay()===6?" sat":""));
       b.type="button";b.setAttribute("aria-label",(d.getMonth()+1)+"月"+d.getDate()+"日 完了"+n+"個");
       b.append(el("span","w",WD[d.getDay()]+" "+d.getDate()),el("span","n",String(n)));
-      b.onclick=()=>{if(k!==cur)open(k)};
+      b.onclick=()=>{if(k!==cur){weekOff=0;open(k)}showPage("today")};
       box.append(b);
     }
     $("wMain").textContent=tally.main;$("wMc").textContent=tally.mc;$("wOther").textContent=tally.other;
     $("wTotal").textContent=tally.main+tally.mc+tally.other;
     $("weekRange").textContent=rangeLabel(start);
-    const isThis=start===mondayOf(todayKey());
-    $("goals").querySelector("b").textContent=isThis?"今週の目標":rangeShort(start)+" の目標";
-    $("reviewBtn").textContent="先週のふりかえり（"+rangeShort(shift(start,-7))+"）";
-
+    const tw=mondayOf(todayKey());
+    const name=start===tw?"今週":start===shift(tw,-7)?"先週":start===shift(tw,7)?"来週":rangeShort(start)+" の週";
+    $("wkTitle").textContent=name;
+    $("wkHead").textContent=name+"やった数";
+    $("wkNext").disabled=start>=tw;
+    $("goals").querySelector("b").textContent=name+"の目標";
   }
+  $("wkPrev").onclick=()=>{weekOff--;$("goalEditor").hidden=true;renderWeek()};
+  $("wkNext").onclick=()=>{if(viewStart()>=mondayOf(todayKey()))return;weekOff++;$("goalEditor").hidden=true;renderWeek()};
   const rangeLabel=start=>{const s=parse(start),e=parse(shift(start,6));return (s.getMonth()+1)+"/"+s.getDate()+"（月）〜 "+(e.getMonth()+1)+"/"+e.getDate()+"（日）"};
   const rangeShort=start=>{const s=parse(start),e=parse(shift(start,6));return (s.getMonth()+1)+"/"+s.getDate()+"〜"+(e.getMonth()+1)+"/"+e.getDate()};
 
@@ -1811,21 +1846,31 @@ button{-webkit-tap-highlight-color:transparent}
   }
   function renderGoals(start){
     const info=weekInfo[start];const ul=$("goalList");ul.textContent="";
-    if(!info){loadWeekInfo(start).then(()=>{if(mondayOf(cur)===start&&!editing)renderGoals(start)});return}
+    if(!info){loadWeekInfo(start).then(()=>{if(viewStart()===start&&!editing)renderGoals(start)});return}
     if(!info.goals.length)ul.append(el("li","empty","まだありません。「書く」から、この週に決めたことを書けます"));
-    info.goals.forEach(g=>ul.append(el("li",null,g.text)));
+    const past=start<mondayOf(todayKey());
+    info.goals.forEach(g=>{
+      if(!past){ul.append(el("li",null,g.text));return}
+      // a finished week: check each goal
+      const li=el("li","rated");li.append(el("div",null,g.text));
+      const seg=el("div","g-res");
+      Object.entries(RESULT).forEach(([k,label])=>{const b=el("button",null,label);b.type="button";b.setAttribute("aria-pressed",String(g.result===k));
+        b.onclick=()=>{if(readOnly)return;g.result=g.result===k?null:k;saveWeekInfo(start);renderGoals(start)};seg.append(b)});
+      li.append(seg);ul.append(li);
+    });
+    if(past&&!info.seen&&start===shift(mondayOf(todayKey()),-7)){info.seen=true;const w=JSON.parse(JSON.stringify(info));store("weeks/"+start,{...w,updatedAt:new Date().toISOString()});$("rvBanner").hidden=true}
     $("goalEdit").textContent=info.goals.length?"書き直す":"書く";
     if(!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#weekMemoMain")))renderWeekMemo("weekMemoMain",start);
   }
   $("goalEdit").onclick=async()=>{
     if(readOnly)return;
-    const start=mondayOf(cur);const info=await loadWeekInfo(start);
+    const start=viewStart();const info=await loadWeekInfo(start);
     $("goalBox").value=info.goals.map(g=>g.text).join("\n");
     $("goalEditor").hidden=false;$("goalBox").focus();
   };
   $("goalCancel").onclick=()=>{$("goalEditor").hidden=true};
   $("goalSave").onclick=async()=>{
-    const start=mondayOf(cur);const info=await loadWeekInfo(start);
+    const start=viewStart();const info=await loadWeekInfo(start);
     const lines=$("goalBox").value.split("\n").map(x=>x.trim()).filter(Boolean);
     info.goals=lines.map(t=>{const old=info.goals.find(g=>g.text===t);return old||{id:uid(),text:t,result:null}});
     saveWeekInfo(start);$("goalEditor").hidden=true;renderGoals(start);toast("目標を保存しました");
@@ -2035,22 +2080,61 @@ button{-webkit-tap-highlight-color:transparent}
   }
   // ---- pages: 今日 / 今週 / 予定 / 先のメモ ----
   let page="today";
-  const PAGES={today:"pageToday",week:"pageWeek",plan:"pagePlan",later:"pageLater",log:"pageLog"};
+  const PAGES={today:"pageToday",week:"pageWeek",plan:"pagePlan",more:"pageMore",data:"pageData",later:"pageLater",log:"pageLog"};
+  const TAB_OF={data:"more",later:"more",log:"more"};
   const planVisible=()=>page==="plan";
   async function showPage(p,noHash){
     if(!PAGES[p])p="today";
     if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
     page=p;
     Object.entries(PAGES).forEach(([k,id])=>{$(id).hidden=k!==p});
-    [...$("tabs").children].forEach(b=>{if(b.dataset.page===p)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
+    const tp=TAB_OF[p]||p;
+    [...$("tabs").children].forEach(b=>{if(b.dataset.page===tp)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
     if(!noHash){try{history.replaceState(null,"",p==="today"?location.pathname+location.search:"#"+p)}catch(e){}}
     window.scrollTo(0,0);
-    if(p==="week"){renderWeek()}
+    if(p==="week"){Object.keys(otherWeeks).forEach(k=>delete otherWeeks[k]);renderWeek()}
     if(p==="plan"){const t=todayKey();
       // on Sunday the next week is planned; otherwise this week
       if(!planStart)await openPlan(parse(t).getDay()===0?shift(mondayOf(t),7):mondayOf(t));else refreshPlanDocs()}
     if(p==="later"){if(!futureLoaded)loadFuture();else renderFuture()}
     if(p==="log"){logN=300;loadLogs()}
+    if(p==="data")renderData();
+  }
+  document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-go]");if(b)showPage(b.dataset.go)});
+  // ---- data page: running totals and every week's numbers ----
+  function renderData(){
+    const box=$("dataBox");box.textContent="";
+    if(!allDocs){$("dataState").textContent="読み込み中…";loadAllDocs();return}
+    $("dataState").textContent="";
+    computeAll();const a=allStats;
+    box.append(el("div","dt-h","これまでの積み上げ（やった数）"));
+    const tiles=el("div","dt-tiles");
+    [["メイン",a.main,"main"],["マイクラ",a.mc,"mc"],["その他",a.other,"other"],["合計",a.total,null]].forEach(([l,v,c])=>{const d=el("div","sc");if(c)d.dataset.cat=c;d.append(el("small",null,l),el("strong",null,String(v)));tiles.append(d)});
+    box.append(tiles);
+    // daily tasks: how many times each one has been done
+    const per=Object.entries(a.perDaily).filter(([,n])=>n>0);
+    box.append(el("div","dt-h","毎日タスク（これまで "+a.daily+"回）"));
+    if(per.length){
+      const names=Object.fromEntries(daily.map(d=>[d.id,d.text]));
+      const t=el("table","dt-table");const hd=el("tr");hd.append(el("th",null,"タスク"),el("th",null,"回数"));t.append(hd);
+      per.sort((x,y)=>y[1]-x[1]).forEach(([id,n])=>{const r=el("tr");r.append(el("td",null,names[id]||"（解除した毎日タスク）"),el("td",null,n+"回"));t.append(r)});
+      box.append(t);
+    }else box.append(el("p","rv-note","まだありません。"));
+    // week by week
+    const weeks={};
+    const keys=new Set([...Object.keys(allDocs),cur]);
+    keys.forEach(k=>{const doc=k===cur?{items,rdone}:(week.data[k]||allDocs[k]||emptyDoc());const w=mondayOf(k);
+      const acc=weeks[w]||(weeks[w]={main:0,mc:0,other:0,post:0,total:0,daily:0,perDaily:{}});tallyDoc(doc,k,acc)});
+    const ws=Object.keys(weeks).filter(w=>weeks[w].total||weeks[w].daily).sort().reverse();
+    box.append(el("div","dt-h","週ごとの数"));
+    if(!ws.length){box.append(el("p","rv-note","まだありません。"));return}
+    const t=el("table","dt-table");const hd=el("tr");["週","メイン","マイクラ","その他","合計","毎日"].forEach(x=>hd.append(el("th",null,x)));t.append(hd);
+    const tw=mondayOf(todayKey());
+    ws.forEach(w=>{const v=weeks[w];const r=el("tr",w===tw?"cur":null);
+      r.append(el("td",null,w===tw?"今週":rangeShort(w)),el("td",null,String(v.main)),el("td",null,String(v.mc)),el("td",null,String(v.other)),el("td",null,String(v.total)),el("td",null,v.daily+"回"));
+      r.style.cursor="pointer";r.onclick=()=>{weekOff=Math.round((parse(w)-parse(mondayOf(cur)))/(7*864e5));showPage("week")};
+      t.append(r)});
+    box.append(t);
   }
   // ---- change log page ----
   let logList=[],logN=300,logKind="all",logOpenIds=new Set(),logArmed=null,logGen=0;
@@ -2175,9 +2259,9 @@ button{-webkit-tap-highlight-color:transparent}
     try{navigator.clipboard.writeText(text).then(()=>toast(shown.length+"件の記録をコピーしました"),()=>toast("コピーできませんでした"))}catch(err){toast("コピーできませんでした")}
   };
   $("logOpen").onclick=()=>{$("panel").hidden=true;$("menuBtn").setAttribute("aria-expanded","false");showPage("log")};
-  $("tabs").onclick=e=>{const b=e.target.closest("button[data-page]");if(b)showPage(b.dataset.page)};
+  $("tabs").onclick=e=>{const b=e.target.closest("button[data-page]");if(!b)return;if(b.dataset.page==="week")weekOff=0;showPage(b.dataset.page)};
   window.addEventListener("hashchange",()=>showPage((location.hash||"").slice(1)||"today",true));
-  $("rvBanner").onclick=()=>{$("rvBanner").hidden=true;showPage("week");openReview(shift(mondayOf(todayKey()),-7))};
+  $("rvBanner").onclick=()=>{$("rvBanner").hidden=true;if(cur!==todayKey())open(todayKey());weekOff=-1;showPage("week")};
   $("planDefault").onclick=()=>grouped(planDefault_);
   async function planDefault_(){
     const start=planStart,def=latestDefault(start);if(!def)return;
@@ -2311,125 +2395,18 @@ button{-webkit-tap-highlight-color:transparent}
   $("planCat").onclick=e=>{const b=e.target.closest("button[data-cat]");if(!b)return;planCat=b.dataset.cat;[...$("planCat").children].forEach(x=>x.setAttribute("aria-pressed",String(x===b)))};
 
   // ---- last week's review ----
-  let rvStart=null,rvStats=null;
   async function weekDocs(start){
     const docs={};
     await Promise.all([...Array(7)].map(async(_,i)=>{const k=shift(start,i);try{docs[k]=k===cur?{items,rdone}:await readDay(k)}catch(e){docs[k]=emptyDoc()}}));
     return docs;
   }
-  async function openReview(start){
-    rvStart=start;
-    const [info,docs]=await Promise.all([loadWeekInfo(start),weekDocs(start)]);
-    rvStats=weekStats(start,docs);
-    rvStats.plan=planSummary(planStatus(start,docs));
-    computeAll();
-    $("review").querySelectorAll(".rv-all").forEach(x=>x.remove());
-    renderReview();
-    $("review").hidden=false;
-    if(!info.seen){info.seen=true;saveWeekInfo(start)}
-  }
   const RESULT={done:"できた",half:"半分",no:"できなかった"};
-  function renderReview(){
-    const start=rvStart,st=rvStats,info=weekInfo[start];
-    $("rvTitle").textContent=(start===shift(mondayOf(todayKey()),-7)?"先週":rangeShort(start))+"のふりかえり（"+rangeShort(start)+"）";
-    const g=$("rvGoals");g.textContent="";
-    if(!info.goals.length)g.append(el("p","rv-note","この週の目標は書かれていません。"));
-    info.goals.forEach(goal=>{
-      const box=el("div","rv-goal");box.append(el("span","gt",goal.text));
-      const seg=el("div","rv-seg");
-      Object.entries(RESULT).forEach(([k,label])=>{const b=el("button",null,label);b.type="button";b.setAttribute("aria-pressed",String(goal.result===k));
-        b.onclick=()=>{goal.result=goal.result===k?null:k;saveWeekInfo(start);renderReview()};seg.append(b)});
-      box.append(seg);g.append(box);
-    });
-    const stx=$("rvStats");stx.textContent="";$("review").querySelectorAll(".rv-all").forEach(x=>x.remove());
-    const tile=(label,val,cat,cls)=>{const d=el("div","sc"+(cls?" "+cls:""));if(cat)d.dataset.cat=cat;d.append(el("small",null,label),el("strong",null,String(val)));return d};
-    stx.append(tile("メイン",st.main,"main"),tile("マイクラ",st.mc,"mc"),tile("その他",st.other,"other"),tile("合計",st.total,null,"total"),
-      tile("毎日タスク",st.dDone+"回"));
-    if(allStats){const a=el("p","rv-note");a.textContent="これまでの積み上げ：メイン "+allStats.main+"・マイクラ "+allStats.mc+"・その他 "+allStats.other+"（合計 "+allStats.total+"）／毎日タスク "+allStats.daily+"回";stx.after(a);a.className="rv-note rv-all";}
-    const adv=$("rvAdvice");adv.textContent="";
-    advice(info,st).forEach(t=>{const p=el("p");p.innerHTML=t;adv.append(p)});
-  }
-  const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-  // general advice from the goals and the numbers (rules of thumb, not judgement)
-  function advice(info,st){
-    const out=[];
-    const rated=info.goals.filter(g=>g.result);
-    if(info.goals.length){
-      if(!rated.length)out.push("<b>目標</b>：上で目標ごとに「できた／半分／できなかった」を選ぶと、ここに反映されます。数よりも、決めたことを守れたかを先に振り返るのがおすすめです。");
-      else{
-        const d=rated.filter(g=>g.result==="done").length,h=rated.filter(g=>g.result==="half").length,n=rated.filter(g=>g.result==="no").length;
-        if(n===0&&h===0)out.push("<b>目標</b>：決めたことは全部できました。一般に、守れた週の次は目標を少しだけ上げるか、同じ目標をもう1週続けて習慣にするのが効果的です。");
-        else if(d>=h+n)out.push("<b>目標</b>：できた "+d+"・半分 "+h+"・できなかった "+n+"。おおむね守れています。できなかったものは「なぜ」より「次はいつやるか」を決めると改善しやすいです。");
-        else out.push("<b>目標</b>：できた "+d+"・半分 "+h+"・できなかった "+n+"。一般に、守れない目標は内容より量や置き場所の問題であることが多いので、来週は1〜2個に絞るか、毎朝の最初の作業として先に置くと守りやすくなります。");
-      }
-    }else out.push("<b>目標</b>：この週は目標がありませんでした。数字だけでは良し悪しを決めにくいので、来週は「何を優先するか」を1つだけ書いておくと振り返りやすくなります。");
-    const goalText=info.goals.map(g=>g.text).join(" ");
-    if(st.total){
-      const share=k=>Math.round(st[k]/st.total*100);
-      if(/メイン/.test(goalText)){
-        const m=share("main");
-        if(m>=50)out.push("<b>メイン中心</b>：完了したタスクの "+m+"% がメインで、数字の上でもメインが中心になっていました。");
-        else if(m>=30)out.push("<b>メイン中心</b>：完了したタスクのうちメインは "+m+"%。中心と言うにはもう一歩です。一般に、急ぎの仕事（マイクラの納品など）は締め切りがある分どうしても先に来るので、メインは1日の最初に時間を先取りしておくのが定石です。");
-        else out.push("<b>メイン中心</b>：完了したタスクのうちメインは "+m+"% で、ほかに押されていました。一般に「大事だけど急ぎでない仕事」は予定に入れない限り後回しになります。毎日メインの最初の一歩を1つだけ決めて、朝いちばんに片づける形がおすすめです。");
-      }
-      if(/マイクラ/.test(goalText)){
-        const c=share("mc");out.push("<b>マイクラ</b>：完了したタスクの "+c+"% がマイクラでした。");
-      }
-    }else out.push("<b>記録</b>：この週は完了したタスクがありませんでした。忙しかった週は、毎日1つだけでも記録を残しておくと、次の週の振り返りがしやすくなります。");
-    if(st.dPoss){
-      // counted up, never as a percentage
-      const r=st.dDone/st.dPoss;
-      const best=Object.values(st.per).filter(p=>p.done).sort((a,b)=>b.done-a.done)[0];
-      const low=Object.values(st.per).filter(p=>p.poss).sort((a,b)=>a.done/a.poss-b.done/b.poss)[0];
-      const total=allStats?"（これまでの合計 "+allStats.daily+"回）":"";
-      let t="<b>毎日タスク</b>：この週は "+st.dDone+"回 積み上げました"+total+"。";
-      if(best)t+="いちばん多かったのは「"+esc(best.text)+"」の "+best.done+"回。";
-      if(r>=0.8)t+="ほぼ毎日続いていて、習慣になりつつあります。";
-      else if(r>=0.5)t+="来週は1回でも多く積めれば十分な前進です。"+(low&&low!==best?"「"+esc(low.text)+"」は、やる時間を決めておくと回数を増やしやすくなります。":"");
-      else t+="回数を増やすには、一般にハードルを下げるのがいちばん効きます（例：1時間 → 15分、「やる」より「始める」だけ）。小さくても1回は1回として積み上がります。";
-      out.push(t);
-    }
-    if(st.plan&&st.plan.n){
-      const P=st.plan,done=P.onPlan+P.shiftedDone;
-      let t="<b>週の計画</b>：予定 "+P.n+"件のうち、予定どおり完了 "+P.onPlan+"件、ずらして完了 "+P.shiftedDone+"件（計 "+done+"件できました）。最初の予定からずれたのは "+P.shifted+"件・合計 "+P.shiftDays+"日分"+(P.nextWeek?"（うち来週へ "+P.nextWeek+"件）":"")+"です。";
-      if(P.shifted===0)t+="予定どおり進められていて、見積もりが合っています。";
-      else if(P.shiftedDone>=P.shifted/2)t+="ずらしながらでも多くは片づいていて、ずらす運用がうまく回っています。";
-      else t+="一般に、ずれが多い週は予定の詰め込みすぎのサインです。日曜の計画では1日に入れる量を実際にできる量の7割くらいにして、空き枠を残しておくとずらしやすくなります。";
-      out.push(t);
-    }
-    if(st.old.length){
-      const names=st.old.slice(0,3).map(o=>"「"+esc(o.text)+"」（"+o.days+"日）").join("、");
-      out.push("<b>持ち越し</b>：3日以上持ち越しているタスクが "+st.old.length+" 件あります（"+names+"）。一般に、何日も持ち越すタスクは大きすぎるか、優先度が低いサインです。小さく分けるか、いったんやらないと決めるのも手です。");
-    }
-    return out;
-  }
-  function reviewText(){
-    const st=rvStats,info=weekInfo[rvStart];
-    const lines=["【日めくりTodo 週のふりかえり "+rangeShort(rvStart)+"】",
-      "目標："+(info.goals.length?info.goals.map(g=>g.text+"（"+(RESULT[g.result]||"未評価")+"）").join(" / "):"なし"),
-      "完了：メイン"+st.main+"・マイクラ"+st.mc+"・その他"+st.other+"（合計"+st.total+"）",
-      "毎日タスク："+st.dDone+"回"+(allStats?"（これまで "+allStats.daily+"回）":"")];
-    Object.entries(st.per).forEach(([id,p])=>lines.push("　・"+p.text+" "+p.done+"回"+(allStats?"（累計 "+(allStats.perDaily[id]||0)+"）":"")));
-    if(allStats)lines.push("これまでの積み上げ：メイン"+allStats.main+"・マイクラ"+allStats.mc+"・その他"+allStats.other+"（合計"+allStats.total+"）");
-    if(st.plan&&st.plan.n)lines.push("週の計画：予定"+st.plan.n+"件／予定どおり完了"+st.plan.onPlan+"・ずらして完了"+st.plan.shiftedDone+"・ずらし中"+st.plan.shifting+"・未完"+st.plan.pending+"・来週へ"+st.plan.nextWeek+"／ずれ"+st.plan.shifted+"件（"+st.plan.shiftDays+"日分）");
-    if(st.old.length)lines.push("3日以上の持ち越し："+st.old.map(o=>o.text+"（"+o.days+"日）").join("、"));
-    lines.push("","この週が目標に合っていたか、総評と来週へのアドバイスをください。");
-    return lines.join("\n");
-  }
-  $("reviewBtn").onclick=()=>openReview(shift(mondayOf(cur),-7));
-  $("rvClose").onclick=()=>{$("review").hidden=true};
-  $("rvNext").onclick=()=>{$("review").hidden=true;if(cur!==todayKey())open(todayKey());showPage("week");setTimeout(()=>$("goalEdit").click(),80)};
-  $("rvAsk").onclick=()=>{
-    const text=reviewText();const url=$("chatBtn").href;
-    const go=()=>window.open(url,"_blank","noopener");
-    try{navigator.clipboard.writeText(text).then(()=>{toast("まとめをコピーしました。チャットに貼り付けてください");go()},()=>{go()})}catch(e){go()}
-  };
   // a new week: show last week's review once, automatically
   async function maybeAutoReview(){
     const t=todayKey();if(cur!==t)return;
     const last=shift(mondayOf(t),-7);
     const info=await loadWeekInfo(last);
-    if(info.seen||!$("review").hidden)return;
+    if(info.seen)return;
     const docs=await weekDocs(last);
     const any=Object.values(docs).some(d=>(d.items||[]).length);
     if(any||info.goals.length)$("rvBanner").hidden=false;
@@ -2604,8 +2581,8 @@ button{-webkit-tap-highlight-color:transparent}
   // hooks for app.js (cloud sync)
   let dailyUnsub=null;
   // after login/logout the page on screen reads the account's data again
-  function afterSwitch(){if(page==="log")loadLogs();else if(page==="later")loadFuture();else if(page==="plan"&&planStart)openPlan(planStart);else if(page==="week")renderWeek()}
-  const reset=()=>{stopFuture();clearTimeout(futureT);futureT=null;futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
+  function afterSwitch(){if(page==="log")loadLogs();else if(page==="later")loadFuture();else if(page==="plan"&&planStart)openPlan(planStart);else if(page==="week")renderWeek();else if(page==="data")renderData()}
+  const reset=()=>{Object.keys(otherWeeks).forEach(k=>delete otherWeeks[k]);stopFuture();clearTimeout(futureT);futureT=null;futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
   window.todoCore={
     connect(d){
       if(futureT&&futureLoaded)saveFuture(true);
