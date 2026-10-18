@@ -27,7 +27,10 @@
   function wrapSnap(s){return{exists:s.exists,data:()=>s.data(),metadata:s.metadata}}
   function makeDb(uid){
     const base="users/"+uid+"/";
-    return{doc(p){
+    return{
+      // every saved day, for the running totals
+      async allDays(){const q=await fs.collection(base+"days").get();const out={};q.forEach(d=>{out[d.id]=d.data()});return out},
+      doc(p){
       const ref=fs.doc(base+p);
       return{
         get:()=>ref.get().then(wrapSnap),
