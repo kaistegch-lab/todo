@@ -270,6 +270,18 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .acts button:hover{background:var(--soft);color:var(--ink)}
 .acts .on{color:var(--star)}
 .acts .un{font-size:12px}
+.xm{position:relative;display:inline-flex}
+.xm .xbtn{letter-spacing:-1px}
+.xpop{display:none;position:absolute;right:0;top:100%;z-index:30;flex-direction:column;align-items:stretch;min-width:150px;padding:4px;margin-top:2px;background:var(--sheet);border:1px solid var(--line);border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.14)}
+.xpop::before{content:"";position:absolute;left:0;right:0;top:-8px;height:8px}
+.xm:hover .xpop,.xm.open .xpop{display:flex}
+.acts:has(.xm.open),.acts:has(.xm:hover){opacity:1}
+.xm:hover .xbtn,.xm.open .xbtn{background:var(--soft);color:var(--ink)}
+.xpop button{display:flex;align-items:center;gap:8px;text-align:left;padding:6px 10px;font-size:13px;color:var(--ink);white-space:nowrap}
+.xpop .xi{width:16px;text-align:center;color:var(--muted)}
+.xpop .on .xi{color:var(--star)}
+.xpop .has::after{right:auto;left:20px;top:5px}
+.xpop .un{font-size:13px}
 .subs{list-style:none;margin:0;padding:0 12px 8px 40px;display:grid;gap:2px}
 .sub{display:flex;align-items:flex-start;gap:7px;padding:4px 0;position:relative}
 .sub.dragging{background:var(--sheet)}
@@ -376,6 +388,11 @@ body{margin:0;padding-top:calc(16px + env(safe-area-inset-top,0px))!important;pa
   .task.moved>.row>.acts{display:flex}
   .task.open>.row>.acts{display:flex;opacity:1;order:5;flex-basis:100%;justify-content:flex-end;gap:4px;padding-top:4px}
   .task.open>.row>.acts button{background:var(--soft)}
+  .task.open>.row>.acts{flex-wrap:wrap}
+  .task.open .xm .xbtn{display:none}
+  .task.open .xm,.task.open .xm .xpop{display:contents}
+  .task.open .xpop button{padding:2px 8px;font-size:12px;gap:4px}
+  .task.open .xpop .xi{width:auto}
 }
 button{-webkit-tap-highlight-color:transparent}
 @media (max-width:520px){
@@ -581,11 +598,12 @@ button{-webkit-tap-highlight-color:transparent}
 
   let cur=todayKey(), items=[], rdone={}, order=[], carriedFrom=null;
   let prevItems=[], daily=[], db=null, unsub=null, readOnly=false;
-  let addCat="main", addDaily=false, editing=false, subFor=null, confirmFor=null, autoChecked={}, editTarget=null, newAfter=null;
+  let addCat="main", addDaily=false, editing=false, subFor=null, confirmFor=null, autoChecked={}, editTarget=null, newAfter=null, dsubFor=null;
 
   const normCat=c=>CAT_IDS.includes(c)?c:"other";
   const norm=list=>(list||[]).map(i=>({id:i.id||uid(),text:String(i.text||""),done:!!i.done,cat:normCat(i.cat),star:!!i.star,parent:i.parent||null,...(i.moved?{moved:true}:{}),...(i.from?{from:i.from}:{}),...(i.movedTo?{movedTo:i.movedTo}:{}),...(i.movedId?{movedId:i.movedId}:{}),...(i.fromDay?{fromDay:i.fromDay}:{}),...(i.fromId?{fromId:i.fromId}:{}),...(i.memo?{memo:String(i.memo)}:{}),...(i.planId?{planId:i.planId,planDay:i.planDay||null}:{})}));
-  const normDaily=list=>(list||[]).map(d=>({id:d.id||uid(),text:String(d.text||""),cat:normCat(d.cat),star:!!d.star,since:d.since||"2000-01-01",until:d.until||null,...(d.memo?{memo:String(d.memo)}:{})}));
+  const normDaily=list=>(list||[]).map(d=>({id:d.id||uid(),text:String(d.text||""),cat:normCat(d.cat),star:!!d.star,since:d.since||"2000-01-01",until:d.until||null,...(d.memo?{memo:String(d.memo)}:{}),
+    ...(Array.isArray(d.subs)&&d.subs.length?{subs:d.subs.map(x=>({id:x.id||uid(),text:String(x.text||""),star:!!x.star}))}:{})}));
   const activeDaily=k=>daily.filter(d=>d.since<=k&&(!d.until||k<d.until));
   // daily tasks shown on day k (rd = that day's rdone; "skip" hides it for that day only)
   const shownDaily=(k,rd)=>activeDaily(k).filter(d=>(rd||{})[d.id]!=="skip");
@@ -723,9 +741,9 @@ button{-webkit-tap-highlight-color:transparent}
     if(!d){local.set("daily",body);return}
     writing=writing.then(()=>d.doc("settings/daily").set(body)).catch(onErr);
   }
-  function commit(){pendingDoc=null;editing=!!subFor||!!editTarget||!!newAfter;clearTimeout(blurT);render();save()}
+  function commit(){pendingDoc=null;editing=!!subFor||!!dsubFor||!!editTarget||!!newAfter;clearTimeout(blurT);render();save()}
   function softCommit(changed){
-    editing=!!subFor||!!editTarget||!!newAfter;
+    editing=!!subFor||!!dsubFor||!!editTarget||!!newAfter;
     if(changed)save();
     clearTimeout(blurT);blurT=setTimeout(()=>{if(!editing&&!drag)render()},250);
   }
@@ -818,7 +836,7 @@ button{-webkit-tap-highlight-color:transparent}
       if(enter&&onEnter)onEnter();
       const changed=ok&&v&&v!==get();
       if(blur){if(changed)set(v);softCommit(changed);return}
-      if(changed){set(v);commit()}else{editing=!!subFor||!!newAfter;render()}};
+      if(changed){set(v);commit()}else{editing=!!subFor||!!dsubFor||!!newAfter;render()}};
     inp.onkeydown=e=>{
       if(isEnter(e))finish(true,true);
       else if(e.key==="Escape")finish(false);
@@ -906,6 +924,19 @@ button{-webkit-tap-highlight-color:transparent}
   }
 
   function actBtn(label,title,fn,cls){const b=el("button",cls||null,label);b.type="button";b.title=title;b.setAttribute("aria-label",title);b.onclick=fn;return b}
+  // a button for the small "⋯" menu: icon + name, shown when the pointer is over ⋯ (or after tapping it)
+  function xBtn(icon,name,fn,cls){const b=actBtn(icon,name,fn,cls);b.textContent="";b.append(el("span","xi",icon),el("span","xl",name));return b}
+  function closeXm(){document.querySelectorAll(".xm.open").forEach(m=>m.classList.remove("open"))}
+  document.addEventListener("click",e=>{if(!e.target.closest||!e.target.closest(".xm"))closeXm()});
+  function actsWith(main,extra){
+    const acts=el("div","acts");acts.append(...main);
+    if(extra.length){
+      const m=el("span","xm");const b=el("button","xbtn","⋯");b.type="button";b.title="そのほかの操作";b.setAttribute("aria-label","そのほかの操作");
+      b.onclick=e=>{e.stopPropagation();const o=!m.classList.contains("open");closeXm();if(o)m.classList.add("open")};
+      const pop=el("div","xpop");pop.append(...extra);m.append(b,pop);acts.append(m);
+    }
+    return acts;
+  }
 
   // "↩ 戻す" on a task that was carried to another day: it becomes an open task here again,
   // and the copy on the other day is removed (its checks are kept).
@@ -1038,20 +1069,24 @@ button{-webkit-tap-highlight-color:transparent}
       it.done=false;subFor={p:it.id,after:last};commit();toast(lines.length+"件を小タスクに貼り付けました")})};
     t.onclick=e=>{if(e.target.closest(".ctag"))return;openEdit()};
     if(editTarget&&editTarget.id===it.id){const c=editTarget.caret;editTarget=null;queueMicrotask(()=>openEdit(c))}
-    const acts=el("div","acts");
+    let acts=el("div","acts");
     if(!readOnly&&!it.moved){
-      acts.append(
-        actBtn(it.star?"★":"☆","重要マーク",()=>{it.star=!it.star;commit()},it.star?"on":""),
-        actBtn("＋","小タスクを追加",()=>{subFor={p:it.id,after:null};editing=true;render()}));
-      if(!kids.length)acts.append(actBtn("↻","毎日タスクにする",()=>{
-        const d={id:uid(),text:it.text,cat:it.cat,star:it.star,since:cur,until:null};daily.push(d);
-        if(it.done)rdone[d.id]=true;
-        order=viewKeys().map(k=>k===it.id?"d:"+d.id:k);
-        items=items.filter(x=>x!==it);saveDaily();commit()}));
-      acts.append(actBtn("✎","メモ",()=>memoToggle(it.id),it.memo?"has":""));
-      acts.append(actBtn("⇢","別の日にずらす",()=>{shiftFor=shiftFor===it.id?null:it.id;render()}));
-      acts.append(actBtn("⧉","コピー",()=>copyTasks([{text:it.text,cat:it.cat,star:it.star,subs:kids.map(k=>({text:k.text,star:k.star}))}],kids.length?"小タスクごとコピーしました":"コピーしました")));
-      acts.append(actBtn("×","削除",()=>{items=items.filter(x=>x!==it&&x.parent!==it.id);commit()}));
+      acts=actsWith([
+        actBtn("＋","小タスクを追加",()=>{subFor={p:it.id,after:null};editing=true;render()}),
+        actBtn("⇢","別の日にずらす",()=>{shiftFor=shiftFor===it.id?null:it.id;render()}),
+        actBtn("×","削除",()=>{items=items.filter(x=>x!==it&&x.parent!==it.id);commit()})],[
+        xBtn(it.star?"★":"☆",it.star?"重要マークを外す":"重要マーク",()=>{it.star=!it.star;commit()},it.star?"on":""),
+        xBtn("✎","メモ",()=>memoToggle(it.id),it.memo?"has":""),
+        xBtn("↻","毎日タスクにする",()=>{
+          // subtasks come along: they show under the daily task every day
+          const src=items.filter(x=>x.parent===it.id);const subs=src.map(k=>({id:uid(),text:k.text,star:!!k.star}));
+          const d={id:uid(),text:it.text,cat:it.cat,star:it.star,since:cur,until:null,...(subs.length?{subs}:{}),...(it.memo?{memo:it.memo}:{})};daily.push(d);
+          if(it.done)rdone[d.id]=true;
+          subs.forEach((x,i)=>{if(src[i].done)rdone["s:"+x.id]=1});
+          order=viewKeys().map(k=>k===it.id?"d:"+d.id:k);
+          items=items.filter(x=>x!==it&&x.parent!==it.id);
+          grouped(()=>{saveDaily();commit()});toast("毎日タスクにしました（明日からも毎日出ます）")}),
+        xBtn("⧉","コピー",()=>copyTasks([{text:it.text,cat:it.cat,star:it.star,subs:kids.map(k=>({text:k.text,star:k.star}))}],kids.length?"小タスクごとコピーしました":"コピーしました"))]);
     }else if(!readOnly&&it.moved){
       acts.append(actBtn("↩ 戻す","この日に戻す（移動先の分は消えます）",()=>unmove(it),"un"));
     }
@@ -1132,15 +1167,57 @@ button{-webkit-tap-highlight-color:transparent}
     {const mt=memoTag("d:"+d.id,!!d.memo);if(mt)tags.append(mt)}
     t.append(tags);
     t.onclick=e=>{if(e.target.closest(".ctag"))return;editText(row,t,()=>d.text,v=>{d.text=v;saveDaily()},()=>{newAfter="d:"+d.id})};
-    const acts=el("div","acts");
-    if(!readOnly)acts.append(
-      actBtn(d.star?"★":"☆","重要マーク",()=>{d.star=!d.star;saveDaily();render()},d.star?"on":""),
-      actBtn("✎","メモ（毎日共通）",()=>memoToggle("d:"+d.id),d.memo?"has":""),
-      actBtn("⧉","コピー",()=>copyTasks([{text:d.text,cat:d.cat,star:d.star,subs:[]}],"コピーしました")),
-      actBtn("×","この日だけ消す",()=>{rdone[d.id]="skip";confirmFor=null;commit();toast("この日だけ消しました（下の「休み」から戻せます）")}),
-      actBtn("解除","毎日タスクを解除",()=>{confirmFor=confirmFor===d.id?null:d.id;render()},"un"));
-    row.append(handle(),boxBtn(on,()=>{if(rdone[d.id]===true)delete rdone[d.id];else rdone[d.id]=true;commit()}),t,acts);
+    const subs=d.subs||[];
+    const sdone=x=>rdone["s:"+x.id]===1;
+    let acts=el("div","acts");
+    if(!readOnly)acts=actsWith([
+      actBtn("＋","小タスクを追加（毎日共通）",()=>{dsubFor={p:d.id,after:null};editing=true;render()}),
+      actBtn("×","この日だけ消す",()=>{rdone[d.id]="skip";confirmFor=null;commit();toast("この日だけ消しました（下の「休み」から戻せます）")})],[
+      xBtn(d.star?"★":"☆",d.star?"重要マークを外す":"重要マーク",()=>{d.star=!d.star;saveDaily();render()},d.star?"on":""),
+      xBtn("✎","メモ（毎日共通）",()=>memoToggle("d:"+d.id),d.memo?"has":""),
+      xBtn("⧉","コピー",()=>copyTasks([{text:d.text,cat:d.cat,star:d.star,subs:subs.map(x=>({text:x.text,star:x.star}))}],"コピーしました")),
+      xBtn("解除","毎日タスクを解除",()=>{confirmFor=confirmFor===d.id?null:d.id;render()},"un")]);
+    row.append(handle(),boxBtn(on,()=>{
+      if(rdone[d.id]===true){delete rdone[d.id];subs.forEach(x=>delete rdone["s:"+x.id])}
+      else{rdone[d.id]=true;subs.forEach(x=>{rdone["s:"+x.id]=1})}
+      commit()}),t,acts);
     li.append(row);
+    // subtasks of a daily task: the list is shared by every day, the checks belong to this day
+    const dAdding=dsubFor&&dsubFor.p===d.id;
+    if(subs.length||dAdding){
+      const ul=el("ul","subs");
+      const syncParent=()=>{if(subs.length&&subs.every(sdone))rdone[d.id]=true;else if(rdone[d.id]===true)delete rdone[d.id]};
+      const addRow=after=>{
+        const f=el("li","subadd");const inp=el("input");inp.placeholder="小タスクを入力してEnter（空でEnterで終了）";inp.maxLength=200;inp.id="subInput";
+        f.append(inp);queueMicrotask(()=>inp.focus());
+        let fin=false;
+        const done=(ok,enter,blur)=>{if(fin)return;fin=true;const v=inp.value.trim();
+          if(ok&&v){
+            const nx={id:uid(),text:v,star:false};const list=[...subs];
+            const at=after?list.findIndex(x=>x.id===after):list.length-1;list.splice(at+1,0,nx);
+            d.subs=list;if(rdone[d.id]===true)delete rdone[d.id];
+            dsubFor=enter?{p:d.id,after:nx.id}:null;
+            grouped(()=>{saveDaily();if(blur)softCommit(true);else commit()});
+          }else{dsubFor=null;if(blur)softCommit(false);else{editing=false;render()}}};
+        inp.onkeydown=e=>{if(isEnter(e)){e.preventDefault();done(true,true)}else if(e.key==="Escape")done(false)};
+        inp.onblur=()=>done(true,false,true);
+        return f;
+      };
+      if(dAdding&&dsubFor.after===null&&!subs.length)ul.append(addRow(null));
+      const shown=[...subs.filter(x=>!sdone(x)),...subs.filter(sdone)];
+      shown.forEach((x,idx)=>{
+        const sl=el("li","sub"+(sdone(x)?" done":""));sl.dataset.id=x.id;
+        const st=textEl(x.text,x.star);
+        st.onclick=()=>editText(sl,st,()=>x.text,v=>{x.text=v;saveDaily()},()=>{dsubFor={p:d.id,after:x.id}});
+        const a=el("div","acts");
+        if(!readOnly)a.append(actBtn("×","この小タスクを消す（毎日共通）",()=>{d.subs=subs.filter(y=>y!==x);if(!d.subs.length)delete d.subs;delete rdone["s:"+x.id];grouped(()=>{saveDaily();commit()})}));
+        const sh=el("span","handle");sh.style.visibility="hidden";
+        sl.append(sh,boxBtn(sdone(x),()=>{if(sdone(x))delete rdone["s:"+x.id];else rdone["s:"+x.id]=1;syncParent();commit()}),st,a);
+        ul.append(sl);
+        if(dAdding&&(dsubFor.after===x.id||(dsubFor.after===null&&idx===shown.length-1)))ul.append(addRow(x.id));
+      });
+      li.append(ul);
+    }
     if(memoOpen.has("d:"+d.id))li.append(memoBox("d:"+d.id,()=>d.memo,v=>{if(v)d.memo=v;else delete d.memo},()=>saveDaily()));
     if(confirmFor===d.id){
       const c=el("div","confirm");c.append(el("span",null,"この日から毎日タスクを外す？（前の日の記録は残ります）"));
@@ -1764,24 +1841,48 @@ button{-webkit-tap-highlight-color:transparent}
     toast(used?"予定を入れ替えました（追加 "+added+"・外した "+removed+"）":def.list.length+"件の予定を入れました");
   };
   // ---- notes for the week after next and later: toggles (title + free notes), saved as you type ----
-  let futureLoaded=false,futureT=null,future=[];
-  async function loadFuture(){
-    let data=null;
-    try{
-      if(db){const s_=await db.doc("settings/future").get();data=s_.exists?s_.data():null}
-      else data=JSON.parse(localStorage.getItem("todo:future")||"null");
-    }catch(e){}
-    data=data||{};
-    future=(data.toggles||[]).map(t=>({id:t.id||uid(),title:String(t.title||""),body:String(t.body||""),open:!!t.open}));
-    if(!future.length&&data.text)future=[{id:uid(),title:"メモ",body:String(data.text),open:true}];
-    futureLoaded=true;
+  let futureLoaded=false,futureT=null,future=[],futureGen=0,futureUnsub=null,futurePending=null;
+  const futureJson=l=>JSON.stringify(l.map(t=>({id:t.id,title:t.title,body:t.body})));
+  const futureFrom=data=>{data=data||{};
+    let l=(data.toggles||[]).map(t=>({id:t.id||uid(),title:String(t.title||""),body:String(t.body||""),open:!!t.open}));
+    if(!l.length&&data.text)l=[{id:uid(),title:"メモ",body:String(data.text),open:true}];return l};
+  const futureBusy=()=>{const a=document.activeElement;return !!futureT||!!(a&&a.closest&&a.closest("#futureList,#futureSec .fadd"))};
+  // Notes are read live from the account (so other devices' changes show up), and nothing can be
+  // saved until the account's copy has actually been read — an empty screen never overwrites them.
+  function applyFuture(l){
+    const first=!futureLoaded;
+    if(!first&&futureJson(l)===futureJson(future))return;
+    // while typing here, what's on screen wins; a change from another device waits until typing ends
+    if(!first&&futureBusy()){futurePending=l;return}
+    future=l;futureLoaded=true;futurePending=null;
     baseAdd(b=>{if(b.aux)b.aux.future=future.map(t=>({id:t.id,title:t.title,body:t.body}))});
-    const a=document.activeElement;if(!a||!a.closest||!a.closest("#futureList"))renderFuture();
+    $("futureState").textContent="";
+    renderFuture();
+  }
+  function stopFuture(){futureGen++;if(futureUnsub){try{futureUnsub()}catch(e){}futureUnsub=null}futurePending=null}
+  function loadFuture(){
+    stopFuture();const g=futureGen;
+    if(!db){
+      let data=null;try{data=JSON.parse(localStorage.getItem("todo:future")||"null")}catch(e){}
+      applyFuture(futureFrom(data));return;
+    }
+    $("futureState").textContent="読み込み中…";
+    if(!futureLoaded){$("futureList").textContent="";}
+    const d=db;
+    futureUnsub=d.doc("settings/future").onSnapshot(s_=>{
+      if(g!==futureGen||d!==db)return;
+      const m=s_.metadata||{};
+      // a cached "doesn't exist" before the server answers is not trusted
+      if(!s_.exists&&m.fromCache&&!futureLoaded)return;
+      if(m.hasPendingWrites&&futureLoaded)return; // our own write coming back
+      applyFuture(futureFrom(s_.exists?s_.data():null));
+    },()=>{if(g!==futureGen)return;$("futureState").textContent="読み込めませんでした（つながったらもう一度開いてください）"});
   }
   function saveFuture(now){
     if(!futureLoaded||readOnly)return;
     clearTimeout(futureT);
     const go=()=>{
+      futureT=null;futurePending=null;
       record();
       const body={toggles:future.map(t=>({...t})),updatedAt:new Date().toISOString()};
       const d=db;
@@ -1789,8 +1890,9 @@ button{-webkit-tap-highlight-color:transparent}
       else writing=writing.then(()=>d.doc("settings/future").set(body)).catch(onErr);
       $("futureState").textContent="保存しました";
     };
-    if(now)go();else{$("futureState").textContent="…";futureT=setTimeout(go,700)}
+    if(now){futureT=null;go()}else{$("futureState").textContent="…";futureT=setTimeout(go,700)}
   }
+  function futureFlush(){setTimeout(()=>{if(futurePending&&!futureBusy()){const l=futurePending;futurePending=null;applyFuture(l)}},300)}
   function renderFuture(){
     const box=$("futureList");box.textContent="";
     future.forEach(t=>{
@@ -1812,7 +1914,7 @@ button{-webkit-tap-highlight-color:transparent}
       h.append(del);w.append(h);w.dataset.id=t.id;
       if(t.open){
         const ta=el("textarea");ta.value=t.body;ta.placeholder="自由にメモ";ta.rows=Math.min(12,Math.max(3,t.body.split("\n").length+1));
-        ta.oninput=()=>{t.body=ta.value;saveFuture()};ta.onblur=()=>saveFuture(true);
+        ta.oninput=()=>{t.body=ta.value;saveFuture()};ta.onblur=()=>{saveFuture(true);futureFlush()};
         w.append(ta);
       }
       box.append(w);
@@ -1821,6 +1923,7 @@ button{-webkit-tap-highlight-color:transparent}
   $("futureNew").onkeydown=e=>{
     if(!isEnter(e))return;e.preventDefault();
     const v=$("futureNew").value.trim();if(!v||readOnly)return;
+    if(!futureLoaded){toast("読み込み中です。表示が出てからもう一度押してください");return}
     const t={id:uid(),title:v,body:"",open:true};future.push(t);$("futureNew").value="";
     saveFuture(true);renderFuture();
     const ta=$("futureList").querySelector('[data-id="'+CSS.escape(t.id)+'"] textarea');if(ta)ta.focus();
@@ -2122,21 +2225,26 @@ button{-webkit-tap-highlight-color:transparent}
   if(location.hash.length>1)setTimeout(()=>showPage(location.hash.slice(1),true),0);
   // hooks for app.js (cloud sync)
   let dailyUnsub=null;
-  const reset=()=>{futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
+  // after login/logout the page on screen reads the account's data again
+  function afterSwitch(){if(page==="later")loadFuture();else if(page==="plan"&&planStart)openPlan(planStart);else if(page==="week")renderWeek()}
+  const reset=()=>{stopFuture();clearTimeout(futureT);futureT=null;futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
   window.todoCore={
     connect(d){
+      if(futureT&&futureLoaded)saveFuture(true);
       if(dailyUnsub)dailyUnsub();db=d;reset();
+      afterSwitch();
       dailyUnsub=d.doc("settings/daily").onSnapshot(s=>{const nd=normDaily(s.exists?s.data().items:[]);
         if(editing){pendingDaily=nd;return}
         daily=nd;setBase();render()},()=>{});
       open(cur);
     },
     disconnect(){
+      if(futureT&&futureLoaded)saveFuture(true);
       if(dailyUnsub)dailyUnsub();dailyUnsub=null;if(unsub){unsub();unsub=null}
-      db=null;reset();daily=normDaily(local.get("daily").items);open(cur);
+      db=null;reset();daily=normDaily(local.get("daily").items);open(cur);afterSwitch();
     },
     writeError:saveFailed,
-    refresh(){reset();if(!db)daily=normDaily(local.get("daily").items);open(cur)},
+    refresh(){reset();if(!db)daily=normDaily(local.get("daily").items);open(cur);afterSwitch()},
     toast
   };
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&cur!==todayKey()&&lastToday!==todayKey()){lastToday=todayKey();open(lastToday)}});
