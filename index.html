@@ -299,6 +299,13 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .xpop .un{font-size:13px}
 .subs{list-style:none;margin:0;padding:0 12px 8px 40px;display:grid;gap:2px}
 .sub{display:flex;align-items:flex-start;gap:7px;padding:4px 0;position:relative}
+/* swipe right = make it a subtask of the task above, swipe left on a subtask = make it a big task (like Google Keep) */
+#list .task:not(.daily)>.row,#list .sub,#doneList .task:not(.daily)>.row,#doneList .sub{touch-action:pan-y}
+.swiping{transition:none;position:relative;z-index:2;background:var(--sheet);border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.swback{transition:transform .18s ease}
+.swready{box-shadow:0 2px 10px rgba(0,0,0,.12),inset 3px 0 0 var(--ink)}
+.swhint{position:absolute;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;color:var(--muted);pointer-events:none;white-space:nowrap;z-index:1}
+.swhint.on{color:var(--ink)}
 .sub.dragging{background:var(--sheet)}
 .sub .handle{width:18px;align-self:stretch;opacity:.45}
 .sub.dragging{box-shadow:0 4px 12px rgba(0,0,0,.18);z-index:5;border-radius:4px}
@@ -473,7 +480,7 @@ button{-webkit-tap-highlight-color:transparent}
     </section>
     <section class="pane">
       <h3>使い方</h3>
-      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます（週の計画・目標・メモの操作も含めて全部）。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。週の欄と「週の計画」には「この週のメモ」があり、計画の予定にも ✎ でメモを付けられます。「週の計画」の下には、再来週以降のことを見出しごとに開いたり閉じたりして書けるメモがあります。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。色のタグをタップすると メイン→マイクラ→その他→付箋 と切り替わるので、タスクを付箋にしたり付箋をタスクに戻したりできます。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に先週のふりかえりが出ます。保存した中身は全部「変更の記録」に残るので、消してしまったものも「設定・同期」→「記録を開く」から探して戻せます。</p>
+      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます（週の計画・目標・メモの操作も含めて全部）。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。週の欄と「週の計画」には「この週のメモ」があり、計画の予定にも ✎ でメモを付けられます。「週の計画」の下には、再来週以降のことを見出しごとに開いたり閉じたりして書けるメモがあります。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。色のタグをタップすると メイン→マイクラ→その他→付箋 と切り替わるので、タスクを付箋にしたり付箋をタスクに戻したりできます。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に先週のふりかえりが出ます。スマホでは、タスクを右にスライドすると上の大タスクの小タスクに、小タスクを左にスライドすると大タスクになります。保存した中身は全部「変更の記録」に残るので、消してしまったものも「設定・同期」→「記録を開く」から探して戻せます。</p>
       <p class="hint">ホーム画面に追加：iPhoneはSafariの共有ボタン →「ホーム画面に追加」、AndroidはChromeのメニュー →「ホーム画面に追加」。</p>
     </section>
   </div>
@@ -1378,6 +1385,85 @@ button{-webkit-tap-highlight-color:transparent}
     decorateRows();
     renderWeek();
   }
+
+  // ---- swipe like Google Keep (touch): → on a big task makes it a subtask of the task above, ← on a subtask makes it a big task ----
+  function indentTask(it,P){
+    const move=[it,...items.filter(x=>x.parent===it.id)];
+    items=items.filter(x=>!move.includes(x));
+    move.forEach(x=>{x.parent=P.id;x.cat=P.cat});
+    const pk=items.filter(x=>x.parent===P.id);
+    const anchor=pk.length?items.indexOf(pk[pk.length-1]):items.indexOf(P);
+    items.splice(anchor+1,0,...move);
+    order=viewKeys();
+    P.done=items.filter(x=>x.parent===P.id).every(x=>x.done);
+    commit();toast("「"+P.text+"」の小タスクにしました（↶で元に戻せます）");
+  }
+  function outdentTask(k){
+    const P=items.find(x=>x.id===k.parent);
+    delete k.parent;
+    const keys=viewKeys().filter(x=>x!==k.id);
+    const at=P?keys.indexOf(P.id):-1;
+    keys.splice(at>=0?at+1:keys.length,0,k.id);order=keys;
+    if(P){const rest=items.filter(x=>x.parent===P.id);if(rest.length)P.done=rest.every(x=>x.done)}
+    commit();toast("大タスクにしました（↶で元に戻せます）");
+  }
+  let sw=null,swSuppress=false;
+  const SW_GO=48,SW_MAX=80;
+  document.addEventListener("pointerdown",e=>{
+    sw=null;
+    if(e.pointerType==="mouse"||readOnly||drag||!e.isPrimary)return;
+    const t=e.target;if(!t.closest||t.closest("input,textarea,a,.handle,.xpop,.subadd"))return;
+    if(!t.closest("#list,#doneList"))return;
+    const sub=t.closest("li.sub"),task=t.closest("li.task");
+    if(!task||task.classList.contains("daily")||task.classList.contains("moved")||task.classList.contains("newtask"))return;
+    if(sub&&!sub.dataset.id)return;
+    const rowEl=sub||task.querySelector(":scope>.row");if(!rowEl)return;
+    sw={pid:e.pointerId,x0:e.clientX,y0:e.clientY,task,sub,rowEl,on:false,v:0,hint:null};
+  },true);
+  document.addEventListener("pointermove",e=>{
+    if(!sw||e.pointerId!==sw.pid)return;
+    const dx=e.clientX-sw.x0,dy=e.clientY-sw.y0;
+    if(!sw.on){
+      if(Math.abs(dy)>10&&Math.abs(dy)>=Math.abs(dx)){sw=null;return}
+      if(Math.abs(dx)<14||Math.abs(dx)<Math.abs(dy)*1.5)return;
+      // only the direction that does something: → for big tasks, ← for subtasks
+      if(sw.sub?dx>0:dx<0){sw=null;return}
+      sw.on=true;sw.rowEl.classList.add("swiping");
+      const h=el("span","swhint",sw.sub?"← 大タスクに":"小タスクに →");
+      // the hint sits behind the row, on the side the row moves away from
+      const box=sw.sub?sw.sub.parentElement:sw.task;if(getComputedStyle(box).position==="static")box.style.position="relative";
+      if(sw.sub){h.style.right="6px";h.style.top=(sw.sub.offsetTop+sw.sub.offsetHeight/2)+"px"}
+      else{h.style.left="10px";h.style.top=(sw.rowEl.offsetTop+sw.rowEl.offsetHeight/2)+"px"}
+      box.append(h);sw.hint=h;
+    }
+    e.preventDefault();
+    const v=sw.sub?Math.max(-SW_MAX,Math.min(0,dx)):Math.min(SW_MAX,Math.max(0,dx));sw.v=v;
+    sw.rowEl.style.transform="translateX("+v+"px)";
+    const ready=Math.abs(v)>=SW_GO;sw.rowEl.classList.toggle("swready",ready);if(sw.hint)sw.hint.classList.toggle("on",ready);
+  },{passive:false});
+  const swEnd=(e,cancel)=>{
+    if(!sw||(e&&e.pointerId!==sw.pid))return;
+    const s_=sw;sw=null;if(!s_.on)return;
+    swSuppress=true;setTimeout(()=>{swSuppress=false},450);
+    s_.rowEl.classList.add("swback");s_.rowEl.style.transform="";s_.rowEl.classList.remove("swiping","swready");
+    if(s_.hint)s_.hint.remove();
+    setTimeout(()=>s_.rowEl.classList.remove("swback"),200);
+    if(cancel||Math.abs(s_.v)<SW_GO)return;
+    if(s_.sub){
+      const k=items.find(x=>x.id===s_.sub.dataset.id);if(k&&k.parent)outdentTask(k);
+    }else{
+      const it=items.find(x=>x.id===s_.task.dataset.key);if(!it)return;
+      let prev=s_.task.previousElementSibling;while(prev&&!prev.dataset.key)prev=prev.previousElementSibling;
+      if(!prev){toast("上に大タスクがないので、小タスクにできません");return}
+      if(prev.dataset.key.startsWith("d:")){toast("毎日タスクの下には入れられません");return}
+      const P=items.find(x=>x.id===prev.dataset.key);if(!P||P.moved){toast("このタスクの下には入れられません");return}
+      indentTask(it,P);
+    }
+  };
+  document.addEventListener("pointerup",e=>swEnd(e,false),true);
+  document.addEventListener("pointercancel",e=>swEnd(e,true),true);
+  // the tap that ends a swipe must not also open the text for editing
+  document.addEventListener("click",e=>{if(swSuppress){swSuppress=false;e.stopPropagation();e.preventDefault()}},true);
 
   // phone: each task's buttons fold into a ⋯ button so the text gets the full width
   const openRows=new Set();
