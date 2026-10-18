@@ -146,6 +146,13 @@ button{font:inherit;color:inherit}
 .pcat{padding:4px 10px 0;font-size:11px;font-weight:900;color:var(--c);letter-spacing:.06em;border-top:1px solid var(--line);display:flex;align-items:center;gap:6px}
 .pcat::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--c)}
 .pcat+.pitem{border-top:0}
+.wmemo{display:grid;gap:4px}
+.wmemo .wm-h{display:flex;align-items:center;gap:6px}
+.wmemo .wm-h button{border:0;background:none;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;padding:2px 0}
+.wmemo .wm-prev{font-size:12px;color:var(--muted);white-space:pre-wrap;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;cursor:pointer}
+.wmemo textarea,.pmemo textarea{width:100%;font:inherit;font-size:15px;line-height:1.7;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:8px 10px;resize:vertical}
+.pmemo{flex-basis:100%;padding:4px 0 2px}
+.pitem .mk{font-size:11px;color:var(--muted);margin-left:4px}
 .future{display:grid;gap:6px;border:1px solid var(--line);border-radius:6px;padding:8px 10px;background:var(--sheet)}
 .flist{display:grid;gap:2px}
 .ftog{display:grid;border-radius:6px}
@@ -416,7 +423,7 @@ button{-webkit-tap-highlight-color:transparent}
     </section>
     <section class="pane">
       <h3>使い方</h3>
-      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。「週の計画」の下には、再来週以降のことを見出しごとに開いたり閉じたりして書けるメモがあります。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に先週のふりかえりが出ます。</p>
+      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます（週の計画・目標・メモの操作も含めて全部）。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。週の欄と「週の計画」には「この週のメモ」があり、計画の予定にも ✎ でメモを付けられます。「週の計画」の下には、再来週以降のことを見出しごとに開いたり閉じたりして書けるメモがあります。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に先週のふりかえりが出ます。</p>
       <p class="hint">ホーム画面に追加：iPhoneはSafariの共有ボタン →「ホーム画面に追加」、AndroidはChromeのメニュー →「ホーム画面に追加」。</p>
     </section>
   </div>
@@ -456,6 +463,7 @@ button{-webkit-tap-highlight-color:transparent}
       <div class="goals" id="goals">
         <div class="goals-h"><b>今週の目標</b><button type="button" class="linkbtn" id="goalEdit">書く</button></div>
         <ul class="goal-list" id="goalList"></ul>
+        <div class="wmemo" id="weekMemoMain"></div>
         <div class="goal-editor" id="goalEditor" hidden>
           <textarea id="goalBox" rows="3" placeholder="1行に1つ。数より「決めたこと」を書く（例：メインを中心にやる）"></textarea>
           <div class="btns"><button type="button" class="pri" id="goalSave">保存</button><button type="button" id="goalCancel">やめる</button></div>
@@ -476,6 +484,7 @@ button{-webkit-tap-highlight-color:transparent}
       </div>
       <button type="button" class="pl-default" id="planDefault" hidden></button>
       <p class="pl-sum" id="planSum"></p>
+      <div class="wmemo" id="weekMemoPlan"></div>
       <div class="pl-days" id="planDays"></div>
       <div class="future">
         <div class="goals-h"><b>再来週以降のメモ</b><span class="rv-note" id="futureState"></span></div>
@@ -578,31 +587,56 @@ button{-webkit-tap-highlight-color:transparent}
     writing=writing.then(()=>d.doc("days/"+k).set(body)).catch(onErr);
   }
   // ---- undo / redo (Ctrl+Z, Ctrl+Shift+Z / Ctrl+Y, or the ↶ ↷ buttons) ----
-  // Each step keeps the before/after of every day it touched, so carry-overs between days undo completely.
+  // A step keeps the before/after of everything it touched: the day on screen, other days, daily tasks,
+  // the week's goals/plan/memo, and the later-weeks notes. Multi-part actions are grouped into one step.
   let baseSnap=null,undoStack=[],redoStack=[],restoring=false,pendingX=null;
   let loaded=true,pendingDoc=null,pendingDaily=null,blurT=null;
+  let groupDepth=0,groupX=[];
   const dayDoc=()=>({items:items.map(i=>({...i})),rdone:{...rdone},order:[...order],carriedFrom});
-  const snapshot=()=>JSON.stringify({day:cur,doc:dayDoc(),daily});
+  const auxNow=()=>{
+    const weeks={};
+    // "seen" (review auto-opened) is not an undo step
+    try{Object.keys(weekInfo).forEach(k=>{const w={...weekInfo[k]};delete w.seen;weeks[k]=w})}catch(e){}
+    let fut=null;try{if(futureLoaded)fut=future.map(t=>({id:t.id,title:t.title,body:t.body}))}catch(e){}
+    return{weeks,future:fut};
+  };
+  const snapshot=()=>JSON.stringify({day:cur,doc:dayDoc(),daily,aux:auxNow()});
   const cloneDoc=d=>JSON.parse(JSON.stringify({items:d.items||[],rdone:d.rdone||{},order:d.order||[],carriedFrom:d.carriedFrom||null}));
+  const jeq=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
   function histButtons(){
     const u=document.getElementById("undoBtn"),rd=document.getElementById("redoBtn");
     if(u)u.disabled=!undoStack.length;if(rd)rd.disabled=!redoStack.length;
   }
+  // changes to another day made directly (not through the day on screen) are reported here
+  function trackDay(k,before,after){(pendingX=pendingX||[]).push({day:k,before,after})}
   function record(){
     if(restoring){pendingX=null;return}
+    if(groupDepth>0){if(pendingX){groupX.push(...pendingX);pendingX=null}return}
     const s=snapshot();
     const base=baseSnap&&JSON.parse(baseSnap);
-    if(base&&base.day===cur&&(s!==baseSnap||pendingX)){
+    const xs=pendingX||[];pendingX=null;
+    if(base&&base.day===cur&&(s!==baseSnap||xs.length)){
       const now=JSON.parse(s);
-      const e={view:cur,days:{},daily:null};
-      if(JSON.stringify(base.doc)!==JSON.stringify(now.doc))e.days[cur]={before:base.doc,after:now.doc};
-      if(JSON.stringify(base.daily)!==JSON.stringify(now.daily))e.daily={before:base.daily,after:now.daily};
-      (pendingX||[]).forEach(x=>{if(x.day!==cur)e.days[x.day]={before:cloneDoc(x.before),after:cloneDoc(x.after)}});
-      if(Object.keys(e.days).length||e.daily){undoStack.push(e);if(undoStack.length>60)undoStack.shift();redoStack=[]}
+      const e={view:cur,days:{},daily:null,weeks:{},future:null};
+      if(!jeq(base.doc,now.doc))e.days[cur]={before:base.doc,after:now.doc};
+      if(!jeq(base.daily,now.daily))e.daily={before:base.daily,after:now.daily};
+      Object.keys(now.aux.weeks).forEach(k=>{if(k in base.aux.weeks&&!jeq(base.aux.weeks[k],now.aux.weeks[k]))e.weeks[k]={before:base.aux.weeks[k],after:now.aux.weeks[k]}});
+      if(base.aux.future&&now.aux.future&&!jeq(base.aux.future,now.aux.future))e.future={before:base.aux.future,after:now.aux.future};
+      xs.forEach(x=>{if(x.day===cur)return;
+        if(e.days[x.day])e.days[x.day].after=cloneDoc(x.after);else e.days[x.day]={before:cloneDoc(x.before),after:cloneDoc(x.after)}});
+      if(Object.keys(e.days).length||e.daily||Object.keys(e.weeks).length||e.future){undoStack.push(e);if(undoStack.length>80)undoStack.shift();redoStack=[]}
     }
-    pendingX=null;baseSnap=s;histButtons();
+    baseSnap=s;histButtons();
   }
-  function setBase(){baseSnap=snapshot();histButtons()}
+  // run several changes as one undo step
+  async function grouped(fn){
+    groupDepth++;
+    try{return await fn()}
+    finally{groupDepth--;if(!groupDepth){pendingX=groupX.length?groupX:pendingX;groupX=[];record()}}
+  }
+  function setBase(){if(groupDepth>0)return;baseSnap=snapshot();histButtons()}
+  // data loaded from storage (not a user change) joins the baseline without becoming a step
+  function baseAdd(fn){if(!baseSnap)return;const b=JSON.parse(baseSnap);fn(b);baseSnap=JSON.stringify(b)}
   function applyStep(e,which){
     restoring=true;pendingDoc=null;pendingDaily=null;
     subFor=null;newAfter=null;editTarget=null;confirmFor=null;editing=false;
@@ -611,11 +645,20 @@ button{-webkit-tap-highlight-color:transparent}
       if(k===cur){items=norm(d.items);rdone=d.rdone;order=d.order;carriedFrom=d.carriedFrom}
       writeDay(k,d);
       if(week.data[k])week.data[k]={items:norm(d.items),rdone:{...d.rdone}};
+      if(allDocs)allDocs[k]=d;
       if(k===shift(cur,-1))prevItems=norm(d.items);
     });
     if(e.daily){daily=normDaily(JSON.parse(JSON.stringify(e.daily[which])));saveDaily()}
+    Object.entries(e.weeks||{}).forEach(([k,v])=>{const seen=!!(weekInfo[k]&&weekInfo[k].seen);weekInfo[k]={...JSON.parse(JSON.stringify(v[which])),seen};saveWeekInfo(k)});
+    if(e.future){
+      const openIds=new Set(future.filter(t=>t.open).map(t=>t.id));
+      future=e.future[which].map(t=>({...t,open:openIds.has(t.id)}));saveFuture(true);
+    }
     restoring=false;
     if(e.view!==cur)open(e.view);else{render();setBase()}
+    if(!$("plan").hidden)refreshPlanDocs();
+    if(e.future)renderFuture();
+    if(!$("review").hidden&&rvStart)renderReview();
   }
   const dayLabel=k=>{const d=parse(k);return (d.getMonth()+1)+"/"+d.getDate()};
   function undo(){
@@ -1362,7 +1405,7 @@ button{-webkit-tap-highlight-color:transparent}
   // ---- weekly goals (weeks/<monday>: {goals:[{id,text,result}], seen}) ----
   const DEFAULT_GOALS={"2026-10-12":["メインを中心にやる"]};
   const weekInfo={};
-  function goalsDefault(start){return{goals:(DEFAULT_GOALS[start]||[]).map((t,i)=>({id:"g"+i,text:t,result:null})),seen:false,plan:[]}}
+  function goalsDefault(start){return{goals:(DEFAULT_GOALS[start]||[]).map((t,i)=>({id:"g"+i,text:t,result:null})),seen:false,memo:"",plan:[]}}
   async function loadWeekInfo(start,force){
     if(weekInfo[start]&&!force)return weekInfo[start];
     let data=null;
@@ -1370,16 +1413,37 @@ button{-webkit-tap-highlight-color:transparent}
       if(db){const s=await db.doc("weeks/"+start).get();data=s.exists?s.data():null}
       else data=JSON.parse(localStorage.getItem("todo:week:"+start)||"null");
     }catch(e){}
-    weekInfo[start]=data?{goals:(data.goals||[]).map(g=>({id:g.id||uid(),text:String(g.text||""),result:g.result||null})),seen:!!data.seen,
+    const fresh=!weekInfo[start];
+    weekInfo[start]=data?{goals:(data.goals||[]).map(g=>({id:g.id||uid(),text:String(g.text||""),result:g.result||null})),seen:!!data.seen,memo:String(data.memo||""),
       defaultVer:data.defaultVer||(data.defaultUsed?1:0),
       plan:(data.plan||[]).map(p=>({id:p.id||uid(),text:String(p.text||""),cat:normCat(p.cat),day:p.day,...(p.star?{star:true}:{}),...(p.memo?{memo:String(p.memo)}:{})})),defaultUsed:!!data.defaultUsed}:goalsDefault(start);
+    if(fresh)baseAdd(b=>{if(b.aux){const w=JSON.parse(JSON.stringify(weekInfo[start]));delete w.seen;b.aux.weeks[start]=w}});
     return weekInfo[start];
   }
   function saveWeekInfo(start){
+    record();
     const body={...weekInfo[start],updatedAt:new Date().toISOString()};
     const d=db;
     if(!d){try{localStorage.setItem("todo:week:"+start,JSON.stringify(body))}catch(e){saveFailed(e)}return}
     writing=writing.then(()=>d.doc("weeks/"+start).set(body)).catch(onErr);
+  }
+  // ---- week memo (weeks/<monday>.memo); hidden until opened ----
+  const wmOpen=new Set();
+  function renderWeekMemo(boxId,start){
+    const box=$(boxId);if(!box)return;box.textContent="";
+    const info=weekInfo[start];if(!info)return;
+    const key=boxId+start;const has=!!(info.memo||"").trim();
+    const h=el("div","wm-h");
+    const b=el("button",null,(wmOpen.has(key)?"▾ ":"▸ ")+"この週のメモ"+(has&&!wmOpen.has(key)?"（あり）":""));b.type="button";
+    b.onclick=()=>{if(wmOpen.has(key))wmOpen.delete(key);else wmOpen.add(key);renderWeekMemo(boxId,start)};
+    h.append(b);box.append(h);
+    if(!wmOpen.has(key)){if(has){const pv=el("div","wm-prev",info.memo);pv.onclick=()=>{wmOpen.add(key);renderWeekMemo(boxId,start)};box.append(pv)}return}
+    const ta=el("textarea");ta.rows=Math.min(10,Math.max(3,(info.memo||"").split("\n").length+1));ta.value=info.memo||"";ta.placeholder="この週について自由にメモ";
+    let tm=null;
+    ta.oninput=()=>{info.memo=ta.value;clearTimeout(tm);tm=setTimeout(()=>saveWeekInfo(start),800)};
+    ta.onblur=()=>{clearTimeout(tm);info.memo=ta.value.replace(/\s+$/,"");saveWeekInfo(start)};
+    box.append(ta);
+    if(!has)queueMicrotask(()=>ta.focus());
   }
   function renderGoals(start){
     const info=weekInfo[start];const ul=$("goalList");ul.textContent="";
@@ -1387,6 +1451,7 @@ button{-webkit-tap-highlight-color:transparent}
     if(!info.goals.length)ul.append(el("li","empty","まだありません。「書く」から、この週に決めたことを書けます"));
     info.goals.forEach(g=>ul.append(el("li",null,g.text)));
     $("goalEdit").textContent=info.goals.length?"書き直す":"書く";
+    if(!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#weekMemoMain")))renderWeekMemo("weekMemoMain",start);
   }
   $("goalEdit").onclick=async()=>{
     if(readOnly)return;
@@ -1487,6 +1552,7 @@ button{-webkit-tap-highlight-color:transparent}
     if(!planStart)return;
     const start=planStart,info=weekInfo[start];if(!info)return;
     $("planTitle").textContent="週の計画（"+rangeShort(start)+"）";
+    if(!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest("#weekMemoPlan")))renderWeekMemo("weekMemoPlan",start);
     const thisMon=mondayOf(todayKey());
     [...$("planWeek").children].forEach(b=>b.setAttribute("aria-pressed",String(shift(thisMon,7*+b.dataset.w)===start)));
     // docs: use live state for the day on screen
@@ -1519,16 +1585,35 @@ button{-webkit-tap-highlight-color:transparent}
   const ST_LABEL=(s)=>{const wd=k=>WD[parse(k).getDay()];
     switch(s.state){case"onPlan":return["✓ 完了","ok"];case"shiftedDone":return["✓ "+wd(s.liveDay)+"に完了（"+(s.shift>0?"+":"")+s.shift+"日）","ok"];
       case"shifting":return["→ "+wd(s.liveDay)+"へ（"+(s.shift>0?"+":"")+s.shift+"日）","go"];case"pending":return["未","no"];case"nextWeek":return["→ 来週へ","go"];default:return["取りやめ","drop"]}};
+  const pmOpen=new Set();
   function planRow(s){
     const row=el("div","pitem");row.dataset.cat=s.p.cat;
     const t=el("span","ptxt",(s.p.star?"★":"")+s.p.text);
+    if((s.p.memo||"").trim()&&!pmOpen.has(s.p.id))t.append(el("span","mk","✎メモ"));
     const [lbl,cls]=isNote(s.p)?(s.live?["付箋","no"]:["済み","ok"]):ST_LABEL(s);
     const acts=el("span","pacts");
     if(s.live&&!s.live.done){const b=el("button",null,"⇢");b.type="button";b.title="ずらす";b.onclick=()=>{planShift=planShift===s.p.id?null:s.p.id;renderPlan()};acts.append(b)}
+    const mb=el("button",null,"✎");mb.type="button";mb.title="メモ";mb.onclick=()=>{if(pmOpen.has(s.p.id))pmOpen.delete(s.p.id);else pmOpen.add(s.p.id);renderPlan()};acts.append(mb);
     const x=el("button",null,"×");x.type="button";x.title="予定から外す";x.onclick=()=>removePlan(s);acts.append(x);
-    const tag=isNote(s.p)?el("span","ctag",CAT.post):catTag(s.p.cat,c=>{s.p.cat=c;saveWeekInfo(planStart);if(s.live)setLiveCat(s,c);else renderPlan()});
+    const tag=isNote(s.p)?el("span","ctag",CAT.post):catTag(s.p.cat,c=>grouped(async()=>{s.p.cat=c;saveWeekInfo(planStart);if(s.live)await setLiveCat_(s,c);else renderPlan()}));
     if(isNote(s.p))tag.dataset.cat="post";
     row.append(tag,t,el("span","pst "+cls,lbl),acts);
+    if(pmOpen.has(s.p.id)){
+      // memo of a planned item; also kept on the task in that day's list
+      const w=el("div","pmemo");const ta=el("textarea");ta.rows=3;ta.value=s.p.memo||s.live&&s.live.memo||"";ta.placeholder="メモ";
+      ta.onfocus=()=>{editing=true};
+      ta.onblur=()=>{editing=false;const v=ta.value.replace(/\s+$/,"");
+        if(v===(s.p.memo||""))return;
+        grouped(async()=>{
+          if(v)s.p.memo=v;else delete s.p.memo;saveWeekInfo(planStart);
+          if(s.live){const k=s.liveDay,id=s.live.id;
+            if(k===cur){const it=items.find(i=>i.id===id);if(it){if(v)it.memo=v;else delete it.memo}commit()}
+            else{const doc=await readDay(k);const its=norm(doc.items);its.forEach(i=>{if(i.id===id){if(v)i.memo=v;else delete i.memo}});const after={...cloneDoc(doc),items:its};trackDay(k,cloneDoc(doc),after);writeDay(k,after);cacheDay(k,after)}}
+        }).then(refreshPlanDocs);
+      };
+      w.append(ta);row.append(w);
+      if(!(s.p.memo||"").trim())queueMicrotask(()=>ta.focus());
+    }
     if(planShift===s.p.id&&s.live){
       const bar=el("div","shiftbar");bar.append(el("span",null,"ずらす先："));
       for(let i=0;i<7;i++){const k=shift(planStart,i);if(k===s.liveDay)continue;const d=parse(k);
@@ -1538,13 +1623,15 @@ button{-webkit-tap-highlight-color:transparent}
     }
     return row;
   }
-  async function setLiveCat(s,c){
+  async function setLiveCat(s,c){return grouped(()=>setLiveCat_(s,c))}
+  async function setLiveCat_(s,c){
     const k=s.liveDay;
     if(k===cur){const it=items.find(i=>i.id===s.live.id);if(it){it.cat=c;items.forEach(i=>{if(i.parent===it.id)i.cat=c})}commit()}
-    else{const doc=await readDay(k);const its=norm(doc.items);its.forEach(i=>{if(i.id===s.live.id||i.parent===s.live.id)i.cat=c});const after={...cloneDoc(doc),items:its};writeDay(k,after);cacheDay(k,after)}
+    else{const doc=await readDay(k);const its=norm(doc.items);its.forEach(i=>{if(i.id===s.live.id||i.parent===s.live.id)i.cat=c});const after={...cloneDoc(doc),items:its};trackDay(k,cloneDoc(doc),after);writeDay(k,after);cacheDay(k,after)}
     refreshPlanDocs();
   }
-  async function addPlan(day,text,cat,extra){
+  async function addPlan(day,text,cat,extra){return grouped(()=>addPlan_(day,text,cat,extra))}
+  async function addPlan_(day,text,cat,extra){
     if(readOnly)return;
     extra=extra||{};
     const start=mondayOf(day);const info=await loadWeekInfo(start);
@@ -1552,16 +1639,17 @@ button{-webkit-tap-highlight-color:transparent}
     if(extra.noSave!==true)saveWeekInfo(start);
     const task={id:uid(),text,done:false,cat,star:!!extra.star,parent:null,planId:p.id,planDay:day,...(extra.memo?{memo:extra.memo}:{})};
     if(day===cur){items.push(task);order=[...viewKeys().filter(k=>k!==task.id),task.id];commit()}
-    else{const doc=await readDay(day);const after={...cloneDoc(doc),items:[...norm(doc.items),task],order:[...(doc.order||[]),task.id]};writeDay(day,after);cacheDay(day,after);if(!editing)renderWeek()}
+    else{const doc=await readDay(day);const after={...cloneDoc(doc),items:[...norm(doc.items),task],order:[...(doc.order||[]),task.id]};trackDay(day,cloneDoc(doc),after);writeDay(day,after);cacheDay(day,after);if(!editing)renderWeek()}
     await refreshPlanDocs();
   }
-  async function removePlan(s){
+  async function removePlan(s){return grouped(()=>removePlan_(s))}
+  async function removePlan_(s){
     const info=weekInfo[planStart];info.plan=info.plan.filter(p=>p.id!==s.p.id);saveWeekInfo(planStart);
     // an unfinished linked task leaves the list too; a finished one stays as a record
     if(s.live&&!s.live.done){
       const k=s.liveDay,id=s.live.id;
       if(k===cur){items=items.filter(i=>i.id!==id&&i.parent!==id);commit()}
-      else{const doc=await readDay(k);const after={...cloneDoc(doc),items:norm(doc.items).filter(i=>i.id!==id&&i.parent!==id),order:(doc.order||[]).filter(o=>o!==id)};writeDay(k,after);cacheDay(k,after)}
+      else{const doc=await readDay(k);const after={...cloneDoc(doc),items:norm(doc.items).filter(i=>i.id!==id&&i.parent!==id),order:(doc.order||[]).filter(o=>o!==id)};trackDay(k,cloneDoc(doc),after);writeDay(k,after);cacheDay(k,after)}
     }
     await refreshPlanDocs();toast("予定から外しました");
   }
@@ -1571,7 +1659,8 @@ button{-webkit-tap-highlight-color:transparent}
     // on Sunday the next week is planned; otherwise this week
     openPlan(d.getDay()===0?shift(mondayOf(t),7):mondayOf(t));
   };
-  $("planDefault").onclick=async()=>{
+  $("planDefault").onclick=()=>grouped(planDefault_);
+  async function planDefault_(){
     const start=planStart,def=latestDefault(start);if(!def)return;
     const info=await loadWeekInfo(start);
     const used=info.defaultVer||(info.defaultUsed?1:0);if(used>=def.ver)return;
@@ -1588,7 +1677,7 @@ button{-webkit-tap-highlight-color:transparent}
       if(st.live&&!st.live.done){
         const k=st.liveDay,id=st.live.id;
         if(k===cur){items=items.filter(i=>i.id!==id&&i.parent!==id);commit()}
-        else{const doc=await readDay(k);const after={...cloneDoc(doc),items:norm(doc.items).filter(i=>i.id!==id&&i.parent!==id),order:(doc.order||[]).filter(o=>o!==id)};writeDay(k,after);cacheDay(k,after)}
+        else{const doc=await readDay(k);const after={...cloneDoc(doc),items:norm(doc.items).filter(i=>i.id!==id&&i.parent!==id),order:(doc.order||[]).filter(o=>o!==id)};trackDay(k,cloneDoc(doc),after);writeDay(k,after);cacheDay(k,after)}
       }
     }
     let added=0;
@@ -1602,7 +1691,7 @@ button{-webkit-tap-highlight-color:transparent}
           if(st&&st.live){
             const fix=its=>its.forEach(i=>{if(i.id===st.live.id||i.parent===st.live.id){i.cat=cat;if(i.id===st.live.id)i.star=!!e.star}});
             if(st.liveDay===cur){fix(items);commit()}
-            else{const doc=await readDay(st.liveDay);const its=norm(doc.items);fix(its);const after={...cloneDoc(doc),items:its};writeDay(st.liveDay,after);cacheDay(st.liveDay,after)}
+            else{const doc=await readDay(st.liveDay);const its=norm(doc.items);fix(its);const after={...cloneDoc(doc),items:its};trackDay(st.liveDay,cloneDoc(doc),after);writeDay(st.liveDay,after);cacheDay(st.liveDay,after)}
           }
         }
         continue;
@@ -1624,12 +1713,14 @@ button{-webkit-tap-highlight-color:transparent}
     future=(data.toggles||[]).map(t=>({id:t.id||uid(),title:String(t.title||""),body:String(t.body||""),open:!!t.open}));
     if(!future.length&&data.text)future=[{id:uid(),title:"メモ",body:String(data.text),open:true}];
     futureLoaded=true;
+    baseAdd(b=>{if(b.aux)b.aux.future=future.map(t=>({id:t.id,title:t.title,body:t.body}))});
     const a=document.activeElement;if(!a||!a.closest||!a.closest("#futureList"))renderFuture();
   }
   function saveFuture(now){
     if(!futureLoaded||readOnly)return;
     clearTimeout(futureT);
     const go=()=>{
+      record();
       const body={toggles:future.map(t=>({...t})),updatedAt:new Date().toISOString()};
       const d=db;
       if(!d){try{localStorage.setItem("todo:future",JSON.stringify(body))}catch(e){saveFailed(e)}}
