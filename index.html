@@ -1529,7 +1529,7 @@ button{-webkit-tap-highlight-color:transparent}
     dl.hidden=doneCollapsed;
     $("empty").hidden=keys.some(k=>!isSkipped(k));
     // today's tally by category
-    const counted=dayItems(cur);
+    const counted=dayRateItems(cur);
     const chips=$("todayChips");chips.textContent="";
     renderNotes();
     TASK_CATS.forEach(c=>{
@@ -1827,6 +1827,13 @@ button{-webkit-tap-highlight-color:transparent}
   // Weekly score: Monday–Sunday of the shown day; every checked box counts as 1
   const mondayOf=k=>{const d=parse(k);return shift(k,-((d.getDay()+6)%7))};
   let week={start:null,data:{}};
+  // the day's % : a task carried to another day still counts on this day as not done,
+  // and a carried-in task counts on the day it arrived (again as not done if it's carried on)
+  function dayRateItems(k){
+    const doc=k===cur?{items,rdone}:(week.data[k]||emptyDoc());
+    return doc.items.filter(x=>!isNote(x)).map(x=>({cat:x.cat,done:!!x.done&&!(x.moved&&!x.parent&&!x.done)}))
+      .concat(shownDaily(k,doc.rdone).map(d=>({cat:d.cat,done:(doc.rdone||{})[d.id]===true})));
+  }
   function dayItems(k){
     const doc=k===cur?{items,rdone}:(week.data[k]||emptyDoc());
     const gone=new Set(doc.items.filter(x=>x.moved).map(x=>x.id));
