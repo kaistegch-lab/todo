@@ -422,9 +422,13 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .kghost ul.subs{margin:0;padding:2px 8px}
 .kghost .acts,.kghost .more{visibility:hidden}
 .kdragging>.row,li.sub.kdragging,.kdragging>ul.subs{opacity:.25}
-.kline{position:absolute;z-index:59;height:3px;border-radius:2px;background:var(--ink);pointer-events:none}
+.kline{position:absolute;z-index:61;height:3px;border-radius:2px;background:var(--ink);pointer-events:none}
 .kline[hidden]{display:none}
-.kline::after{content:attr(data-label);position:absolute;right:0;top:-18px;font-size:11px;font-weight:700;color:var(--sheet);background:var(--ink);border-radius:8px;padding:1px 7px}
+.kline::after{content:attr(data-label);position:absolute;right:0;top:-24px;font-size:12px;font-weight:900;color:var(--sheet);background:var(--ink);border-radius:10px;padding:2px 9px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.kline.sub{background:var(--mc)}
+.kline.sub::after{background:var(--mc)}
+.kghost{transition:transform .06s linear}
+.kghost.as-sub{box-shadow:0 10px 28px rgba(0,0,0,.22),inset 3px 0 0 var(--mc)}
 @media (hover:none){#list .row,#list .sub{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}}
 .sub.dragging{background:var(--sheet)}
 .sub .handle{width:18px;align-self:stretch;opacity:.45}
@@ -1662,7 +1666,7 @@ button{-webkit-tap-highlight-color:transparent}
   sheetEl.addEventListener("mousedown",e=>{if(e.target.closest(".handle"))e.preventDefault()});
   // ---- drag like Google Keep: grab ⠿ (or long-press a row on a phone), move up/down to reorder,
   // and move right/left to make it a subtask of the task above / a big task. Works for big tasks and subtasks.
-  let kd=null;
+  let kd=null,kdHinted=false;
   function dragRows(skip){
     const R=[];
     [...$("list").children].forEach(li=>{
@@ -1691,7 +1695,8 @@ button{-webkit-tap-highlight-color:transparent}
     const line=el("div","kline");document.body.append(line);
     li.classList.add("kdragging");
     editing=true;
-    kd={pid,li,sub:!!sub,dsub:!!sub&&task.dataset.key.startsWith("d:"),daily:task.dataset.key.startsWith("d:"),key:task.dataset.key,id:sub?sub.dataset.id:task.dataset.key,
+    if(!kdHinted&&!task.dataset.key.startsWith("d:")){kdHinted=true;toast("左右に動かすと 大タスク ⇔ 小タスク")}
+    kd={want:sub?"sub":"top",pid,li,sub:!!sub,dsub:!!sub&&task.dataset.key.startsWith("d:"),daily:task.dataset.key.startsWith("d:"),key:task.dataset.key,id:sub?sub.dataset.id:task.dataset.key,
         x0:x,y0:y,r,ghost,line,R:dragRows(li),gap:null,level:null,moved:false};
     kdMove(x,y);
   }
@@ -1707,22 +1712,33 @@ button{-webkit-tap-highlight-color:transparent}
     const canTop=!next||next.type==="top";
     let parentKey=null;
     if(prev&&!kd.daily){const pk=prev.type==="top"?prev.key:prev.parentKey;const pr=R.find(r=>r.type==="top"&&r.key===pk);if(pr&&!pr.daily&&!pr.moved&&pk!==kd.id)parentKey=pk}
-    const dx=x-kd.x0;let want=kd.sub?"sub":"top";if(dx>36)want="sub";else if(dx<-36)want="top";
+    // left/right decides big task or subtask: an indent position that follows the finger,
+    // with some slack so a slightly sideways finger doesn't flip it back and forth
+    const ix=(x-kd.x0)+(kd.sub?40:0);
+    if(kd.want==="top"&&ix>30)kd.want="sub";else if(kd.want==="sub"&&ix<12)kd.want="top";
+    const want=kd.want;
     let level=want==="sub"?(parentKey?"sub":canTop?"top":null):(canTop?"top":parentKey?"sub":null);
     return{i,level,parentKey,prev,next};
   }
   function kdMove(x,y){
     const dx=x-kd.x0,dy=y-kd.y0;
     if(Math.abs(dx)>3||Math.abs(dy)>3)kd.moved=true;
-    kd.ghost.style.transform="translate("+Math.max(-60,Math.min(80,dx))+"px,"+dy+"px)";
-    const t=kdTarget(x,y);kd.t=t;
+    const t=kdTarget(x,y);
+    if(kd.t&&t.level&&kd.t.level&&t.level!==kd.t.level){try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}}
+    kd.t=t;
+    // the floating copy snaps to where it will land: indented for a subtask, flush left for a big task
+    const lvX=(t.level==="sub"?40:0)-(kd.sub?40:0);
+    kd.ghost.style.transform="translate("+(lvX+Math.max(-10,Math.min(10,dx-lvX))*0.4)+"px,"+dy+"px)";
+    kd.ghost.classList.toggle("as-sub",t.level==="sub");
     const lr=$("list").getBoundingClientRect();
     if(!t.level){kd.line.hidden=true;return}
     kd.line.hidden=false;
     let ly;if(t.next)ly=t.next.el.getBoundingClientRect().top;else if(t.prev)ly=t.prev.el.getBoundingClientRect().bottom;else ly=lr.top;
     const ind=t.level==="sub"?46:6;
     kd.line.style.top=(ly+window.scrollY-1)+"px";kd.line.style.left=(lr.left+ind+window.scrollX)+"px";kd.line.style.width=(lr.width-ind-8)+"px";
-    kd.line.dataset.label=t.level==="sub"?"小タスク":"大タスク";
+    let pName="";if(t.level==="sub"&&t.parentKey&&!kd.dsub){const P=items.find(i=>i.id===t.parentKey);if(P)pName=P.text.length>10?P.text.slice(0,10)+"…":P.text}
+    kd.line.dataset.label=t.level==="sub"?(kd.dsub?"小タスク":"→ 小タスク"+(pName?"（"+pName+"）":"")):"← 大タスク";
+    kd.line.classList.toggle("sub",t.level==="sub");
     if(y<70)window.scrollBy(0,-10);else if(y>window.innerHeight-70)window.scrollBy(0,10);
   }
   function kdDrop(){
