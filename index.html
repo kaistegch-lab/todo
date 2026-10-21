@@ -1991,6 +1991,8 @@ button{-webkit-tap-highlight-color:transparent}
       if(d!==db)return;
       const m=s_.metadata||{};if(m.hasPendingWrites||!s_.exists)return;
       const nw=normWeek(s_.data());
+      // "already looked at last week" (from either device) closes the banner here too
+      if(nw.seen){if(weekInfo[start])weekInfo[start].seen=true;if(start===shift(mondayOf(todayKey()),-7))$("rvBanner").hidden=true}
       if(weekInfo[start]&&weekCore(weekInfo[start])===weekCore(nw))return;
       if(weekBusy()){weekPending[start]=nw;return}
       applyWeek(start,nw);
@@ -1998,6 +2000,7 @@ button{-webkit-tap-highlight-color:transparent}
   }
   function applyWeek(start,nw){
     delete weekPending[start];
+    if(weekInfo[start]&&weekInfo[start].seen)nw.seen=true;
     weekInfo[start]=nw;
     baseAdd(b=>{if(b.aux){const w=JSON.parse(JSON.stringify(nw));delete w.seen;b.aux.weeks[start]=w}});
     if(page==="week"&&viewStart()===start)renderWeek();
@@ -2802,9 +2805,12 @@ button{-webkit-tap-highlight-color:transparent}
   async function maybeAutoReview(){
     const t=todayKey();if(cur!==t)return;
     const last=shift(mondayOf(t),-7);
+    const d0=db;
     const info=await loadWeekInfo(last);
-    if(info.seen)return;
+    if(info.seen||d0!==db)return;
     const docs=await weekDocs(last);
+    // a check that started before logging in (or on an older copy) must not show it
+    if(d0!==db||cur!==todayKey()||(weekInfo[last]&&weekInfo[last].seen))return;
     const any=Object.values(docs).some(d=>(d.items||[]).length);
     if(any||info.goals.length)$("rvBanner").hidden=false;
   }
@@ -2984,7 +2990,7 @@ button{-webkit-tap-highlight-color:transparent}
   let dailyUnsub=null;
   // after login/logout the page on screen reads the account's data again
   function afterSwitch(){if(page==="log")loadLogs();else if(page==="later")loadFuture();else if(page==="plan"&&planStart)openPlan(planStart);else if(page==="week")renderWeek();else if(page==="data")renderData()}
-  const reset=()=>{stopWeeks();Object.keys(otherWeeks).forEach(k=>delete otherWeeks[k]);stopFuture();clearTimeout(futureT);futureT=null;futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
+  const reset=()=>{$("rvBanner").hidden=true;stopWeeks();Object.keys(otherWeeks).forEach(k=>delete otherWeeks[k]);stopFuture();clearTimeout(futureT);futureT=null;futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
   window.todoCore={
     connect(d){
       if(futureT&&futureLoaded)saveFuture(true);
