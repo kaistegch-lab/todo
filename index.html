@@ -751,7 +751,10 @@ button{-webkit-tap-highlight-color:transparent}
   const WD=["日","月","火","水","木","金","土"];
   const pad=n=>String(n).padStart(2,"0");
   const keyOf=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
-  const todayKey=()=>keyOf(new Date());
+  // the day turns over at 2:00 at night, not at midnight: until 2:00 it's still "yesterday"
+  // (unfinished tasks carry over to the next day at 2:00)
+  const DAY_START_HOUR=2;
+  const todayKey=()=>keyOf(new Date(Date.now()-DAY_START_HOUR*3600e3));
   const parse=k=>{const [y,m,d]=k.split("-").map(Number);return new Date(y,m-1,d)};
   const shift=(k,n)=>{const d=parse(k);d.setDate(d.getDate()+n);return keyOf(d)};
   const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
