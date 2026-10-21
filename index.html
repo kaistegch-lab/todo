@@ -287,6 +287,8 @@ button{font:inherit;color:inherit}
 .note-card .shiftbar{flex-basis:100%;order:4;padding:4px 0 0}
 .note-card input.edit{flex:1}
 .note-m{cursor:text}
+.subs .sub-memo{list-style:none}
+.subs .sub-memo .memo{padding:0 4px 6px 48px}
 .note-card .note-memo{flex-basis:100%;order:3;padding:2px 0 0;margin:0}
 .note-card .note-memo textarea{width:100%}
 @media (max-width:420px){.notes{padding-inline:16px}}
@@ -1031,7 +1033,7 @@ button{-webkit-tap-highlight-color:transparent}
       if(same){p.movedId=same.id;return}
       const nid=uid();added.push(nid);p.movedId=nid;
       dItems.push({id:nid,text:p.text,done:false,cat:p.cat,star:p.star,parent:null,from:p.from||src,fromDay:src,fromId:p.id,...(p.memo?{memo:p.memo}:{}),...(p.planId?{planId:p.planId,planDay:p.planDay}:{})});
-      items.filter(c=>c.parent===p.id&&!c.done).forEach(c=>dItems.push({id:uid(),text:c.text,done:false,cat:p.cat,star:c.star,parent:nid}));
+      items.filter(c=>c.parent===p.id&&!c.done).forEach(c=>dItems.push({id:uid(),text:c.text,done:false,cat:p.cat,star:c.star,parent:nid,...(c.memo?{memo:c.memo}:{})}));
     });
     const after={items:dItems,rdone:doc.rdone||{},order:[...(doc.order||[]),...added],carriedFrom:doc.carriedFrom||null};
     pendingX=[{day:dst,before,after}];
@@ -1387,15 +1389,17 @@ button{-webkit-tap-highlight-color:transparent}
       kids.forEach((k,idx)=>{
         const s=el("li","sub"+(k.done?" done":""));s.dataset.id=k.id;
         const st=textEl(k.text,k.star);
+        {const mt=memoTag(k.id,!!k.memo);if(mt)st.append(mt)}
         const openSub=caret=>{if(!it.moved)editText(s,st,()=>k.text,v=>{k.text=v},()=>{subFor={p:it.id,after:k.id}},
           val=>{const prev=idx>0?kids[idx-1]:it;mergeInto(prev,val,()=>{items=items.filter(x=>x!==k)})},caret)};
         st.onclick=()=>openSub();
         if(editTarget&&editTarget.id===k.id){const c=editTarget.caret;editTarget=null;queueMicrotask(()=>openSub(c))}
         const a=el("div","acts");
-        if(!readOnly&&!it.moved)a.append(actBtn("⧉","コピー",()=>copyTasks([{sub:true,text:k.text,star:k.star}],"小タスクをコピーしました")),actBtn("×","削除",()=>{items=items.filter(x=>x!==k);const rest=items.filter(c=>c.parent===it.id);if(rest.length)it.done=rest.every(c=>c.done);commit()}));
+        if(!readOnly&&!it.moved)a.append(actBtn("✎","メモ",()=>memoToggle(k.id),k.memo?"has":""),actBtn("⧉","コピー",()=>copyTasks([{sub:true,text:k.text,star:k.star}],"小タスクをコピーしました")),actBtn("×","削除",()=>{items=items.filter(x=>x!==k);const rest=items.filter(c=>c.parent===it.id);if(rest.length)it.done=rest.every(c=>c.done);commit()}));
         const sh=handle();sh.setAttribute("aria-label","ドラッグで小タスクを並べ替え（キーボードは上下キー）");if(it.moved||readOnly)sh.style.visibility="hidden";
         s.append(sh,boxBtn(k.done,()=>{k.done=!k.done;it.done=items.filter(c=>c.parent===it.id).every(c=>c.done);commit()},it.moved),st,a);
         subs.append(s);
+        if(memoOpen.has(k.id)){const mb=memoBox(k.id,()=>k.memo,v=>{if(v)k.memo=v;else delete k.memo},()=>save());const ml=el("li","sub-memo");ml.append(mb);subs.append(ml)}
         const isLast=idx===kids.length-1;
         if(adding&&(subFor.after===k.id||(subFor.after===null&&isLast)))subs.append(addRow(k.id));
       });
@@ -2858,7 +2862,7 @@ button{-webkit-tap-highlight-color:transparent}
       const nid=uid();map[p.id]=nid;
       p.moved=true;p.movedTo=cur;p.movedId=nid;
       items.push({id:nid,text:p.text,done:false,cat:p.cat,star:p.star,parent:null,from:p.from||src,fromDay:src,fromId:p.id,...(p.memo?{memo:p.memo}:{}),...(p.planId?{planId:p.planId,planDay:p.planDay}:{})});
-      fromItems.filter(c=>c.parent===p.id&&!c.done).forEach(c=>items.push({id:uid(),text:c.text,done:false,cat:p.cat,star:c.star,parent:nid}));
+      fromItems.filter(c=>c.parent===p.id&&!c.done).forEach(c=>items.push({id:uid(),text:c.text,done:false,cat:p.cat,star:c.star,parent:nid,...(c.memo?{memo:c.memo}:{})}));
     });
     return map;
   }
