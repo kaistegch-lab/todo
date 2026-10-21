@@ -1,12 +1,13 @@
 // 日めくりTodo service worker: app works offline
-const VERSION="v29";
+const VERSION="v30";
 const SHELL=["./","./index.html","./app.js","./config.js","./manifest.webmanifest",
   "./vendor/firebase-app-compat.js","./vendor/firebase-auth-compat.js","./vendor/firebase-firestore-compat.js",
   "./icons/icon-192.png","./icons/icon-512.png","./icons/apple-touch-icon.png"];
 const FONT_HOSTS=["fonts.googleapis.com","fonts.gstatic.com"];
 
 self.addEventListener("install",e=>{
-  e.waitUntil(caches.open(VERSION).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));
+  // straight from the server, not from the browser's own short-term cache
+  e.waitUntil(caches.open(VERSION).then(c=>c.addAll(SHELL.map(u=>new Request(u,{cache:"reload"})))).then(()=>self.skipWaiting()));
 });
 self.addEventListener("activate",e=>{
   e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==VERSION).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
@@ -19,7 +20,9 @@ self.addEventListener("fetch",e=>{
   if(same){
     // newest files when online, cached copy when offline (only good responses are cached)
     const key=req.mode==="navigate"?"./index.html":req;
-    e.respondWith(fetch(req).then(res=>{
+    // a page request can't be copied with options, so it is fetched by its address
+    const fresh=req.mode==="navigate"?fetch(req.url,{cache:"no-cache",credentials:"same-origin"}):fetch(req,{cache:"no-cache"});
+    e.respondWith(fresh.then(res=>{
       if(res&&res.ok){const copy=res.clone();caches.open(VERSION).then(c=>c.put(key,copy))}
       return res;
     }).catch(()=>caches.match(key).then(hit=>hit||caches.match("./index.html"))));

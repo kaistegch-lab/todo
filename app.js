@@ -7,7 +7,17 @@
 
   // ---- service worker (offline) ----
   if("serviceWorker" in navigator&&location.protocol!=="file:"){
-    navigator.serviceWorker.register("sw.js").catch(()=>{});
+    navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(reg=>{
+      // check for a new version each time the app is brought back, and every 30 minutes
+      const check=()=>{try{reg.update()}catch(e){}};
+      document.addEventListener("visibilitychange",()=>{if(!document.hidden)check()});
+      setInterval(check,30*60e3);
+    }).catch(()=>{});
+    // a new version took over: reload now if nothing is being typed, otherwise as soon as typing ends
+    let reloading=false;
+    const busy=()=>{const a=document.activeElement;return !!(a&&(a.tagName==="INPUT"||a.tagName==="TEXTAREA"))};
+    const go=()=>{if(reloading)return;if(busy()){document.addEventListener("focusout",()=>setTimeout(go,300),{once:true});return}reloading=true;location.reload()};
+    if(navigator.serviceWorker.controller)navigator.serviceWorker.addEventListener("controllerchange",go);
   }
 
   // ---- panel ----

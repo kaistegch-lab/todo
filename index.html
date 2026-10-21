@@ -610,6 +610,7 @@ button{-webkit-tap-highlight-color:transparent}
     <section class="pane">
       <h3>使い方</h3>
       <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます（週の計画・目標・メモの操作も含めて全部）。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。週の欄と「週の計画」には「この週のメモ」があり、計画の予定にも ✎ でメモを付けられます。「週の計画」の下には、再来週以降のことを見出しごとに開いたり閉じたりして書けるメモがあります。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。「投稿」も付箋と同じく数に入らないメモで、橙色で出ます。色のタグをタップすると メイン→マイクラ→その他→付箋→投稿 と切り替わるので、タスクを付箋にしたり付箋をタスクに戻したりできます。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に「今週」ページの「‹ 前の週」で先週の数と目標を確認できます（目標ごとに「できた／半分／できなかった」を付けられます）。これまでの積み上げと週ごとの数は「その他」→「データ」、再来週以降のメモと変更の記録も「その他」にあります。スマホでは、タスクを右にスライドすると上の大タスクの小タスクに、小タスクを左にスライドすると大タスクになります。スマホでは行を長押しすると、大タスクも小タスクもつかんで動かせます（上下で並べ替え、右に寄せると小タスク、左に寄せると大タスク）。PCは左の ⠿ をつかんで同じように動かせます。保存した中身は全部「変更の記録」に残るので、消してしまったものも「設定・同期」→「記録を開く」から探して戻せます。</p>
+      <p class="hint" id="appVer"></p>
       <p class="hint">ホーム画面に追加：iPhoneはSafariの共有ボタン →「ホーム画面に追加」、AndroidはChromeのメニュー →「ホーム画面に追加」。</p>
     </section>
   </div>
@@ -3005,6 +3006,8 @@ button{-webkit-tap-highlight-color:transparent}
   // after login/logout the page on screen reads the account's data again
   function afterSwitch(){if(page==="log")loadLogs();else if(page==="later")loadFuture();else if(page==="plan"&&planStart)openPlan(planStart);else if(page==="week")renderWeek();else if(page==="data")renderData()}
   const reset=()=>{$("rvBanner").hidden=true;stopWeeks();Object.keys(otherWeeks).forEach(k=>delete otherWeeks[k]);stopFuture();clearTimeout(futureT);futureT=null;futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
+  // app version (from the offline cache name) so it's easy to see the update arrived
+  try{caches.keys().then(ks=>{const v=ks.filter(k=>/^v\d+$/.test(k)).sort((a,b)=>+b.slice(1)-+a.slice(1))[0];if(v)$("appVer").textContent="アプリの版："+v+"（新しい版は開き直すと自動で入ります）"})}catch(e){}
   window.todoCore={
     connect(d){
       if(futureT&&futureLoaded)saveFuture(true);
