@@ -286,6 +286,9 @@ button{font:inherit;color:inherit}
 .note-acts .note-ok{color:var(--c,var(--post));font-weight:900;border:1px solid var(--c,var(--post));background:var(--sheet)}
 .note-card .shiftbar{flex-basis:100%;order:4;padding:4px 0 0}
 .note-card input.edit{flex:1}
+.note-m{cursor:text}
+.note-card .note-memo{flex-basis:100%;order:3;padding:2px 0 0;margin:0}
+.note-card .note-memo textarea{width:100%}
 @media (max-width:420px){.notes{padding-inline:16px}}
 
 /* pages */
@@ -1273,11 +1276,15 @@ button{-webkit-tap-highlight-color:transparent}
       const t=el("span","note-t",(n.star?"★":"")+n.text);
       t.onclick=()=>{if(readOnly)return;editText(card,t,()=>n.text,v=>{n.text=v})};
       card.append(t);
-      if(n.memo){const m=el("span","note-m",n.memo);card.append(m)}
+      // memo: tap it (or ✎) to edit right here
+      if(memoOpen.has(n.id)){const mb=memoBox(n.id,()=>n.memo,v=>{if(v)n.memo=v;else delete n.memo},()=>save());mb.classList.add("note-memo");card.append(mb)}
+      else if(n.memo){const m=el("span","note-m",n.memo);m.title="タップでメモを編集";m.onclick=()=>{if(!readOnly)memoToggle(n.id)};card.append(m)}
       const acts=el("span","note-acts");
       if(!readOnly){
         const ok=el("button","note-ok","✓");ok.type="button";ok.title="済んだので消す";ok.setAttribute("aria-label","済んだので消す");
         ok.onclick=()=>{items=items.filter(x=>x!==n&&x.parent!==n.id);commit();toast(CAT[n.cat]+"を消しました（↶で戻せます）")};
+        const me=el("button",n.memo?"has":null,"✎");me.type="button";me.title="メモ";me.setAttribute("aria-label","メモ");me.onclick=()=>memoToggle(n.id);
+        acts.append(me);
         const mv=el("button",null,"⇢");mv.type="button";mv.title="別の日に移す";mv.setAttribute("aria-label","別の日に移す");
         mv.onclick=()=>{shiftFor=shiftFor===n.id?null:n.id;render()};
         acts.append(mv,ok);
