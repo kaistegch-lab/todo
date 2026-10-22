@@ -327,6 +327,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 /* weekly score */
 .week{border-top:1px solid var(--line);padding:12px 18px 14px;display:grid;gap:10px;background:var(--soft)}
 .week-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.wk-plan{margin:0;font-size:12px;line-height:1.7;color:var(--ink);background:var(--soft);border-radius:6px;padding:6px 10px}
+.wk-plan b{font-weight:900;margin-right:4px}
+.wk-plan .wk-plan-s{color:var(--muted)}
 .wk-nav{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .wk-nav b{font-size:16px;font-weight:900}
 .wk-nav button{border:1px solid var(--line);background:var(--sheet);color:var(--ink);border-radius:16px;padding:4px 12px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
@@ -683,6 +686,7 @@ button{-webkit-tap-highlight-color:transparent}
         <ul class="dsum-list" id="dailyList"></ul>
       </div>
       <div class="days" id="days"></div>
+      <p class="wk-plan" id="wkPlan" hidden></p>
       <div class="goals" id="goals">
         <div class="goals-h"><b>今週の目標</b><button type="button" class="linkbtn" id="goalEdit">書く</button></div>
         <ul class="goal-list" id="goalList"></ul>
@@ -1310,7 +1314,7 @@ button{-webkit-tap-highlight-color:transparent}
     const tags=el("span","tags");
     tags.append(catTag(it.cat,c=>{it.cat=c;items.forEach(k=>{if(k.parent===it.id)k.cat=c});commit();if(isNote(it))toast(CAT[c]+"にしました（いちばん上に出ます）")}));
     if(kids.length)tags.append(el("span","badge",kids.filter(k=>k.done).length+"/"+kids.length));
-    if(it.planId){const pd=it.planDay;const lbl=!pd||pd===cur?"予定":"予定 "+WD[parse(pd).getDay()]+(pd<cur?"→ずらし":"←前倒し");tags.append(el("span","ptag",lbl))}
+    if(it.planId)tags.append(el("span","ptag","予定"));
     {const mt=memoTag(it.id,!!it.memo);if(mt)tags.append(mt)}
     if(it.moved)tags.append(el("span","co-tag","→ 翌日へ"));
     else if(it.from){const f=parse(it.from);tags.append(el("span","co-tag","繰越 "+(f.getMonth()+1)+"/"+f.getDate()+"〜"))}
@@ -1975,6 +1979,17 @@ button{-webkit-tap-highlight-color:transparent}
     $("wkTitle").textContent=name;
     $("wkHead").textContent=name+"やった数";
     $("wkNext").disabled=start>=tw;
+    // the week's plan as a result: how many were planned, and how it went (ずらした分 here only)
+    const pr=$("wkPlan");
+    if(!weekInfo[start])loadWeekInfo(start).then(()=>{if(viewStart()===start&&!editing)renderWeek()});
+    const sm=weekInfo[start]?planSummary(planStatus(start,docs)):{n:0};
+    pr.hidden=!sm.n;
+    if(sm.n){
+      const parts=[];const add=(l,v)=>{if(v)parts.push(l+" "+v)};
+      add("予定どおり完了",sm.onPlan);add("ずらして完了",sm.shiftedDone);add("まだ",sm.shifting+sm.pending);add("翌週へ",sm.nextWeek);add("取りやめ",sm.dropped);
+      pr.textContent="";pr.append(el("b",null,"予定の結果"),el("span",null," 最初の予定 "+sm.n+"件 → "+(parts.join("・")||"まだ手つかず")),
+        el("span","wk-plan-s",sm.shifted?"（ずらした "+sm.shifted+"件・合計 "+sm.shiftDays+"日）":"（ずらしなし）"));
+    }
     $("goals").querySelector("b").textContent=name+"の目標";
   }
   $("wkPrev").onclick=()=>{weekOff--;$("goalEditor").hidden=true;renderWeek()};
@@ -2158,6 +2173,15 @@ button{-webkit-tap-highlight-color:transparent}
     });
     return out;
   }
+  // what the table shows: each planned task in the day it is in now (ずらす just moves it);
+  // a task moved into the next week shows in that week instead
+  function planView(start,docs){
+    const own=planStatus(start,docs).filter(s=>!s.outDay);
+    const prev=shift(start,-7);
+    const vis=weekInfo[prev]?planStatus(prev,docs).filter(s=>s.live).map(s=>({...s,visitor:true})):[];
+    const out=[...own,...vis];out.forEach(s=>{s.col=s.live?s.liveDay:s.p.day});
+    return out;
+  }
   function planSummary(stats){
     stats=stats.filter(s=>!isNote(s));
     const c=k=>stats.filter(s=>s.state===k).length;
@@ -2166,7 +2190,7 @@ button{-webkit-tap-highlight-color:transparent}
     return{n:stats.length,onPlan:c("onPlan"),shiftedDone:c("shiftedDone"),shifting:c("shifting"),pending:c("pending"),nextWeek:c("nextWeek"),dropped:c("dropped"),shifted:shifted.length,shiftDays};
   }
   async function openPlan(start){
-    if(planStart!==start)planScroll=null;planStart=start;await loadWeekInfo(start);
+    if(planStart!==start)planScroll=null;planStart=start;await loadWeekInfo(start);await loadWeekInfo(shift(start,-7));
     if(!futureLoaded)loadFuture();else renderFuture();
     planDocs=await weekDocs(start);
     renderPlan();
@@ -2181,9 +2205,10 @@ button{-webkit-tap-highlight-color:transparent}
     [...$("planWeek").children].forEach(b=>b.setAttribute("aria-pressed",String(shift(thisMon,7*+b.dataset.w)===start)));
     // docs: use live state for the day on screen
     const docs={...planDocs};if(docs[cur]!==undefined||(cur>=start&&cur<=shift(start,6)))docs[cur]={items,rdone};
-    const stats=planStatus(start,docs);const sm=planSummary(stats);
+    const stats=planView(start,docs);
+    const sm=planSummary(planStatus(start,docs));
     const sp=(l,v)=>"<span class=\"k\">"+l+" <b>"+v+"</b></span>";
-    $("planSum").innerHTML=sm.n?sp("予定",sm.n+"件")+sp("予定どおり完了",sm.onPlan)+sp("ずらして完了",sm.shiftedDone)+sp("ずらし中",sm.shifting)+sp("未完",sm.pending)+(sm.nextWeek?sp("来週へ",sm.nextWeek):"")+"<br>"+sp("最初の予定からずれたもの",sm.shifted+"件")+sp("合計",sm.shiftDays+"日分"):"まだ予定がありません。曜日ごとに入れていくと、その日のリストにも自動で入ります。";
+    $("planSum").innerHTML=sm.n?sp("予定",sm.n+"件")+sp("完了",sm.onPlan+sm.shiftedDone+"件")+"<span class=\"k\">（ずらした分は「今週」の結果に出ます）</span>":"まだ予定がありません。曜日ごとに入れていくと、その日のリストにも自動で入ります。";
     const def=latestDefault(start);const db_=$("planDefault");
     const used=info.defaultVer||(info.defaultUsed?1:0);
     db_.hidden=!(def&&used<def.ver&&!readOnly);
@@ -2218,10 +2243,10 @@ button{-webkit-tap-highlight-color:transparent}
       const tbody=el("tbody");
       days.forEach(k=>{
         const tr=el("tr","pg-drow");tr.append(dayHead(k,"th"));
-        cols.forEach(c=>tr.append(mkCell(k,c,stats.filter(s=>s.cat===c&&s.p.day===k))));
+        cols.forEach(c=>tr.append(mkCell(k,c,stats.filter(s=>s.cat===c&&s.col===k))));
         tbody.append(tr);
         // the bottom line of every day: 付箋・投稿 (no item columns), with its own tag on the left
-        const notes=stats.filter(s=>isNote(s)&&s.p.day===k);
+        const notes=stats.filter(s=>isNote(s)&&s.col===k);
         const nr=el("tr","pg-nrow");
         const tag=el("th","pg-ntag");tag.append(el("span","nt-post","付箋"),el("span","nt-pub","投稿"));nr.append(tag);
         const td=el("td","pg-cell pg-notes"+(k<today?" past":"")+(k===today?" is-today":""));td.dataset.day=k;td.dataset.cat="post";td.colSpan=cols.length;
@@ -2243,7 +2268,7 @@ button{-webkit-tap-highlight-color:transparent}
         const inCat=stats.filter(s=>s.cat===c);
         const tr=el("tr",!inCat.length&&(c==="post"||c==="pub")?"pg-opt":null);tr.dataset.cat=c;
         const th=el("th","pg-cat");th.dataset.cat=c;th.append(el("span",null,CAT[c]));tr.append(th);
-        days.forEach(k=>tr.append(mkCell(k,c,inCat.filter(s=>s.p.day===k))));
+        days.forEach(k=>tr.append(mkCell(k,c,inCat.filter(s=>s.col===k))));
         tbody.append(tr);
       });
       tb.append(tbody);wrap.append(tb);box.append(wrap);
@@ -2255,7 +2280,7 @@ button{-webkit-tap-highlight-color:transparent}
     // the chosen item, with all its buttons, under the table
     const sel=planSel&&stats.find(s=>s.p.id===planSel);
     if(sel){
-      const d=parse(sel.p.day);
+      const d=parse(sel.col);
       const pane=el("div","psel");
       const h=el("div","psel-h");h.append(el("span",null,WD[d.getDay()]+" "+(d.getMonth()+1)+"/"+d.getDate()+" の予定"));
       const x=el("button",null,"閉じる");x.type="button";x.onclick=()=>{planSel=null;planShift=null;renderPlan()};h.append(x);
@@ -2336,28 +2361,30 @@ button{-webkit-tap-highlight-color:transparent}
   document.addEventListener("pointercancel",e=>{if(!pd||e.pointerId!==pd.pid)return;clearTimeout(pdT);const d=pd;if(d.on){pdClean();editing=false;renderPlan()}pd=null});
   document.addEventListener("keydown",e=>{if(pd&&pd.on&&e.key==="Escape"){pdClean();pd=null;editing=false;renderPlan()}});
   function planDrop(s,toDay,toCat,beforeId){
-    const info=weekInfo[planStart];if(!info)return;
-    const p=s.p,oldDay=p.day,oldCat=s.cat;
-    const same=toDay===oldDay&&toCat===oldCat;
+    const home=s.visitor?shift(planStart,-7):planStart;
+    const info=weekInfo[home];if(!info)return;
+    const p=s.p,fromDay=s.col,oldCat=s.cat;
+    const same=toDay===fromDay&&toCat===oldCat;
     grouped(async()=>{
-      const rest=info.plan.filter(x=>x!==p);
-      p.day=toDay;p.cat=toCat;
-      const at=beforeId?rest.findIndex(x=>x.id===beforeId):-1;
-      if(at<0){
-        // after the last item already in that cell
-        const st=planStatus(planStart,planDocs||{});
-        let last=-1;rest.forEach((x,i)=>{const sx=st.find(y=>y.p.id===x.id);const xc=sx?sx.cat:x.cat;if(x.day===toDay&&xc===toCat)last=i});
-        rest.splice(last<0?rest.length:last+1,0,p);
-      }else rest.splice(at,0,p);
-      info.plan=rest;saveWeekInfo(planStart);
+      if(!s.visitor){
+        // place in the cell (order only)
+        const rest=info.plan.filter(x=>x!==p);
+        const at=beforeId?rest.findIndex(x=>x.id===beforeId):-1;
+        if(at<0){
+          const st=planView(planStart,planDocs||{});
+          let last=-1;rest.forEach((x,i)=>{const sx=st.find(y=>y.p.id===x.id);if(sx&&sx.col===toDay&&sx.cat===toCat)last=i});
+          rest.splice(last<0?rest.length:last+1,0,p);
+        }else rest.splice(at,0,p);
+        info.plan=rest;
+      }
+      if(!s.live)p.day=toDay; // nothing in a day list yet: simply re-plan it
+      if(toCat!==oldCat)p.cat=toCat;
+      saveWeekInfo(home);
       if(s.live){
         if(toCat!==oldCat)await setLiveCat_(s,toCat);
-        if(toDay!==oldDay){
-          if(!s.live.done&&!s.live.parent&&s.liveDay===oldDay)await moveBetween(s.liveDay,toDay,s.live.id,true,c=>{if(c.id===s.live.id)c.planDay=toDay});
-          else if(s.liveDay===cur){const it=items.find(i=>i.id===s.live.id);if(it){it.planDay=toDay;commit()}}
-        }
+        if(toDay!==fromDay&&!s.live.parent)await moveBetween(s.liveDay,toDay,s.live.id,true);
       }
-    }).then(()=>{refreshPlanDocs();if(!same){const d=parse(toDay);toast(WD[d.getDay()]+"曜の"+CAT[toCat]+"に移しました")}});
+    }).then(()=>{refreshPlanDocs();if(!same){const d=parse(toDay);toast((d.getMonth()+1)+"/"+d.getDate()+"（"+WD[d.getDay()]+"）の"+CAT[toCat]+"に移しました")}});
   }
   function openCell(day,cat){planCell={day,cat};planSel=null;planShift=null;renderPlan()}
   // typing straight into a cell of the table: Enter adds and keeps the cell open for the next one
@@ -2379,8 +2406,7 @@ button{-webkit-tap-highlight-color:transparent}
     const [lbl,cls]=isNote(s)?(s.live?[CAT[s.cat],"no"]:["済み","ok"]):ST_LABEL(s);
     b.classList.add("st-"+cls);
     b.append(el("span","pc-t",(s.star?"★":"")+s.text));
-    const quiet=cls==="no";
-    const meta=el("span","pc-s",quiet?"":lbl.replace(/（.*?）/,""));
+    const meta=el("span","pc-s","");
     if(s.memo.trim())meta.append(el("span","pc-m","✎ メモ"));
     if(meta.textContent)b.append(meta);
     b.dataset.id=s.p.id;
@@ -2422,7 +2448,7 @@ button{-webkit-tap-highlight-color:transparent}
       inp.onkeydown=e=>{if(isEnter(e)){e.preventDefault();done(true)}else if(e.key==="Escape")done(false)};
       inp.onblur=()=>done(true);
     };
-    row.append(tag,t,el("span","pst "+cls,lbl),acts);
+    row.append(tag,t,el("span","pst "+(cls==="ok"?"ok":"no"),cls==="ok"?"✓ 完了":"未"),acts);
     if(pmOpen.has(s.p.id)){
       // memo of a planned item; also kept on the task in that day's list
       const w=el("div","pmemo");const ta=el("textarea");ta.rows=3;ta.value=s.memo;ta.placeholder="メモ";
