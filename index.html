@@ -222,6 +222,8 @@ button{font:inherit;color:inherit}
 .pcard.pd-src{opacity:.3}
 .pg-cell.pg-drop{background:color-mix(in srgb,var(--ink) 7%,var(--sheet))!important;box-shadow:inset 0 0 0 2px var(--ink)}
 .pd-ins{height:3px;border-radius:2px;background:var(--ink);margin:2px 0}
+.shiftbar .sb-wk{flex-basis:100%;font-size:11px;font-weight:900;color:var(--muted);margin-top:2px}
+.shiftbar .sun{color:var(--sun)}.shiftbar .sat{color:var(--sat)}
 .psel-cats{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:6px 10px 8px;border-top:1px solid var(--line)}
 .psel-cats>span{font-size:11px;font-weight:700;color:var(--muted);margin-right:2px}
 .psel-cats button{border:1.5px solid var(--c);background:var(--sheet);color:var(--c);border-radius:14px;padding:2px 10px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
@@ -781,7 +783,7 @@ button{-webkit-tap-highlight-color:transparent}
   const normCat=c=>CAT_IDS.includes(c)?c:"other";
   const norm=list=>(list||[]).map(i=>({id:i.id||uid(),text:String(i.text||""),done:!!i.done,cat:normCat(i.cat),star:!!i.star,parent:i.parent||null,...(i.moved?{moved:true}:{}),...(i.from?{from:i.from}:{}),...(i.movedTo?{movedTo:i.movedTo}:{}),...(i.movedId?{movedId:i.movedId}:{}),...(i.fromDay?{fromDay:i.fromDay}:{}),...(i.fromId?{fromId:i.fromId}:{}),...(i.memo?{memo:String(i.memo)}:{}),...(i.planId?{planId:i.planId,planDay:i.planDay||null}:{})}));
   const normDaily=list=>(list||[]).map(d=>({id:d.id||uid(),text:String(d.text||""),cat:normCat(d.cat),star:!!d.star,since:d.since||"2000-01-01",until:d.until||null,...(d.memo?{memo:String(d.memo)}:{}),
-    ...(Array.isArray(d.subs)&&d.subs.length?{subs:d.subs.map(x=>({id:x.id||uid(),text:String(x.text||""),star:!!x.star}))}:{})}));
+    ...(Array.isArray(d.subs)&&d.subs.length?{subs:d.subs.map(x=>({id:x.id||uid(),text:String(x.text||""),star:!!x.star,...(x.until?{until:x.until}:{})}))}:{})}));
   const activeDaily=k=>daily.filter(d=>d.since<=k&&(!d.until||k<d.until));
   // daily tasks shown on day k (rd = that day's rdone; "skip" hides it for that day only)
   const shownDaily=(k,rd)=>activeDaily(k).filter(d=>(rd||{})[d.id]!=="skip");
@@ -1236,7 +1238,7 @@ button{-webkit-tap-highlight-color:transparent}
     const bar=el("div","shiftbar");bar.append(el("span",null,"ずらす先："));
     for(let i=-1;i<=7;i++){
       if(i===0)continue;const k=shift(cur,i);const d=parse(k);
-      const b=el("button",null,(i===-1?"前日 ":"")+WD[d.getDay()]+" "+d.getDate());b.type="button";
+      const b=el("button",null,(i===-1?"前日 ":"")+WD[d.getDay()]+" "+(d.getMonth()+1)+"/"+d.getDate());b.type="button";
       b.onclick=()=>{shiftFor=null;moveBetween(cur,k,it.id)};bar.append(b);
     }
     const c=el("button","linkbtn","やめる");c.type="button";c.onclick=()=>{shiftFor=null;render()};bar.append(c);
@@ -1419,7 +1421,9 @@ button{-webkit-tap-highlight-color:transparent}
     {const mt=memoTag("d:"+d.id,!!d.memo);if(mt)tags.append(mt)}
     t.append(tags);
     t.onclick=e=>{if(e.target.closest(".ctag"))return;editText(row,t,()=>d.text,v=>{d.text=v;saveDaily()},()=>{newAfter="d:"+d.id})};
-    const subs=d.subs||[];
+    // a daily task's subtask is one-off: once it's checked on a day, it no longer shows from the next day
+    const allSubs=d.subs||[];
+    const subs=allSubs.filter(x=>!x.until||cur<=x.until);
     const sdone=x=>rdone["s:"+x.id]===1;
     let acts=el("div","acts");
     if(!readOnly)acts=actsWith([
@@ -1430,8 +1434,9 @@ button{-webkit-tap-highlight-color:transparent}
       xBtn("⧉","コピー",()=>copyTasks([{text:d.text,cat:d.cat,star:d.star,subs:subs.map(x=>({text:x.text,star:x.star}))}],"コピーしました")),
       xBtn("解除","毎日タスクを解除",()=>{confirmFor=confirmFor===d.id?null:d.id;render()},"un")]);
     row.append(handle(),boxBtn(on,()=>{
-      if(rdone[d.id]===true){delete rdone[d.id];subs.forEach(x=>delete rdone["s:"+x.id])}
-      else{rdone[d.id]=true;subs.forEach(x=>{rdone["s:"+x.id]=1})}
+      if(rdone[d.id]===true){delete rdone[d.id];subs.forEach(x=>{delete rdone["s:"+x.id];if(x.until===cur)delete x.until})}
+      else{rdone[d.id]=true;subs.forEach(x=>{rdone["s:"+x.id]=1;x.until=cur})}
+      if(subs.length){grouped(()=>{saveDaily();commit()});return}
       commit()}),t,acts);
     li.append(row);
     // subtasks of a daily task: the list is shared by every day, the checks belong to this day
@@ -1445,7 +1450,7 @@ button{-webkit-tap-highlight-color:transparent}
         let fin=false;
         const done=(ok,enter,blur)=>{if(fin)return;fin=true;const v=inp.value.trim();
           if(ok&&v){
-            const nx={id:uid(),text:v,star:false};const list=[...subs];
+            const nx={id:uid(),text:v,star:false};const list=[...allSubs];
             const at=after?list.findIndex(x=>x.id===after):list.length-1;list.splice(at+1,0,nx);
             d.subs=list;if(rdone[d.id]===true)delete rdone[d.id];
             dsubFor=enter?{p:d.id,after:nx.id}:null;
@@ -1462,9 +1467,9 @@ button{-webkit-tap-highlight-color:transparent}
         const st=textEl(x.text,x.star);
         st.onclick=()=>editText(sl,st,()=>x.text,v=>{x.text=v;saveDaily()},()=>{dsubFor={p:d.id,after:x.id}});
         const a=el("div","acts");
-        if(!readOnly)a.append(actBtn("×","この小タスクを消す（毎日共通）",()=>{d.subs=subs.filter(y=>y!==x);if(!d.subs.length)delete d.subs;delete rdone["s:"+x.id];grouped(()=>{saveDaily();commit()})}));
+        if(!readOnly)a.append(actBtn("×","この小タスクを消す（毎日共通）",()=>{d.subs=allSubs.filter(y=>y!==x);if(!d.subs.length)delete d.subs;delete rdone["s:"+x.id];grouped(()=>{saveDaily();commit()})}));
         const sh=handle();sh.setAttribute("aria-label","ドラッグで小タスクを並べ替え");if(readOnly)sh.style.visibility="hidden";
-        sl.append(sh,boxBtn(sdone(x),()=>{if(sdone(x))delete rdone["s:"+x.id];else rdone["s:"+x.id]=1;syncParent();commit()}),st,a);
+        sl.append(sh,boxBtn(sdone(x),()=>{if(sdone(x)){delete rdone["s:"+x.id];if(x.until===cur)delete x.until}else{rdone["s:"+x.id]=1;x.until=cur}syncParent();grouped(()=>{saveDaily();commit()})}),st,a);
         ul.append(sl);
         if(dAdding&&(dsubFor.after===x.id||(dsubFor.after===null&&idx===shown.length-1)))ul.append(addRow(x.id));
       });
@@ -2148,7 +2153,7 @@ button{-webkit-tap-highlight-color:transparent}
       else if(p.outTo){shift=daysBetween(p.day,p.outTo);state="nextWeek"}
       else state="dropped";
       // the category follows the task in the day list (it can be changed there too)
-      out.push({p,live,liveDay,shift,state,cat:live?live.cat:p.cat,
+      out.push({p,live,liveDay,shift,state,outDay:live?null:(outDay||p.outTo||null),cat:live?live.cat:p.cat,
         text:live?live.text:p.text,star:live?!!live.star:!!p.star,memo:String((live?live.memo:p.memo)||p.memo||"")});
     });
     return out;
@@ -2387,7 +2392,7 @@ button{-webkit-tap-highlight-color:transparent}
   }
   const ST_LABEL=(s)=>{const wd=k=>WD[parse(k).getDay()];
     switch(s.state){case"onPlan":return["✓ 完了","ok"];case"shiftedDone":return["✓ "+wd(s.liveDay)+"に完了（"+(s.shift>0?"+":"")+s.shift+"日）","ok"];
-      case"shifting":return["→ "+wd(s.liveDay)+"へ（"+(s.shift>0?"+":"")+s.shift+"日）","go"];case"pending":return["未","no"];case"nextWeek":return["→ 来週へ","go"];default:return["取りやめ","drop"]}};
+      case"shifting":return["→ "+wd(s.liveDay)+"へ（"+(s.shift>0?"+":"")+s.shift+"日）","go"];case"pending":return["未","no"];case"nextWeek":return[s.outDay?"→ 来週"+wd(s.outDay)+"へ（+"+s.shift+"日）":"→ 来週へ","go"];default:return["取りやめ","drop"]}};
   const pmOpen=new Set();
   function planRow(s){
     const row=el("div","pitem");row.dataset.cat=s.cat;
@@ -2436,9 +2441,15 @@ button{-webkit-tap-highlight-color:transparent}
     }
     if(planShift===s.p.id&&s.live){
       const bar=el("div","shiftbar");bar.append(el("span",null,"ずらす先："));
-      for(let i=0;i<7;i++){const k=shift(planStart,i);if(k===s.liveDay)continue;const d=parse(k);
-        const b=el("button",null,WD[d.getDay()]+" "+d.getDate());b.type="button";
-        b.onclick=async()=>{planShift=null;await moveBetween(s.liveDay,k,s.live.id,true);await refreshPlanDocs();toast(WD[d.getDay()]+"曜にずらしました")};bar.append(b)}
+      // this week and next week, written as 曜日 月/日 so there's no mixing up days
+      const tk=todayKey();
+      for(let i=0;i<14;i++){
+        const k=shift(planStart,i);
+        if(i===0||i===7)bar.append(el("span","sb-wk",i===0?(planStart===mondayOf(tk)?"今週":"この週"):"翌週"));
+        if(k===s.liveDay)continue;const d=parse(k);
+        const lbl=WD[d.getDay()]+" "+(d.getMonth()+1)+"/"+d.getDate()+(k===tk?"（今日）":"");
+        const b=el("button",(d.getDay()===0?"sun":d.getDay()===6?"sat":"")||null,lbl);b.type="button";
+        b.onclick=async()=>{planShift=null;await moveBetween(s.liveDay,k,s.live.id,true);await refreshPlanDocs();toast((d.getMonth()+1)+"/"+d.getDate()+"（"+WD[d.getDay()]+"）にずらしました")};bar.append(b)}
       row.append(bar);
     }
     return row;
