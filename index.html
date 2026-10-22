@@ -1228,12 +1228,18 @@ button{-webkit-tap-highlight-color:transparent}
     const keep=()=>withCk("memo:"+key,persist);
     ta.oninput=()=>{set(ta.value);clearTimeout(memoT);memoT=setTimeout(keep,700)};
     ta.onblur=()=>{clearTimeout(memoT);set(ta.value.replace(/\s+$/,""));keep();editing=false;setTimeout(()=>{if(!editing)render()},250)};
-    const close=el("button","linkbtn","閉じる");close.type="button";close.onclick=()=>{memoOpen.delete(key);render()};
+    // 閉じる works even right after emptying the memo: it saves what's there (empty = no memo) and closes,
+    // without the box first losing focus and being redrawn under the finger
+    const close=el("button","linkbtn","閉じる");close.type="button";
+    close.onpointerdown=e=>e.preventDefault();close.onmousedown=e=>e.preventDefault();
+    close.onclick=()=>{clearTimeout(memoT);const v=ta.value.replace(/\s+$/,"");set(v);memoOpen.delete(key);editing=false;keep();render()};
     box.append(ta,close);
-    if(memoOpen.has(key)&&!get())queueMicrotask(()=>ta.focus());
+    // only a memo that was just opened gets the keyboard (not every redraw of an empty one)
+    if(memoFocus.has(key)){memoFocus.delete(key);queueMicrotask(()=>ta.focus())}
     return box;
   }
-  const memoToggle=key=>{if(memoOpen.has(key))memoOpen.delete(key);else memoOpen.add(key);render()};
+  const memoFocus=new Set();
+  const memoToggle=key=>{if(memoOpen.has(key))memoOpen.delete(key);else{memoOpen.add(key);memoFocus.add(key)}render()};
   function memoTag(key,has){
     if(!has||memoOpen.has(key))return null;
     const b=el("button","mtag","✎ メモ");b.type="button";b.title="メモを開く";b.onclick=e=>{e.stopPropagation();memoToggle(key)};return b;
@@ -2061,15 +2067,15 @@ button{-webkit-tap-highlight-color:transparent}
     const key=boxId+start;const has=!!(info.memo||"").trim();
     const h=el("div","wm-h");
     const b=el("button",null,(wmOpen.has(key)?"▾ ":"▸ ")+"この週のメモ"+(has&&!wmOpen.has(key)?"（あり）":""));b.type="button";
-    b.onclick=()=>{if(wmOpen.has(key))wmOpen.delete(key);else wmOpen.add(key);renderWeekMemo(boxId,start)};
+    b.onclick=()=>{if(wmOpen.has(key))wmOpen.delete(key);else{wmOpen.add(key);memoFocus.add("wm:"+key)}renderWeekMemo(boxId,start)};
     h.append(b);box.append(h);
-    if(!wmOpen.has(key)){if(has){const pv=el("div","wm-prev",info.memo);pv.onclick=()=>{wmOpen.add(key);renderWeekMemo(boxId,start)};box.append(pv)}return}
+    if(!wmOpen.has(key)){if(has){const pv=el("div","wm-prev",info.memo);pv.onclick=()=>{wmOpen.add(key);memoFocus.add("wm:"+key);renderWeekMemo(boxId,start)};box.append(pv)}return}
     const ta=el("textarea");ta.rows=Math.min(10,Math.max(3,(info.memo||"").split("\n").length+1));ta.value=info.memo||"";ta.placeholder="この週について自由にメモ";
     let tm=null;
     ta.oninput=()=>{info.memo=ta.value;clearTimeout(tm);tm=setTimeout(()=>withCk("wmemo:"+start,()=>saveWeekInfo(start)),800)};
     ta.onblur=()=>{clearTimeout(tm);info.memo=ta.value.replace(/\s+$/,"");withCk("wmemo:"+start,()=>saveWeekInfo(start))};
     box.append(ta);
-    if(!has)queueMicrotask(()=>ta.focus());
+    if(memoFocus.has("wm:"+key)){memoFocus.delete("wm:"+key);queueMicrotask(()=>ta.focus())}
   }
   function renderGoals(start){
     const info=weekInfo[start];const ul=$("goalList");ul.textContent="";
@@ -2427,7 +2433,7 @@ button{-webkit-tap-highlight-color:transparent}
     const [lbl,cls]=isNote(s)?(s.live?[CAT[s.cat],"no"]:["済み","ok"]):ST_LABEL(s);
     const acts=el("span","pacts");
     if(s.live&&!s.live.done&&!s.live.parent){const b=el("button",null,"⇢");b.type="button";b.title="ずらす";b.onclick=()=>{planShift=planShift===s.p.id?null:s.p.id;renderPlan()};acts.append(b)}
-    const mb=el("button",null,"✎");mb.type="button";mb.title="メモ";mb.onclick=()=>{if(pmOpen.has(s.p.id))pmOpen.delete(s.p.id);else pmOpen.add(s.p.id);renderPlan()};acts.append(mb);
+    const mb=el("button",null,"✎");mb.type="button";mb.title="メモ";mb.onclick=()=>{if(pmOpen.has(s.p.id))pmOpen.delete(s.p.id);else{pmOpen.add(s.p.id);memoFocus.add("pm:"+s.p.id)}renderPlan()};acts.append(mb);
     const x=el("button",null,"×");x.type="button";x.title="予定から外す";x.onclick=()=>removePlan(s);acts.append(x);
     const tag=catTag(s.cat,c=>grouped(async()=>{s.p.cat=c;s.cat=c;saveWeekInfo(planStart);if(s.live)await setLiveCat_(s,c);else renderPlan()}));
     tag.title="タップで分類を変える（メイン→マイクラ→その他→付箋→投稿）";tag.classList.add("dot");tag.textContent="";
@@ -2463,7 +2469,7 @@ button{-webkit-tap-highlight-color:transparent}
         }).then(refreshPlanDocs);
       };
       w.append(ta);row.append(w);
-      if(!s.memo.trim())queueMicrotask(()=>ta.focus());
+      if(memoFocus.has("pm:"+s.p.id)){memoFocus.delete("pm:"+s.p.id);queueMicrotask(()=>ta.focus())}
     }
     if(planShift===s.p.id&&s.live){
       const bar=el("div","shiftbar");bar.append(el("span",null,"ずらす先："));
