@@ -289,6 +289,9 @@ button{font:inherit;color:inherit}
 .note-card .shiftbar{flex-basis:100%;order:4;padding:4px 0 0}
 .note-card input.edit{flex:1}
 .note-m{cursor:text}
+.misstag{font-size:11px;font-weight:700;color:var(--main);border:1px solid var(--main);border-radius:10px;padding:0 6px;white-space:nowrap}
+.task.daily.missed>.row>.txt{color:var(--muted)}
+.acts button.on[aria-label*="できなかった"]{color:var(--main)}
 .subs .sub-memo{list-style:none}
 .subs .sub-memo .memo{padding:0 4px 6px 48px}
 .note-card .note-memo{flex-basis:100%;order:3;padding:2px 0 0;margin:0}
@@ -614,7 +617,7 @@ button{-webkit-tap-highlight-color:transparent}
     </section>
     <section class="pane">
       <h3>使い方</h3>
-      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます（週の計画・目標・メモの操作も含めて全部）。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×でその日だけ消す、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。週の欄と「週の計画」には「この週のメモ」があり、計画の予定にも ✎ でメモを付けられます。「週の計画」の下には、再来週以降のことを見出しごとに開いたり閉じたりして書けるメモがあります。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。「投稿」も付箋と同じく数に入らないメモで、橙色で出ます。色のタグをタップすると メイン→マイクラ→その他→付箋→投稿 と切り替わるので、タスクを付箋にしたり付箋をタスクに戻したりできます。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に「今週」ページの「‹ 前の週」で先週の数と目標を確認できます（目標ごとに「できた／半分／できなかった」を付けられます）。これまでの積み上げと週ごとの数は「その他」→「データ」、再来週以降のメモと変更の記録も「その他」にあります。スマホでは、タスクを右にスライドすると上の大タスクの小タスクに、小タスクを左にスライドすると大タスクになります。スマホでは行を長押しすると、大タスクも小タスクもつかんで動かせます（上下で並べ替え、右に寄せると小タスク、左に寄せると大タスク）。PCは左の ⠿ をつかんで同じように動かせます。保存した中身は全部「変更の記録」に残るので、消してしまったものも「設定・同期」→「記録を開く」から探して戻せます。</p>
+      <p class="hint">⧉でタスクをコピー。下の入力欄に貼り付けると小タスクごと追加、大タスクの名前を編集中に貼り付けるとその大タスクの小タスクになります。翌日に移したタスクは、元の日の「完了済み」にある「↩ 戻す」でその日に戻せます。×や移動を間違えたら ↶（Ctrl+Z）で元に戻せて、↷（Ctrl+Shift+Z）でやり直せます（週の計画・目標・メモの操作も含めて全部）。大タスクの名前を編集中にEnterで下に新しい大タスク（Tabで小タスクに）。小タスクは左の ⠿ で上下に入れ替えられます。小タスクは入力中にEnterで次の行（空でEnterすると次の大タスクへ）、行頭で削除（Backspace）を押すと上の行の右にくっつきます。左の ⠿ をつかんで上下に動かすと順番を変えられます。色のタグ（メイン／マイクラ／その他）はタップで切り替え、集計に使われます。↻は毎日タスク（×で「この日はできなかった」として記録、⋯の「休」でその日は数に入れない、解除で次の日から出なくなる）。終わらなかったタスクは日付が変わると自動で翌日に移ります。「残りを翌日へ」を2回押すと、終わっていないタスクを全部翌日に移せます。チェックしたタスクは下の「完了済み」に移ります（外すと元の位置に戻ります）。今週の数はチェックした数（小タスクも1個）で、毎週月曜にリセット。「週の計画」で曜日ごとに予定を入れると、その日のリストに自動で入ります（⇢ で別の日にずらせて、どれだけずれたかも記録されます）。✎ でタスクごとのメモを開けます。週の欄と「週の計画」には「この週のメモ」があり、計画の予定にも ✎ でメモを付けられます。「週の計画」の下には、再来週以降のことを見出しごとに開いたり閉じたりして書けるメモがあります。「付箋」は数に入らないメモで、その日のいちばん上に出て、済んだら ✓ で消します。「投稿」も付箋と同じく数に入らないメモで、橙色で出ます。色のタグをタップすると メイン→マイクラ→その他→付箋→投稿 と切り替わるので、タスクを付箋にしたり付箋をタスクに戻したりできます。毎日タスクは別枠で、やった回数を積み上げていきます（これまでの合計も出ます）。週の目標を書いておくと、月曜に「今週」ページの「‹ 前の週」で先週の数と目標を確認できます（目標ごとに「できた／半分／できなかった」を付けられます）。これまでの積み上げと週ごとの数は「その他」→「データ」、再来週以降のメモと変更の記録も「その他」にあります。スマホでは、タスクを右にスライドすると上の大タスクの小タスクに、小タスクを左にスライドすると大タスクになります。スマホでは行を長押しすると、大タスクも小タスクもつかんで動かせます（上下で並べ替え、右に寄せると小タスク、左に寄せると大タスク）。PCは左の ⠿ をつかんで同じように動かせます。保存した中身は全部「変更の記録」に残るので、消してしまったものも「設定・同期」→「記録を開く」から探して戻せます。</p>
       <p class="hint" id="appVer"></p>
       <p class="hint">ホーム画面に追加：iPhoneはSafariの共有ボタン →「ホーム画面に追加」、AndroidはChromeのメニュー →「ホーム画面に追加」。</p>
     </section>
@@ -1011,7 +1014,7 @@ button{-webkit-tap-highlight-color:transparent}
   // finished = checked (or a daily task checked today), or already moved to the next day
   const isSkipped=k=>k.startsWith("d:")&&rdone[k.slice(2)]==="skip";
   function isFinished(k){
-    if(k.startsWith("d:"))return rdone[k.slice(2)]===true;
+    if(k.startsWith("d:")){const v=rdone[k.slice(2)];return v===true||v==="miss"}
     const it=items.find(i=>i.id===k);return !!it&&(it.done||!!it.moved);
   }
   // unfinished big tasks that would move (daily tasks recur on their own)
@@ -1422,12 +1425,13 @@ button{-webkit-tap-highlight-color:transparent}
   }
 
   function dailyRow(d){
-    const on=rdone[d.id]===true;
-    const li=el("li","task daily"+(on?" done":""));li.dataset.key="d:"+d.id;li.dataset.cat=d.cat;
+    const on=rdone[d.id]===true,miss=rdone[d.id]==="miss";
+    const li=el("li","task daily"+(on?" done":"")+(miss?" missed":""));li.dataset.key="d:"+d.id;li.dataset.cat=d.cat;
     const row=el("div","row");
     const t=textEl(d.text,d.star);
     const tags=el("span","tags");
     tags.append(catTag(d.cat,c=>{d.cat=c;saveDaily();render()}),el("span","dtag","↻ 毎日"));
+    if(miss)tags.append(el("span","misstag","× できなかった"));
     {const mt=memoTag("d:"+d.id,!!d.memo);if(mt)tags.append(mt)}
     t.append(tags);
     t.onclick=e=>{if(e.target.closest(".ctag"))return;editText(row,t,()=>d.text,v=>{d.text=v;saveDaily()},()=>{newAfter="d:"+d.id})};
@@ -1438,12 +1442,17 @@ button{-webkit-tap-highlight-color:transparent}
     let acts=el("div","acts");
     if(!readOnly)acts=actsWith([
       actBtn("＋","小タスクを追加（毎日共通）",()=>{dsubFor={p:d.id,after:null};editing=true;render()}),
-      actBtn("×","この日だけ消す",()=>{rdone[d.id]="skip";confirmFor=null;commit();toast("この日だけ消しました（下の「休み」から戻せます）")})],[
+      // × = this day it wasn't done (it stays and counts as not done); press again to take it back
+      actBtn("×",miss?"「できなかった」を取り消す":"この日はできなかった",()=>{
+        if(miss)delete rdone[d.id];else{rdone[d.id]="miss";subs.forEach(x=>{delete rdone["s:"+x.id];if(x.until===cur)delete x.until})}
+        confirmFor=null;grouped(()=>{saveDaily();commit()});toast(miss?"「できなかった」を取り消しました":"この日はできなかった、にしました（↶で戻せます）")},miss?"on":"")],[
       xBtn(d.star?"★":"☆",d.star?"重要マークを外す":"重要マーク",()=>{d.star=!d.star;saveDaily();render()},d.star?"on":""),
       xBtn("✎","メモ（毎日共通）",()=>memoToggle("d:"+d.id),d.memo?"has":""),
+      xBtn("休","この日は休み（数に入れない）",()=>{rdone[d.id]="skip";confirmFor=null;commit();toast("この日は休みにしました（下の「休み」から戻せます）")}),
       xBtn("⧉","コピー",()=>copyTasks([{text:d.text,cat:d.cat,star:d.star,subs:subs.map(x=>({text:x.text,star:x.star}))}],"コピーしました")),
       xBtn("解除","毎日タスクを解除",()=>{confirmFor=confirmFor===d.id?null:d.id;render()},"un")]);
     row.append(handle(),boxBtn(on,()=>{
+      if(miss)delete rdone[d.id];
       if(rdone[d.id]===true){delete rdone[d.id];subs.forEach(x=>{delete rdone["s:"+x.id];if(x.until===cur)delete x.until})}
       else{rdone[d.id]=true;subs.forEach(x=>{rdone["s:"+x.id]=1;x.until=cur})}
       if(subs.length){grouped(()=>{saveDaily();commit()});return}
@@ -2598,7 +2607,7 @@ button{-webkit-tap-highlight-color:transparent}
       });
       const dn=Object.entries(data.rdone||{});
       const names=Object.fromEntries((daily||[]).map(d=>[d.id,d.text]));
-      dn.forEach(([id,v])=>{if(v===true)L.push("↻☑ "+(names[id]||"毎日タスク"));else if(v==="skip")L.push("↻ この日は休み："+(names[id]||"毎日タスク"))});
+      dn.forEach(([id,v])=>{if(v===true)L.push("↻☑ "+(names[id]||"毎日タスク"));else if(v==="skip")L.push("↻ この日は休み："+(names[id]||"毎日タスク"));else if(v==="miss")L.push("↻× できなかった："+(names[id]||"毎日タスク"))});
     }else if(path==="settings/daily"){
       (data.items||[]).forEach(d=>{L.push("↻ ["+catName(d.cat)+"] "+(d.star?"★":"")+d.text+(d.until?"（"+dayLabel(d.until)+"で解除）":""));
         (d.subs||[]).forEach(x=>L.push("　└ "+x.text));if(d.memo)L.push("　✎ "+String(d.memo).replace(/\n/g," / "))});
