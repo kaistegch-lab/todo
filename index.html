@@ -294,6 +294,7 @@ button{font:inherit;color:inherit}
 .acts button.on[aria-label*="できなかった"]{color:var(--main)}
 .subs .sub-memo{list-style:none}
 .subs .sub-memo .memo{padding:0 4px 6px 48px}
+@media (max-width:520px){.subs .sub-memo .memo{padding:0 0 6px 16px}.memo{padding-left:24px}}
 .note-card .note-memo{flex-basis:100%;order:3;padding:2px 0 0;margin:0}
 .note-card .note-memo textarea{width:100%}
 @media (max-width:420px){.notes{padding-inline:16px}}
@@ -488,11 +489,17 @@ input.edit,.subadd input{flex:1;min-width:0;font:inherit;color:var(--ink);backgr
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--sheet);font-size:13px;font-weight:700;border-radius:18px;padding:7px 16px;z-index:20;pointer-events:none;max-width:calc(100% - 32px);text-align:center}
 
 /* add form */
-.add{border-top:2px dashed var(--line);padding:14px 16px 16px;display:grid;gap:10px}
+.add{border-top:2px dashed var(--line);padding:14px 16px 16px;display:grid;gap:10px;grid-template-columns:minmax(0,1fr)}
 .seg{display:flex;gap:6px;flex-wrap:wrap}
 .seg button{border:1.5px solid var(--line);background:none;border-radius:16px;padding:3px 14px;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted)}
 .seg button[aria-pressed="true"]{border-color:var(--c);background:var(--c-soft);color:var(--c)}
 .dailyToggle{margin-left:auto;border-style:dashed!important}
+/* phone: the item chips all fit on one line and never run off the edge */
+@media (max-width:520px){
+  #seg{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+  #seg button{min-width:0;padding:5px 2px;font-size:12px;white-space:nowrap;text-align:center;overflow:hidden}
+  #seg .dailyToggle{grid-column:1/-1;justify-self:end;margin:0;padding:3px 12px}
+}
 .seg .dailyToggle[aria-pressed="true"]{border-style:solid!important;border-color:var(--ink);color:var(--ink);background:var(--soft)}
 .addrow{display:flex;gap:8px}
 .addrow input{flex:1;min-width:0;font:inherit;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:9px 12px}
@@ -1242,6 +1249,14 @@ button{-webkit-tap-highlight-color:transparent}
     return box;
   }
   const memoFocus=new Set();
+  // memo boxes open as tall as what's written in them, and keep growing while typing
+  function fitArea(ta){if(!ta||!ta.isConnected)return;ta.style.height="auto";const max=Math.max(160,Math.round(window.innerHeight*0.6));ta.style.height=Math.min(max,ta.scrollHeight+2)+"px";ta.style.overflowY=ta.scrollHeight+2>max?"auto":"hidden"}
+  const GROW="#pageToday textarea,.pmemo textarea,.wmemo textarea,#futureList textarea";
+  document.addEventListener("input",e=>{if(e.target.matches&&e.target.matches(GROW))fitArea(e.target)});
+  new MutationObserver(ms=>{ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType!==1)return;
+    const list=n.matches&&n.matches("textarea")?[n]:[...(n.querySelectorAll?n.querySelectorAll("textarea"):[])];
+    list.forEach(ta=>{if(ta.matches(GROW))requestAnimationFrame(()=>fitArea(ta))})}))}).observe(document.body,{childList:true,subtree:true});
+  window.addEventListener("resize",()=>document.querySelectorAll(GROW).forEach(fitArea));
   const memoToggle=key=>{if(memoOpen.has(key))memoOpen.delete(key);else{memoOpen.add(key);memoFocus.add(key)}render()};
   function memoTag(key,has){
     if(!has||memoOpen.has(key))return null;
