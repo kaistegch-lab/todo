@@ -801,7 +801,7 @@ button{-webkit-tap-highlight-color:transparent}
   const normCat=c=>CAT_IDS.includes(c)?c:"other";
   const norm=list=>(list||[]).map(i=>({id:i.id||uid(),text:String(i.text||""),done:!!i.done,cat:normCat(i.cat),star:!!i.star,parent:i.parent||null,...(i.moved?{moved:true}:{}),...(i.from?{from:i.from}:{}),...(i.movedTo?{movedTo:i.movedTo}:{}),...(i.movedId?{movedId:i.movedId}:{}),...(i.fromDay?{fromDay:i.fromDay}:{}),...(i.fromId?{fromId:i.fromId}:{}),...(i.memo?{memo:String(i.memo)}:{}),...(i.planId?{planId:i.planId,planDay:i.planDay||null}:{})}));
   const normDaily=list=>(list||[]).map(d=>({id:d.id||uid(),text:String(d.text||""),cat:normCat(d.cat),star:!!d.star,since:d.since||"2000-01-01",until:d.until||null,...(d.memo?{memo:String(d.memo)}:{}),
-    ...(Array.isArray(d.subs)&&d.subs.length?{subs:d.subs.map(x=>({id:x.id||uid(),text:String(x.text||""),star:!!x.star,...(x.until?{until:x.until}:{})}))}:{})}));
+    ...(Array.isArray(d.subs)&&d.subs.length?{subs:d.subs.map(x=>({id:x.id||uid(),text:String(x.text||""),star:!!x.star,...(x.until?{until:x.until}:{}),...(x.memo?{memo:String(x.memo)}:{})}))}:{})}));
   const activeDaily=k=>daily.filter(d=>d.since<=k&&(!d.until||k<d.until));
   // daily tasks shown on day k (rd = that day's rdone; "skip" hides it for that day only)
   const shownDaily=(k,rd)=>activeDaily(k).filter(d=>(rd||{})[d.id]!=="skip");
@@ -1503,12 +1503,15 @@ button{-webkit-tap-highlight-color:transparent}
       shown.forEach((x,idx)=>{
         const sl=el("li","sub"+(sdone(x)?" done":""));sl.dataset.id=x.id;
         const st=textEl(x.text,x.star);
-        st.onclick=()=>editText(sl,st,()=>x.text,v=>{x.text=v;saveDaily()},()=>{dsubFor={p:d.id,after:x.id}});
+        const mk="ds:"+x.id;
+        {const mt=memoTag(mk,!!x.memo);if(mt)st.append(mt)}
+        st.onclick=e=>{if(e.target.closest(".mtag"))return;editText(sl,st,()=>x.text,v=>{x.text=v;saveDaily()},()=>{dsubFor={p:d.id,after:x.id}})};
         const a=el("div","acts");
-        if(!readOnly)a.append(actBtn("×","この小タスクを消す（毎日共通）",()=>{d.subs=allSubs.filter(y=>y!==x);if(!d.subs.length)delete d.subs;delete rdone["s:"+x.id];grouped(()=>{saveDaily();commit()})}));
+        if(!readOnly)a.append(actBtn("✎","メモ（毎日共通）",()=>memoToggle(mk),x.memo?"has":""),actBtn("×","この小タスクを消す（毎日共通）",()=>{d.subs=allSubs.filter(y=>y!==x);if(!d.subs.length)delete d.subs;delete rdone["s:"+x.id];grouped(()=>{saveDaily();commit()})}));
         const sh=handle();sh.setAttribute("aria-label","ドラッグで小タスクを並べ替え");if(readOnly)sh.style.visibility="hidden";
         sl.append(sh,boxBtn(sdone(x),()=>{if(sdone(x)){delete rdone["s:"+x.id];if(x.until===cur)delete x.until}else{rdone["s:"+x.id]=1;x.until=cur}syncParent();grouped(()=>{saveDaily();commit()})}),st,a);
         ul.append(sl);
+        if(memoOpen.has(mk)){const mb=memoBox(mk,()=>x.memo,v=>{if(v)x.memo=v;else delete x.memo},()=>saveDaily());const ml=el("li","sub-memo");ml.append(mb);ul.append(ml)}
         if(dAdding&&(dsubFor.after===x.id||(dsubFor.after===null&&idx===shown.length-1)))ul.append(addRow(x.id));
       });
       li.append(ul);
