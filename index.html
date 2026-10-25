@@ -220,11 +220,15 @@ button{font:inherit;color:inherit}
 .pcard{touch-action:pan-x pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .pd-ghost{position:fixed;z-index:60;pointer-events:none;margin:0;box-shadow:0 10px 26px rgba(0,0,0,.22);opacity:.95}
 .pcard.pd-src{opacity:.3}
+/* a task written straight into the day's list (not planned here): dashed edge */
+.pcard.is-task{border-style:dashed;border-left-style:solid;background:transparent}
 .pg-cell.pg-drop{background:color-mix(in srgb,var(--ink) 7%,var(--sheet))!important;box-shadow:inset 0 0 0 2px var(--ink)}
 .pd-ins{height:3px;border-radius:2px;background:var(--ink);margin:2px 0}
 .shiftbar .sb-wk{flex-basis:100%;font-size:11px;font-weight:900;color:var(--muted);margin-top:2px}
 .shiftbar .sun{color:var(--sun)}.shiftbar .sat{color:var(--sat)}
 .psel-cats{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:6px 10px 8px;border-top:1px solid var(--line)}
+.psel-star{border:1.5px solid var(--line)!important;color:var(--muted)!important;background:var(--sheet)!important;margin-right:6px}
+.psel-star.on{border-color:var(--star)!important;color:var(--star)!important}
 .psel-cats>span{font-size:11px;font-weight:700;color:var(--muted);margin-right:2px}
 .psel-cats button{border:1.5px solid var(--c);background:var(--sheet);color:var(--c);border-radius:14px;padding:2px 10px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 .psel-cats button[aria-pressed="true"]{background:var(--c);color:var(--sheet)}
@@ -722,7 +726,7 @@ button{-webkit-tap-highlight-color:transparent}
       <p class="pl-sum" id="planSum"></p>
       <div class="wmemo" id="weekMemoPlan"></div>
       <div class="pl-days" id="planDays"></div>
-      <p class="rv-note">表のマスをタップすると、その曜日・項目にそのまま書き込めます。予定をタップすると、ずらす・メモ・外すができます。ここに入れた予定は、その曜日のリストに自動で入ります。予定をずらしても、最初に決めた曜日はここに残るので、どれだけずれたかが分かります。</p>
+      <p class="rv-note">表のマスをタップすると、その曜日・項目にそのまま書き込めます。予定をタップすると、ずらす・メモ・外すができます。点線のカードは、その日のリストに直接書いた（または移した）タスクです。ここに入れた予定は、その曜日のリストに自動で入ります。予定をずらしても、最初に決めた曜日はここに残るので、どれだけずれたかが分かります。</p>
     </section>
   </div>
   <div class="sheet page" id="pageMore" hidden>
@@ -2210,6 +2214,14 @@ button{-webkit-tap-highlight-color:transparent}
     const prev=shift(start,-7);
     const vis=weekInfo[prev]?planStatus(prev,docs).filter(s=>s.live).map(s=>({...s,visitor:true})):[];
     const out=[...own,...vis];out.forEach(s=>{s.col=s.live?s.liveDay:s.p.day});
+    const linked=new Set(out.filter(s=>s.live).map(s=>s.live.id));
+    for(let i=0;i<7;i++){
+      const k=shift(start,i);const its=norm((docs[k]||emptyDoc()).items);
+      its.filter(it=>!it.parent&&!it.moved&&!linked.has(it.id)&&!(it.planId&&out.some(s=>s.p.id===it.planId))).forEach(it=>{
+        out.push({task:true,p:{id:"t:"+it.id,text:it.text,cat:it.cat,day:k,...(it.memo?{memo:it.memo}:{})},live:it,liveDay:k,col:k,shift:0,
+          state:it.done?"onPlan":"pending",cat:it.cat,text:it.text,star:!!it.star,memo:String(it.memo||"")});
+      });
+    }
     return out;
   }
   function planSummary(stats){
@@ -2238,7 +2250,8 @@ button{-webkit-tap-highlight-color:transparent}
     const stats=planView(start,docs);
     const sm=planSummary(planStatus(start,docs));
     const sp=(l,v)=>"<span class=\"k\">"+l+" <b>"+v+"</b></span>";
-    $("planSum").innerHTML=sm.n?sp("予定",sm.n+"件")+sp("完了",sm.onPlan+sm.shiftedDone+"件")+"<span class=\"k\">（ずらした分は「今週」の結果に出ます）</span>":"まだ予定がありません。曜日ごとに入れていくと、その日のリストにも自動で入ります。";
+    const nTask=stats.filter(x=>x.task&&!isNote(x)).length;
+    $("planSum").innerHTML=(sm.n||nTask)?(sm.n?"":"")+sp("予定",sm.n+"件")+sp("完了",sm.onPlan+sm.shiftedDone+"件")+(nTask?sp("今日のリストから",nTask+"件"):"")+"<span class=\"k\">（ずらした分は「今週」の結果に出ます）</span>":"まだ予定がありません。曜日ごとに入れていくと、その日のリストにも自動で入ります。";
     const def=latestDefault(start);const db_=$("planDefault");
     const used=info.defaultVer||(info.defaultUsed?1:0);
     db_.hidden=!(def&&used<def.ver&&!readOnly);
@@ -2315,7 +2328,17 @@ button{-webkit-tap-highlight-color:transparent}
       const h=el("div","psel-h");h.append(el("span",null,WD[d.getDay()]+" "+(d.getMonth()+1)+"/"+d.getDate()+" の予定"));
       const x=el("button",null,"閉じる");x.type="button";x.onclick=()=>{planSel=null;planShift=null;renderPlan()};h.append(x);
       // item buttons so the category is easy to change (the dot also works)
-      const cs=el("div","psel-cats");cs.append(el("span",null,"項目"));
+      const cs=el("div","psel-cats");
+      // ★ (important) — kept the same as the task in the day list
+      const stb=el("button","psel-star"+(sel.star?" on":""),sel.star?"★ 重要":"☆ 重要");stb.type="button";stb.setAttribute("aria-pressed",String(!!sel.star));
+      stb.onclick=()=>{if(readOnly)return;const v=!sel.star;
+        grouped(async()=>{
+          if(!sel.task){if(v)sel.p.star=true;else delete sel.p.star;saveWeekInfo(sel.visitor?shift(planStart,-7):planStart)}
+          if(sel.live){const k=sel.liveDay,id=sel.live.id;
+            if(k===cur){const it=items.find(i=>i.id===id);if(it)it.star=v;commit()}
+            else{const doc=await readDay(k);const its=norm(doc.items);its.forEach(i=>{if(i.id===id)i.star=v});const after={...cloneDoc(doc),items:its};trackDay(k,cloneDoc(doc),after);writeDay(k,after);cacheDay(k,after)}}
+        }).then(refreshPlanDocs).then(()=>toast(v?"重要マークを付けました":"重要マークを外しました"))};
+      cs.append(stb,el("span",null,"項目"));
       CAT_IDS.forEach(c=>{const b=el("button",null,CAT[c]);b.type="button";b.dataset.cat=c;b.setAttribute("aria-pressed",String(sel.cat===c));
         b.onclick=()=>{if(readOnly||sel.cat===c)return;grouped(async()=>{sel.p.cat=c;sel.cat=c;saveWeekInfo(planStart);if(sel.live)await setLiveCat_(sel,c);else renderPlan()}).then(()=>toast(CAT[c]+"にしました"))};
         cs.append(b)});
@@ -2396,6 +2419,11 @@ button{-webkit-tap-highlight-color:transparent}
     const p=s.p,fromDay=s.col,oldCat=s.cat;
     const same=toDay===fromDay&&toCat===oldCat;
     grouped(async()=>{
+      if(s.task){
+        if(toCat!==oldCat)await setLiveCat_(s,toCat);
+        if(toDay!==fromDay)await moveBetween(s.liveDay,toDay,s.live.id,true);
+        return;
+      }
       if(!s.visitor){
         // place in the cell (order only)
         const rest=info.plan.filter(x=>x!==p);
@@ -2432,7 +2460,7 @@ button{-webkit-tap-highlight-color:transparent}
     return inp;
   }
   function planCard(s){
-    const b=el("button","pcard"+(planSel===s.p.id?" sel":""));b.type="button";b.dataset.cat=s.cat;
+    const b=el("button","pcard"+(planSel===s.p.id?" sel":"")+(s.task?" is-task":""));b.type="button";b.dataset.cat=s.cat;
     const [lbl,cls]=isNote(s)?(s.live?[CAT[s.cat],"no"]:["済み","ok"]):ST_LABEL(s);
     b.classList.add("st-"+cls);
     b.append(el("span","pc-t",(s.star?"★":"")+s.text));
@@ -2458,7 +2486,7 @@ button{-webkit-tap-highlight-color:transparent}
     const acts=el("span","pacts");
     if(s.live&&!s.live.done&&!s.live.parent){const b=el("button",null,"⇢");b.type="button";b.title="ずらす";b.onclick=()=>{planShift=planShift===s.p.id?null:s.p.id;renderPlan()};acts.append(b)}
     const mb=el("button",null,"✎");mb.type="button";mb.title="メモ";mb.onclick=()=>{if(pmOpen.has(s.p.id))pmOpen.delete(s.p.id);else{pmOpen.add(s.p.id);memoFocus.add("pm:"+s.p.id)}renderPlan()};acts.append(mb);
-    const x=el("button",null,"×");x.type="button";x.title="予定から外す";x.onclick=()=>removePlan(s);acts.append(x);
+    const x=el("button",null,"×");x.type="button";x.title=s.task?"このタスクを消す":"予定から外す";x.onclick=()=>removePlan(s);acts.append(x);
     const tag=catTag(s.cat,c=>grouped(async()=>{s.p.cat=c;s.cat=c;saveWeekInfo(planStart);if(s.live)await setLiveCat_(s,c);else renderPlan()}));
     tag.title="タップで分類を変える（メイン→マイクラ→その他→付箋→投稿）";tag.classList.add("dot");tag.textContent="";
     t.title="タップで書き換え";t.style.cursor="text";
@@ -2531,14 +2559,14 @@ button{-webkit-tap-highlight-color:transparent}
   }
   async function removePlan(s){return grouped(()=>removePlan_(s))}
   async function removePlan_(s){
-    const info=weekInfo[planStart];info.plan=info.plan.filter(p=>p.id!==s.p.id);saveWeekInfo(planStart);
+    if(!s.task){const info=weekInfo[s.visitor?shift(planStart,-7):planStart];info.plan=info.plan.filter(p=>p.id!==s.p.id);saveWeekInfo(s.visitor?shift(planStart,-7):planStart)}
     // an unfinished linked task leaves the list too; a finished one stays as a record
     if(s.live&&!s.live.done){
       const k=s.liveDay,id=s.live.id;
       if(k===cur){items=items.filter(i=>i.id!==id&&i.parent!==id);commit()}
       else{const doc=await readDay(k);const after={...cloneDoc(doc),items:norm(doc.items).filter(i=>i.id!==id&&i.parent!==id),order:(doc.order||[]).filter(o=>o!==id)};trackDay(k,cloneDoc(doc),after);writeDay(k,after);cacheDay(k,after)}
     }
-    await refreshPlanDocs();toast("予定から外しました");
+    await refreshPlanDocs();toast(s.task?"タスクを消しました（↶で戻せます）":"予定から外しました");
   }
   // ---- pages: 今日 / 今週 / 予定 / 先のメモ ----
   let page="today";
