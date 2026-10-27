@@ -598,6 +598,10 @@ body{margin:0;padding-top:calc(16px + env(safe-area-inset-top,0px))!important;pa
 .verrow{display:flex;align-items:baseline;gap:10px;font-size:13px;font-weight:700}
 .verrow b{font-size:16px;font-weight:900;font-variant-numeric:tabular-nums}
 .verrow .linkbtn{margin-left:auto}
+.chatpane{gap:6px!important}
+.chatrow{display:flex;gap:6px;min-width:0}
+.chatrow input{flex:1;min-width:0;font:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--line);border-radius:6px;background:var(--sheet);color:var(--ink)}
+.chatrow button{flex:none;font:inherit;font-size:13px;font-weight:700;padding:7px 12px;border:0;border-radius:6px;background:var(--ink);color:var(--sheet);cursor:pointer}
 .note:empty{display:none}
 .more{display:none}
 @media (max-width:520px){
@@ -653,6 +657,12 @@ button{-webkit-tap-highlight-color:transparent}
     <section class="pane verpane">
       <div class="verrow"><span>アプリの版</span><b id="appVer">-</b><button type="button" class="linkbtn" id="verCheck">最新か確認</button></div>
       <p class="hint" id="verMsg">新しい版が出ると、開き直したときに自動で入ります。</p>
+    </section>
+    <section class="pane chatpane">
+      <h3>「不具合・要望」で開くチャット</h3>
+      <p class="hint">Claudeとのチャットが新しくなったら、そのチャットのリンク（アドレス）をここに貼ってください。どの端末の「不具合・要望」もそこを開くようになります。</p>
+      <div class="chatrow"><input id="chatUrl" type="url" inputmode="url" autocomplete="off" placeholder="https://claude.ai/…"><button type="button" id="chatSave">保存</button></div>
+      <p class="hint" id="chatMsg"></p>
     </section>
     <section class="pane" id="acct">
       <h3>PCとスマホで同期</h3>
@@ -861,6 +871,33 @@ button{-webkit-tap-highlight-color:transparent}
   let cur=todayKey(), items=[], rdone={}, order=[], carriedFrom=null;
   let prevItems=[], daily=[], db=null, unsub=null, readOnly=false;
   let addCat="main", addDaily=false, editing=false, subFor=null, confirmFor=null, autoChecked={}, editTarget=null, newAfter=null, dsubFor=null;
+  // ---- where 「不具合・要望」 goes: a chat link kept in settings/app (synced), changeable in 設定・同期 ----
+  const CHAT_DEFAULT=$("chatBtn").getAttribute("href");
+  let chatUrl=null,chatUnsub=null;
+  const okChat=u=>typeof u==="string"&&/^https:\/\/([a-z0-9-]+\.)*claude\.(ai|com)\//i.test(u.trim());
+  function applyChat(u){
+    chatUrl=okChat(u)?u.trim():null;
+    $("chatBtn").href=chatUrl||CHAT_DEFAULT;
+    if(document.activeElement!==$("chatUrl"))$("chatUrl").value=chatUrl||CHAT_DEFAULT;
+  }
+  function loadChat(){
+    if(chatUnsub){try{chatUnsub()}catch(e){}chatUnsub=null}
+    let loc=null;try{loc=JSON.parse(localStorage.getItem("todo:app")||"null")}catch(e){}
+    applyChat(loc&&loc.chatUrl);
+    if(!db)return;
+    const d=db;
+    chatUnsub=d.doc("settings/app").onSnapshot(s_=>{if(d!==db)return;const v=s_.exists?s_.data():null;
+      if(v&&v.chatUrl){applyChat(v.chatUrl);try{localStorage.setItem("todo:app",JSON.stringify({chatUrl:v.chatUrl}))}catch(e){}}},()=>{});
+  }
+  $("chatSave").onclick=()=>{
+    const v=$("chatUrl").value.trim();
+    if(!okChat(v)){$("chatMsg").textContent="claude.ai のチャットのリンクを貼ってください（https://claude.ai/… で始まるもの）";return}
+    if(readOnly){$("chatMsg").textContent="閲覧のみのため保存できません";return}
+    const body={chatUrl:v,updatedAt:new Date().toISOString()};
+    store("settings/app",body);if(db){try{localStorage.setItem("todo:app",JSON.stringify(body))}catch(e){}}
+    applyChat(v);$("chatMsg").textContent="保存しました。「不具合・要望」はこのチャットを開きます。";
+  };
+  $("chatUrl").addEventListener("keydown",e=>{if(isEnter(e)){e.preventDefault();$("chatSave").click()}});
 
   const normCat=c=>CAT_IDS.includes(c)?c:"other";
   // AI tasks (flag "ai"): ordinary tasks handed to an AI to wait on. While open they sit in the AI panel;
@@ -902,7 +939,7 @@ button{-webkit-tap-highlight-color:transparent}
   // Nothing is ever removed from the log in the account. Logs are separate from undo and never sync back.
   const LOG_MIN=15000,logSeen={};
   const LOCAL_KEY=path=>{const m=path.match(/^days\/(.+)$/);if(m)return "todo:"+m[1];
-    if(path==="settings/daily")return "todo:daily";if(path==="settings/future")return "todo:future";
+    if(path==="settings/daily")return "todo:daily";if(path==="settings/future")return "todo:future";if(path==="settings/app")return "todo:app";
     const w=path.match(/^weeks\/(.+)$/);return w?"todo:week:"+w[1]:null};
   const logId=(path,kind,ts)=>path.replace(/\//g,"_")+"~"+(kind==="before"?"b"+ts:Math.floor(ts/LOG_MIN));
   function logLocalPut(e){
@@ -2870,6 +2907,7 @@ button{-webkit-tap-highlight-color:transparent}
     if(path==="settings/daily")return "毎日タスク";
     if(path.startsWith("weeks/"))return dayLabel(path.slice(6))+"〜の週（目標・計画・メモ）";
     if(path==="settings/future")return "先のメモ";
+    if(path==="settings/app")return "「不具合・要望」のチャットのリンク";
     return path;
   }
   const catName=c=>CAT[normCat(c)]||"";
@@ -3328,16 +3366,17 @@ button{-webkit-tap-highlight-color:transparent}
     setTimeout(()=>open(t),600)}},60000);
 
   daily=normDaily(local.get("daily").items);
+  loadChat();
   open(cur);
   if(location.hash.length>1)setTimeout(()=>showPage(location.hash.slice(1),true),0);
   // hooks for app.js (cloud sync)
   let dailyUnsub=null;
   // after login/logout the page on screen reads the account's data again
-  function afterSwitch(){if(page==="log")loadLogs();else if(page==="later")loadFuture();else if(page==="plan"&&planStart)openPlan(planStart);else if(page==="week")renderWeek();else if(page==="data")renderData()}
+  function afterSwitch(){loadChat();if(page==="log")loadLogs();else if(page==="later")loadFuture();else if(page==="plan"&&planStart)openPlan(planStart);else if(page==="week")renderWeek();else if(page==="data")renderData()}
   const reset=()=>{$("rvBanner").hidden=true;stopWeeks();Object.keys(otherWeeks).forEach(k=>delete otherWeeks[k]);stopFuture();clearTimeout(futureT);futureT=null;futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
   // app version (from the offline cache name) so it's easy to see the update arrived
   // the version of this page (the same number as the offline cache in sw.js)
-  const APP_VERSION="v47";
+  const APP_VERSION="v48";
   $("appVer").textContent=APP_VERSION;
   $("verCheck").onclick=async()=>{
     const m=$("verMsg");m.textContent="確認中…";
