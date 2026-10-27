@@ -866,7 +866,7 @@ button{-webkit-tap-highlight-color:transparent}
   // AI tasks (flag "ai"): ordinary tasks handed to an AI to wait on. While open they sit in the AI panel;
   // checked ones join 完了済み. They count and carry over like any task.
   const isAi=i=>!!i&&!!i.ai&&!i.parent;
-  const norm=list=>(list||[]).map(i=>({id:i.id||uid(),text:String(i.text||""),done:!!i.done,cat:normCat(i.cat),...((i.ai||i.cat==="ai")&&!i.parent?{ai:true}:{}),star:!!i.star,parent:i.parent||null,...(i.moved?{moved:true}:{}),...(i.from?{from:i.from}:{}),...(i.movedTo?{movedTo:i.movedTo}:{}),...(i.movedId?{movedId:i.movedId}:{}),...(i.fromDay?{fromDay:i.fromDay}:{}),...(i.fromId?{fromId:i.fromId}:{}),...(i.memo?{memo:String(i.memo)}:{}),...(i.planId?{planId:i.planId,planDay:i.planDay||null}:{})}));
+  const norm=list=>(list||[]).map(i=>({id:i.id!=null&&i.id!==""?String(i.id):uid(),text:String(i.text||""),done:!!i.done,cat:normCat(i.cat),...((i.ai||i.cat==="ai")&&!i.parent?{ai:true}:{}),star:!!i.star,parent:i.parent!=null&&i.parent!==""?String(i.parent):null,...(i.moved?{moved:true}:{}),...(i.from?{from:i.from}:{}),...(i.movedTo?{movedTo:i.movedTo}:{}),...(i.movedId?{movedId:i.movedId}:{}),...(i.fromDay?{fromDay:i.fromDay}:{}),...(i.fromId?{fromId:i.fromId}:{}),...(i.memo?{memo:String(i.memo)}:{}),...(i.planId?{planId:i.planId,planDay:i.planDay||null}:{})}));
   const normDaily=list=>(list||[]).map(d=>({id:d.id||uid(),text:String(d.text||""),cat:normCat(d.cat),star:!!d.star,since:d.since||"2000-01-01",until:d.until||null,...(d.memo?{memo:String(d.memo)}:{}),
     ...(Array.isArray(d.subs)&&d.subs.length?{subs:d.subs.map(x=>({id:x.id||uid(),text:String(x.text||""),star:!!x.star,...(x.until?{until:x.until}:{}),...(x.memo?{memo:String(x.memo)}:{})}))}:{})}));
   const activeDaily=k=>daily.filter(d=>d.since<=k&&(!d.until||k<d.until));
@@ -1846,6 +1846,22 @@ button{-webkit-tap-highlight-color:transparent}
   // ---- drag like Google Keep: grab ⠿ (or long-press a row on a phone), move up/down to reorder,
   // and move right/left to make it a subtask of the task above / a big task. Works for big tasks and subtasks.
   let kd=null,kdHinted=false;
+  // keep scrolling while the finger/mouse is held near the top or bottom of the screen
+  // (moving it is not needed), so a task can be carried to a list that is off-screen
+  function edgeScroll(active,pos,after){
+    const step=()=>{
+      if(!active())return;
+      const p=pos(),H=window.innerHeight,E=Math.min(90,H*0.14);let v=0;
+      // only toward an edge the finger has actually moved to (a long-press that starts
+      // near the bottom of the screen must not set the page scrolling on its own)
+      if(p.y<E&&p.y<p.y0-12)v=-(2+Math.round((E-p.y)/E*16));else if(p.y>H-E&&p.y>p.y0+12)v=2+Math.round((p.y-(H-E))/E*16);
+      const sx=p.hx?p.hx():false;
+      if(v){const b=window.scrollY;window.scrollBy(0,v);if(window.scrollY!==b)after()}
+      else if(sx)after();
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
   function dragRows(skip,ulId){
     const R=[];
     [...$(ulId||"list").children].forEach(li=>{
@@ -1878,6 +1894,7 @@ button{-webkit-tap-highlight-color:transparent}
         x0:x,y0:y,r,ghost,line,Rm:dragRows(li,"list"),Ra:dragRows(li,"aiList"),zone:task.parentElement.id==="aiList"?"ai":"main",gap:null,level:null,moved:false};
     kd.R=kd.zone==="ai"?kd.Ra:kd.Rm;kd.home=kd.zone;kd.bx=x-(sub?40:0);
     kdMove(x,y);
+    const me=kd;edgeScroll(()=>kd===me,()=>({y:me.ly,y0:me.y0}),()=>kdMove(me.lx,me.ly));
   }
   function kdTarget(x,y){
     const R=kd.R;let i=R.length;
@@ -1904,7 +1921,7 @@ button{-webkit-tap-highlight-color:transparent}
     return{i,level,parentKey,prev,next};
   }
   function kdMove(x,y){
-    const dx=x-kd.x0,dy=y-kd.y0;
+    const dx=x-kd.x0,dy=y-kd.y0;kd.lx=x;kd.ly=y;
     if(Math.abs(dx)>3||Math.abs(dy)>3)kd.moved=true;
     // which list is under the finger: the AI panel or the day's list (a daily task stays in the day's list)
     {const hit=document.elementFromPoint(x,y);const overAi=!kd.daily&&!kd.dsub&&!!(hit&&hit.closest&&hit.closest("#aiPanel"));
@@ -1915,7 +1932,7 @@ button{-webkit-tap-highlight-color:transparent}
         if(z===kd.home){kd.bx=kd.x0-(kd.sub?40:0);kd.want=kd.sub?"sub":"top"}else{kd.bx=x;kd.want="top"}
       }
       $("aiPanel").classList.toggle("drop",overAi);
-      if(overAi&&!kd.Ra.length){kd.line.hidden=true;kd.t={i:0,level:"top",parentKey:null,prev:null,next:null};kd.ghost.style.transform="translate("+dx+"px,"+dy+"px)";if(y<70)window.scrollBy(0,-10);else if(y>window.innerHeight-70)window.scrollBy(0,10);return}}
+      if(overAi&&!kd.Ra.length){kd.line.hidden=true;kd.t={i:0,level:"top",parentKey:null,prev:null,next:null};kd.ghost.style.transform="translate("+dx+"px,"+dy+"px)";return}}
     const t=kdTarget(x,y);
     if(kd.t&&t.level&&kd.t.level&&t.level!==kd.t.level){try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}}
     kd.t=t;
@@ -1933,7 +1950,6 @@ button{-webkit-tap-highlight-color:transparent}
     let pName="";if(t.level==="sub"&&t.parentKey&&!kd.dsub){const P=items.find(i=>i.id===t.parentKey);if(P)pName=P.text.length>10?P.text.slice(0,10)+"…":P.text}
     kd.line.dataset.label=t.level==="sub"?(kd.dsub?"小タスク":"→ 小タスク"+(pName?"（"+pName+"）":"")):"← 大タスク";
     kd.line.classList.toggle("sub",t.level==="sub");
-    if(y<70)window.scrollBy(0,-10);else if(y>window.innerHeight-70)window.scrollBy(0,10);
   }
   function kdDrop(){
     const d=kd;kd=null;
@@ -2516,6 +2532,7 @@ button{-webkit-tap-highlight-color:transparent}
     const t=$("planDays").querySelector(".pgrid");if(t)t.classList.add("dragging");
     pd.ins=el("div","pd-ins");
     pdMove(pd.x,pd.y);
+    const me=pd;edgeScroll(()=>pd===me&&me.on,()=>({y:me.y,y0:me.y0,hx:()=>{const w=$("planDays").querySelector(".pgrid-wrap");if(!w)return false;const wr=w.getBoundingClientRect();return me.x<wr.left+40||me.x>wr.right-40}}),()=>pdMove(me.x,me.y));
   }
   function pdTarget(x,y){
     const hit=document.elementFromPoint(x,y);const td=hit&&hit.closest&&hit.closest("#planDays td.pg-cell");
@@ -2535,7 +2552,6 @@ button{-webkit-tap-highlight-color:transparent}
     // keep scrolling while near an edge
     const w=$("planDays").querySelector(".pgrid-wrap");
     if(w){const wr=w.getBoundingClientRect();if(x<wr.left+40)w.scrollLeft-=14;else if(x>wr.right-40)w.scrollLeft+=14}
-    if(y<70)window.scrollBy(0,-12);else if(y>window.innerHeight-70)window.scrollBy(0,12);
   }
   function pdClean(){
     if(pd&&pd.g)pd.g.remove();if(pd&&pd.ins)pd.ins.remove();if(pd&&pd.card)pd.card.classList.remove("pd-src");
@@ -3253,7 +3269,7 @@ button{-webkit-tap-highlight-color:transparent}
   const reset=()=>{$("rvBanner").hidden=true;stopWeeks();Object.keys(otherWeeks).forEach(k=>delete otherWeeks[k]);stopFuture();clearTimeout(futureT);futureT=null;futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
   // app version (from the offline cache name) so it's easy to see the update arrived
   // the version of this page (the same number as the offline cache in sw.js)
-  const APP_VERSION="v44";
+  const APP_VERSION="v45";
   $("appVer").textContent=APP_VERSION;
   $("verCheck").onclick=async()=>{
     const m=$("verMsg");m.textContent="確認中…";
