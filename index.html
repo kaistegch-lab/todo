@@ -1876,7 +1876,7 @@ button{-webkit-tap-highlight-color:transparent}
     if(!kdHinted&&!task.dataset.key.startsWith("d:")){kdHinted=true;toast("左右に動かすと 大タスク ⇔ 小タスク")}
     kd={want:sub?"sub":"top",pid,li,sub:!!sub,dsub:!!sub&&task.dataset.key.startsWith("d:"),daily:task.dataset.key.startsWith("d:"),key:task.dataset.key,id:sub?sub.dataset.id:task.dataset.key,
         x0:x,y0:y,r,ghost,line,Rm:dragRows(li,"list"),Ra:dragRows(li,"aiList"),zone:task.parentElement.id==="aiList"?"ai":"main",gap:null,level:null,moved:false};
-    kd.R=kd.zone==="ai"?kd.Ra:kd.Rm;
+    kd.R=kd.zone==="ai"?kd.Ra:kd.Rm;kd.home=kd.zone;kd.bx=x-(sub?40:0);
     kdMove(x,y);
   }
   function kdTarget(x,y){
@@ -1893,9 +1893,13 @@ button{-webkit-tap-highlight-color:transparent}
     if(prev&&!kd.daily){const pk=prev.type==="top"?prev.key:prev.parentKey;const pr=R.find(r=>r.type==="top"&&r.key===pk);if(pr&&!pr.daily&&!pr.moved&&pk!==kd.id)parentKey=pk}
     // left/right decides big task or subtask: an indent position that follows the finger,
     // with some slack so a slightly sideways finger doesn't flip it back and forth
-    const ix=(x-kd.x0)+(kd.sub?40:0);
+    // measured from a baseline that restarts when the finger enters the other list (see kdMove),
+    // so carrying a task sideways into the AI panel doesn't count as "moved right"
+    const ix=x-kd.bx;
     if(kd.want==="top"&&ix>30)kd.want="sub";else if(kd.want==="sub"&&ix<12)kd.want="top";
-    const want=kd.want;
+    // carried into the other list (day list ⇄ AI panel): it always goes in as a big task;
+    // the left/right nudge for subtasks only applies inside the list it came from
+    const want=kd.zone!==kd.home?"top":kd.want;
     let level=want==="sub"?(parentKey?"sub":canTop?"top":null):(canTop?"top":parentKey?"sub":null);
     return{i,level,parentKey,prev,next};
   }
@@ -1904,15 +1908,21 @@ button{-webkit-tap-highlight-color:transparent}
     if(Math.abs(dx)>3||Math.abs(dy)>3)kd.moved=true;
     // which list is under the finger: the AI panel or the day's list (a daily task stays in the day's list)
     {const hit=document.elementFromPoint(x,y);const overAi=!kd.daily&&!kd.dsub&&!!(hit&&hit.closest&&hit.closest("#aiPanel"));
-      const z=overAi?"ai":"main";if(z!==kd.zone){kd.zone=z;kd.R=z==="ai"?kd.Ra:kd.Rm;kd.t=null}
+      const z=overAi?"ai":"main";
+      if(z!==kd.zone){
+        kd.zone=z;kd.R=z==="ai"?kd.Ra:kd.Rm;kd.t=null;
+        // a new list: big task by default, nudge right from here for a subtask
+        if(z===kd.home){kd.bx=kd.x0-(kd.sub?40:0);kd.want=kd.sub?"sub":"top"}else{kd.bx=x;kd.want="top"}
+      }
       $("aiPanel").classList.toggle("drop",overAi);
       if(overAi&&!kd.Ra.length){kd.line.hidden=true;kd.t={i:0,level:"top",parentKey:null,prev:null,next:null};kd.ghost.style.transform="translate("+dx+"px,"+dy+"px)";if(y<70)window.scrollBy(0,-10);else if(y>window.innerHeight-70)window.scrollBy(0,10);return}}
     const t=kdTarget(x,y);
     if(kd.t&&t.level&&kd.t.level&&t.level!==kd.t.level){try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}}
     kd.t=t;
     // the floating copy snaps to where it will land: indented for a subtask, flush left for a big task
-    const lvX=(t.level==="sub"?40:0)-(kd.sub?40:0);
-    kd.ghost.style.transform="translate("+(lvX+Math.max(-10,Math.min(10,dx-lvX))*0.4)+"px,"+dy+"px)";
+    // in its own list the floating copy snaps to the level; over the other list it simply follows the finger
+    if(kd.zone===kd.home){const lvX=(t.level==="sub"?40:0)-(kd.sub?40:0);kd.ghost.style.transform="translate("+(lvX+Math.max(-10,Math.min(10,dx-lvX))*0.4)+"px,"+dy+"px)"}
+    else kd.ghost.style.transform="translate("+dx+"px,"+dy+"px)";
     kd.ghost.classList.toggle("as-sub",t.level==="sub");
     const lr=$(kd.zone==="ai"?"aiList":"list").getBoundingClientRect();
     if(!t.level){kd.line.hidden=true;return}
@@ -3243,7 +3253,7 @@ button{-webkit-tap-highlight-color:transparent}
   const reset=()=>{$("rvBanner").hidden=true;stopWeeks();Object.keys(otherWeeks).forEach(k=>delete otherWeeks[k]);stopFuture();clearTimeout(futureT);futureT=null;futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
   // app version (from the offline cache name) so it's easy to see the update arrived
   // the version of this page (the same number as the offline cache in sw.js)
-  const APP_VERSION="v43";
+  const APP_VERSION="v44";
   $("appVer").textContent=APP_VERSION;
   $("verCheck").onclick=async()=>{
     const m=$("verMsg");m.textContent="確認中…";
