@@ -281,6 +281,43 @@ button{font:inherit;color:inherit}
 .padd input:focus{outline:none;border-bottom:1px solid var(--ink)}
 @media (max-width:520px){.plan{padding-inline:12px}.memo,.shiftbar{padding-left:40px}}
 
+/* AI panel */
+.aipanel{display:grid;gap:0;grid-template-columns:minmax(0,1fr);min-width:0;background:var(--sheet);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+#aiSlotPhone .aipanel{margin:0 22px 12px;border-color:color-mix(in srgb,var(--sat) 35%,var(--line))}
+@media (max-width:420px){#aiSlotPhone .aipanel{margin-inline:16px}}
+.ai-h{display:flex;align-items:center;gap:8px;width:100%;border:0;background:color-mix(in srgb,var(--sat) 9%,var(--sheet));color:var(--ink);font:inherit;text-align:left;padding:8px 12px;cursor:pointer}
+.ai-h b{font-size:13px;font-weight:900}
+.ai-sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ai-h>*{flex-shrink:0}.ai-h .ai-sub{flex-shrink:1}
+.ai-n{margin-left:auto;font-size:12px;font-weight:900;color:var(--sat)}
+.ai-h .chev{font-size:12px;color:var(--muted);transition:transform .15s}
+.ai-h[aria-expanded="false"] .chev{transform:rotate(-90deg)}
+.today-grid.wide .ai-h{cursor:default}.today-grid.wide .ai-h .chev{display:none}
+.ai-badge{font-size:10px;font-weight:900;color:var(--sheet);background:var(--sat);border-radius:5px;padding:1px 5px;letter-spacing:.04em}
+.ai-body{display:grid;gap:0;grid-template-columns:minmax(0,1fr)}
+.ai-list{list-style:none;margin:0;padding:0}
+.ai-item{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px 8px;padding:8px 12px;border-top:1px solid var(--line);font-size:14px}
+.ai-item .box{--c:var(--sat);flex:none;margin-top:1px}
+.ai-t{flex:1;min-width:0;overflow-wrap:anywhere;cursor:text}
+.ai-item.done .ai-t{color:var(--muted);text-decoration:line-through}
+.ai-since{font-size:11px;color:var(--muted);text-decoration:none}
+.ai-acts{display:flex;gap:0;flex:none;opacity:.55}
+.ai-item:hover .ai-acts,.ai-item:focus-within .ai-acts{opacity:1}
+.ai-acts button{background:none;border:0;cursor:pointer;color:var(--muted);font-size:14px;padding:0 5px;border-radius:4px;line-height:1.6}
+.ai-acts .has{color:var(--ink)}
+.ai-m{flex-basis:100%;padding-left:28px;font-size:12px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;cursor:text}
+.ai-item .ai-memo{flex-basis:100%;padding:2px 0 0 28px}
+.ai-item .ai-shift{flex-basis:100%;padding:2px 0 0 28px}
+.ai-item input.edit{flex:1}
+.ai-none{padding:10px 12px;font-size:12px;color:var(--muted);border-top:1px solid var(--line)}
+.ai-add{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--line)}
+.ai-add input{flex:1;min-width:0;font:inherit;font-size:16px;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:6px 10px}
+.ai-add button{border:0;background:var(--sat);color:#fff;border-radius:6px;padding:6px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+/* PC: the AI panel sits to the right of the day's list */
+@media (min-width:980px){
+  .today-grid.wide{display:grid;grid-template-columns:600px 320px;gap:16px;align-items:start;width:936px;margin-left:calc((600px - 936px)/2)}
+  .today-grid.wide #aiSlotPC{position:sticky;top:12px;min-width:0}
+}
 /* 付箋 (notes at the top of the day) */
 .notes{display:grid;gap:6px;padding:0 22px 12px}
 .note-card{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px 8px;background:var(--c-soft,var(--post-soft));border-left:4px solid var(--c,var(--post));border-radius:4px;padding:7px 8px 7px 10px;font-size:14px}
@@ -639,6 +676,7 @@ button{-webkit-tap-highlight-color:transparent}
     <button type="button" data-page="plan">予定</button>
     <button type="button" data-page="more">その他</button>
   </nav>
+  <div class="today-grid" id="todayGrid">
   <div class="sheet page" id="pageToday">
     <div class="binding">
       <button id="prevBtn" type="button" aria-label="前の日">← 前日</button>
@@ -658,6 +696,7 @@ button{-webkit-tap-highlight-color:transparent}
     </div>
     <div class="rvbanner" id="rvBanner" hidden><button type="button" id="rvGo">新しい週です。先週の結果と目標を確認 →</button><button type="button" id="rvX" aria-label="閉じる" title="閉じる">×</button></div>
     <div class="notes" id="notesBar" hidden></div>
+    <div id="aiSlotPhone"></div>
     <div class="today" id="todayChips"></div>
     <ul class="list" id="list"></ul>
     <div class="skipbar" id="skipBar" hidden></div>
@@ -685,6 +724,15 @@ button{-webkit-tap-highlight-color:transparent}
       </div>
     </form>
   </div>
+  <div id="aiSlotPC"></div>
+  </div>
+  <section class="aipanel" id="aiPanel" aria-label="AIに任せていること">
+    <button type="button" class="ai-h" id="aiFold" aria-expanded="true"><span class="ai-badge">AI</span><b>AIに任せ中</b><span class="ai-sub">指示して待つもの</span><span class="ai-n" id="aiCount"></span><span class="chev">▾</span></button>
+    <div class="ai-body" id="aiBody">
+      <ul class="ai-list" id="aiList"></ul>
+      <div class="ai-add"><input id="aiNew" placeholder="AIに頼んだことを入れて Enter" maxlength="300" autocomplete="off"><button type="button" id="aiAddBtn">追加</button></div>
+    </div>
+  </section>
   <div class="sheet page" id="pageWeek" hidden>
     <section class="week" aria-label="今週の成績">
       <div class="wk-nav"><button type="button" id="wkPrev" aria-label="前の週">‹ 前の週</button><b id="wkTitle">今週</b><button type="button" id="wkNext" aria-label="次の週">次の週 ›</button></div>
@@ -772,7 +820,7 @@ button{-webkit-tap-highlight-color:transparent}
 
 <script>
 (function(){
-  const CAT={main:"メイン",mc:"マイクラ",other:"その他",post:"付箋",pub:"投稿"};
+  const CAT={main:"メイン",mc:"マイクラ",other:"その他",post:"付箋",pub:"投稿",ai:"AI"};
   const CAT_IDS=["main","mc","other","post","pub"];
   const WD=["日","月","火","水","木","金","土"];
   const pad=n=>String(n).padStart(2,"0");
@@ -798,7 +846,10 @@ button{-webkit-tap-highlight-color:transparent}
   let prevItems=[], daily=[], db=null, unsub=null, readOnly=false;
   let addCat="main", addDaily=false, editing=false, subFor=null, confirmFor=null, autoChecked={}, editTarget=null, newAfter=null, dsubFor=null;
 
-  const normCat=c=>CAT_IDS.includes(c)?c:"other";
+  const normCat=c=>CAT_IDS.includes(c)||c==="ai"?c:"other";
+  // AI (cat "ai"): things handed to an AI to wait on — shown in their own panel, not in the task list or the counts,
+  // and carried to the next day like tasks until they're checked
+  const isAi=i=>!!i&&i.cat==="ai";
   const norm=list=>(list||[]).map(i=>({id:i.id||uid(),text:String(i.text||""),done:!!i.done,cat:normCat(i.cat),star:!!i.star,parent:i.parent||null,...(i.moved?{moved:true}:{}),...(i.from?{from:i.from}:{}),...(i.movedTo?{movedTo:i.movedTo}:{}),...(i.movedId?{movedId:i.movedId}:{}),...(i.fromDay?{fromDay:i.fromDay}:{}),...(i.fromId?{fromId:i.fromId}:{}),...(i.memo?{memo:String(i.memo)}:{}),...(i.planId?{planId:i.planId,planDay:i.planDay||null}:{})}));
   const normDaily=list=>(list||[]).map(d=>({id:d.id||uid(),text:String(d.text||""),cat:normCat(d.cat),star:!!d.star,since:d.since||"2000-01-01",until:d.until||null,...(d.memo?{memo:String(d.memo)}:{}),
     ...(Array.isArray(d.subs)&&d.subs.length?{subs:d.subs.map(x=>({id:x.id||uid(),text:String(x.text||""),star:!!x.star,...(x.until?{until:x.until}:{}),...(x.memo?{memo:String(x.memo)}:{})}))}:{})}));
@@ -1030,7 +1081,7 @@ button{-webkit-tap-highlight-color:transparent}
   }
   // unfinished big tasks that would move (daily tasks recur on their own)
   function leftovers(){
-    return items.filter(p=>!p.parent&&!p.moved&&!isNote(p)).filter(p=>!p.done||items.some(c=>c.parent===p.id&&!c.done));
+    return items.filter(p=>!p.parent&&!p.moved&&!isNote(p)&&!isAi(p)).filter(p=>!p.done||items.some(c=>c.parent===p.id&&!c.done));
   }
   let pushArm=null;
   function updatePushBtn(){
@@ -1069,7 +1120,7 @@ button{-webkit-tap-highlight-color:transparent}
   let doneCollapsed=false;
   try{doneCollapsed=localStorage.getItem("todo:doneCollapsed")==="1"}catch(e){}
   function viewKeys(){
-    const tops=items.filter(i=>!i.parent&&!isNote(i)).map(i=>i.id);
+    const tops=items.filter(i=>!i.parent&&!isNote(i)&&!isAi(i)).map(i=>i.id);
     const dks=activeDaily(cur).map(d=>"d:"+d.id); // includes ones skipped today, so they keep their place
     const valid=new Set([...tops,...dks]);
     const seen=new Set();const out=[];
@@ -1299,6 +1350,52 @@ button{-webkit-tap-highlight-color:transparent}
     if(planVisible())renderPlan();
     return true;
   }
+
+  // ---- AI panel: what's been handed to an AI and is being waited on ----
+  // PC: a column to the right of the list. Phone: a foldable box under the notes.
+  const aiWide=()=>window.matchMedia&&matchMedia("(min-width:980px)").matches;
+  function placeAi(){const slot=$(aiWide()?"aiSlotPC":"aiSlotPhone");if($("aiPanel").parentElement!==slot)slot.append($("aiPanel"));$("todayGrid").classList.toggle("wide",aiWide())}
+  try{matchMedia("(min-width:980px)").addEventListener("change",()=>{placeAi();renderAi()})}catch(e){}
+  let aiFolded=false;try{aiFolded=localStorage.getItem("todo:aiFold")==="1"}catch(e){}
+  let aiEdit=null;
+  function renderAi(){
+    placeAi();
+    const list=items.filter(i=>!i.parent&&isAi(i)&&!i.moved);
+    const open=list.filter(i=>!i.done),done=list.filter(i=>i.done);
+    $("aiCount").textContent=open.length?open.length+"件":"";
+    const folded=aiFolded&&!aiWide();
+    $("aiBody").hidden=folded;$("aiFold").setAttribute("aria-expanded",String(!folded));
+    $("aiPanel").classList.toggle("empty",!list.length);
+    const ul=$("aiList");ul.textContent="";
+    if(!list.length)ul.append(el("li","ai-none","AIに指示したことをここに入れておくと、待っている間も忘れません"));
+    [...open,...done].forEach(it=>{
+      const li=el("li","ai-item"+(it.done?" done":""));li.dataset.id=it.id;
+      const box=boxBtn(it.done,()=>{it.done=!it.done;commit();if(it.done)toast("AIの結果を確認済みにしました")});
+      const t=el("span","ai-t",(it.star?"★":"")+it.text);
+      if(it.from&&it.from<cur){const f=parse(it.from);t.append(el("span","ai-since"," "+(f.getMonth()+1)+"/"+f.getDate()+"〜"))}
+      t.onclick=()=>{if(readOnly)return;editText(li,t,()=>it.text,v=>{it.text=v})};
+      const acts=el("span","ai-acts");
+      if(!readOnly){
+        acts.append(actBtn("✎","メモ（指示・結果など）",()=>memoToggle(it.id),it.memo?"has":""));
+        acts.append(actBtn("⇢","別の日に移す",()=>{shiftFor=shiftFor===it.id?null:it.id;render()}));
+        acts.append(actBtn("×","消す",()=>{items=items.filter(x=>x!==it);commit();toast("消しました（↶で戻せます）")}));
+      }
+      li.append(box,t,acts);
+      if(it.memo&&!memoOpen.has(it.id)){const m=el("div","ai-m",it.memo);m.onclick=()=>{if(!readOnly)memoToggle(it.id)};li.append(m)}
+      if(memoOpen.has(it.id)){const mb=memoBox(it.id,()=>it.memo,v=>{if(v)it.memo=v;else delete it.memo},()=>save());mb.classList.add("ai-memo");li.append(mb)}
+      if(shiftFor===it.id){const sb=shiftBar(it);sb.classList.add("ai-shift");li.append(sb)}
+      ul.append(li);
+    });
+    $("aiNew").disabled=readOnly;$("aiAddBtn").disabled=readOnly;
+  }
+  const aiAdd=()=>{const v=$("aiNew").value.trim();if(!v||readOnly)return;
+    if(!loaded){toast("読み込み中です。表示が出てからもう一度押してください");return}
+    items.push({id:uid(),text:v,done:false,cat:"ai",star:false,parent:null});$("aiNew").value="";commit();
+    if(aiFolded){aiFolded=false;try{localStorage.setItem("todo:aiFold","0")}catch(e){}renderAi()}
+    $("aiNew").focus()};
+  $("aiNew").addEventListener("keydown",e=>{if(isEnter(e)){e.preventDefault();aiAdd()}});
+  $("aiAddBtn").onclick=aiAdd;
+  $("aiFold").onclick=()=>{if(aiWide())return;aiFolded=!aiFolded;try{localStorage.setItem("todo:aiFold",aiFolded?"1":"0")}catch(e){}renderAi()};
 
   // ---- 付箋: notes at the top of the day; ✓ clears it (undo brings it back) ----
   let noteEdit=null;
@@ -1597,6 +1694,7 @@ button{-webkit-tap-highlight-color:transparent}
     const counted=dayRateItems(cur);
     const chips=$("todayChips");chips.textContent="";
     renderNotes();
+    renderAi();
     TASK_CATS.forEach(c=>{
       const inC=counted.filter(x=>x.cat===c);if(!inC.length)return;
       const dn=inC.filter(x=>x.done).length;
@@ -1908,13 +2006,13 @@ button{-webkit-tap-highlight-color:transparent}
   // and a carried-in task counts on the day it arrived (again as not done if it's carried on)
   function dayRateItems(k){
     const doc=k===cur?{items,rdone}:(week.data[k]||emptyDoc());
-    return doc.items.filter(x=>!isNote(x)).map(x=>({cat:x.cat,done:!!x.done&&!(x.moved&&!x.parent&&!x.done)}))
+    return doc.items.filter(x=>!isNote(x)&&!isAi(x)).map(x=>({cat:x.cat,done:!!x.done&&!(x.moved&&!x.parent&&!x.done)}))
       .concat(shownDaily(k,doc.rdone).map(d=>({cat:d.cat,done:(doc.rdone||{})[d.id]===true})));
   }
   function dayItems(k){
     const doc=k===cur?{items,rdone}:(week.data[k]||emptyDoc());
     const gone=new Set(doc.items.filter(x=>x.moved).map(x=>x.id));
-    return doc.items.filter(x=>!x.moved&&!gone.has(x.parent)&&!isNote(x)).concat(shownDaily(k,doc.rdone).map(d=>({cat:d.cat,done:(doc.rdone||{})[d.id]===true})));
+    return doc.items.filter(x=>!x.moved&&!gone.has(x.parent)&&!isNote(x)&&!isAi(x)).concat(shownDaily(k,doc.rdone).map(d=>({cat:d.cat,done:(doc.rdone||{})[d.id]===true})));
   }
   // ---- week numbers: tasks by category, daily tasks counted separately ----
   const daysBetween=(a,b)=>Math.round((parse(b)-parse(a))/864e5);
@@ -1925,7 +2023,7 @@ button{-webkit-tap-highlight-color:transparent}
       const k=shift(start,i);
       const doc=docs[k]||emptyDoc();
       const its=norm(doc.items);const gone=new Set(its.filter(x=>x.moved).map(x=>x.id));
-      const live=its.filter(x=>!x.moved&&!gone.has(x.parent)&&!isNote(x));
+      const live=its.filter(x=>!x.moved&&!gone.has(x.parent)&&!isNote(x)&&!isAi(x));
       const n=live.filter(x=>x.done).length;st.perDay[k]=n;
       live.forEach(x=>{if(x.done){st[x.cat]++;st.total++}});
       if(k>today)continue;
@@ -1949,7 +2047,7 @@ button{-webkit-tap-highlight-color:transparent}
   let allDocs=null,allStats=null,allLoading=false;
   function tallyDoc(doc,k,acc){
     const its=norm(doc.items);const gone=new Set(its.filter(x=>x.moved).map(x=>x.id));
-    its.filter(x=>!x.moved&&!gone.has(x.parent)&&x.done&&!isNote(x)).forEach(x=>{acc[x.cat]++;acc.total++});
+    its.filter(x=>!x.moved&&!gone.has(x.parent)&&x.done&&!isNote(x)&&!isAi(x)).forEach(x=>{acc[x.cat]++;acc.total++});
     Object.entries(doc.rdone||{}).forEach(([id,v])=>{if(v===true){acc.daily++;acc.perDaily[id]=(acc.perDaily[id]||0)+1}});
   }
   function computeAll(){
@@ -2220,7 +2318,7 @@ button{-webkit-tap-highlight-color:transparent}
     const linked=new Set(out.filter(s=>s.live).map(s=>s.live.id));
     for(let i=0;i<7;i++){
       const k=shift(start,i);const its=norm((docs[k]||emptyDoc()).items);
-      its.filter(it=>!it.parent&&!it.moved&&!linked.has(it.id)&&!(it.planId&&out.some(s=>s.p.id===it.planId))).forEach(it=>{
+      its.filter(it=>!it.parent&&!it.moved&&!isAi(it)&&!linked.has(it.id)&&!(it.planId&&out.some(s=>s.p.id===it.planId))).forEach(it=>{
         out.push({task:true,p:{id:"t:"+it.id,text:it.text,cat:it.cat,day:k,...(it.memo?{memo:it.memo}:{})},live:it,liveDay:k,col:k,shift:0,
           state:it.done?"onPlan":"pending",cat:it.cat,text:it.text,star:!!it.star,memo:String(it.memo||"")});
       });
@@ -2573,7 +2671,7 @@ button{-webkit-tap-highlight-color:transparent}
   }
   // ---- pages: 今日 / 今週 / 予定 / 先のメモ ----
   let page="today";
-  const PAGES={today:"pageToday",week:"pageWeek",plan:"pagePlan",more:"pageMore",data:"pageData",later:"pageLater",log:"pageLog"};
+  const PAGES={today:"todayGrid",week:"pageWeek",plan:"pagePlan",more:"pageMore",data:"pageData",later:"pageLater",log:"pageLog"};
   const TAB_OF={data:"more",later:"more",log:"more"};
   const planVisible=()=>page==="plan";
   async function showPage(p,noHash){
