@@ -316,6 +316,7 @@ button{font:inherit;color:inherit}
 .ai-since{font-size:11px;color:var(--muted)}
 .ad-ghost{position:fixed;z-index:60;pointer-events:none;list-style:none;margin:0;background:var(--sheet);border-radius:8px;box-shadow:0 10px 26px rgba(0,0,0,.22);opacity:.95}
 .ai-tag{margin-left:2px}
+#aiList .ai-tag{display:none}
 .ai-add{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--line)}
 .ai-add input{flex:1;min-width:0;font:inherit;font-size:16px;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:6px;padding:6px 10px}
 .ai-add button{border:0;background:var(--sat);color:#fff;border-radius:6px;padding:6px 12px;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
@@ -472,7 +473,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .subs{list-style:none;margin:0;padding:0 12px 8px 40px;display:grid;gap:2px}
 .sub{display:flex;align-items:flex-start;gap:7px;padding:4px 0;position:relative}
 /* swipe right = make it a subtask of the task above, swipe left on a subtask = make it a big task (like Google Keep) */
-#list .task:not(.daily)>.row,#list .sub,#doneList .task:not(.daily)>.row,#doneList .sub{touch-action:pan-y}
+#list .task:not(.daily)>.row,#list .sub,#doneList .task:not(.daily)>.row,#doneList .sub,#aiList .task>.row,#aiList .sub{touch-action:pan-y}
 .swiping{transition:none;position:relative;z-index:2;background:var(--sheet);border-radius:6px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
 .swback{transition:transform .18s ease}
 .swready{box-shadow:0 2px 10px rgba(0,0,0,.12),inset 3px 0 0 var(--ink)}
@@ -490,8 +491,9 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .kline.sub::after{background:var(--mc)}
 .kghost{transition:transform .06s linear}
 .kghost.as-sub{box-shadow:0 10px 28px rgba(0,0,0,.22),inset 3px 0 0 var(--mc)}
-@media (hover:none){#list .row,#list .sub,#aiList .ai-item{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}}
-#aiList .ai-item{touch-action:pan-y}
+@media (hover:none){#list .row,#list .sub,#aiList .row,#aiList .sub{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}}
+.ai-list{border-top:0}
+.ai-list>.task:first-child{border-top:1px solid var(--line)}
 .sub.dragging{background:var(--sheet)}
 .sub .handle{width:18px;align-self:stretch;opacity:.45}
 .sub.dragging{box-shadow:0 4px 12px rgba(0,0,0,.18);z-index:5;border-radius:4px}
@@ -736,7 +738,7 @@ button{-webkit-tap-highlight-color:transparent}
   <section class="aipanel" id="aiPanel" aria-label="AIに任せていること">
     <button type="button" class="ai-h" id="aiFold" aria-expanded="true"><span class="ai-badge">AI</span><b>AIに任せ中</b><span class="ai-sub">指示して待つもの</span><span class="ai-n" id="aiCount"></span><span class="chev">▾</span></button>
     <div class="ai-body" id="aiBody">
-      <ul class="ai-list" id="aiList"></ul>
+      <ul class="list ai-list" id="aiList"></ul>
       <div class="ai-add"><input id="aiNew" placeholder="AIに頼んだことを入れて Enter" maxlength="300" autocomplete="off"><button type="button" id="aiAddBtn">追加</button></div>
     </div>
   </section>
@@ -1372,120 +1374,29 @@ button{-webkit-tap-highlight-color:transparent}
     const folded=aiFolded&&!aiWide();
     $("aiBody").hidden=folded;$("aiFold").setAttribute("aria-expanded",String(!folded));
     const ul=$("aiList");ul.textContent="";
-    list.forEach(it=>{
-      const li=el("li","ai-item");li.dataset.id=it.id;
-      const h=el("button","handle ai-grip");h.type="button";h.innerHTML=GRIP;h.setAttribute("aria-label","ドラッグで移動（通常のタスク一覧へも）");
-      h.onpointerdown=e=>{if(readOnly)return;e.preventDefault();adStart(it,li,e.clientX,e.clientY,e.pointerId)};
-      const box=boxBtn(false,()=>{it.done=true;items.forEach(k=>{if(k.parent===it.id)k.done=true});commit();toast("達成！完了済みに入れました")});
-      const t=el("span","ai-t",(it.star?"★":"")+it.text);
-      const kids=items.filter(k=>k.parent===it.id);
-      const tags=el("span","tags");
-      // メイン → マイクラ → その他 (an AI task is still a task)
-      tags.append(catTag(it.cat,()=>{const c=TASK_CATS[(TASK_CATS.indexOf(it.cat)+1)%TASK_CATS.length];it.cat=c;items.forEach(k=>{if(k.parent===it.id)k.cat=c});commit()}));
-      if(kids.length)tags.append(el("span","cnt",kids.filter(k=>k.done).length+"/"+kids.length));
-      if(it.from&&it.from<cur){const f=parse(it.from);tags.append(el("span","ai-since",(f.getMonth()+1)+"/"+f.getDate()+"〜"))}
-      t.append(tags);
-      t.onclick=e=>{if(readOnly||e.target.closest(".ctag"))return;editText(li,t,()=>it.text,v=>{it.text=v})};
-      const acts=el("span","ai-acts");
-      if(!readOnly){
-        acts.append(actBtn("✎","メモ（指示・結果など）",()=>memoToggle(it.id),it.memo?"has":""));
-        acts.append(actBtn("⇢","別の日に移す",()=>{shiftFor=shiftFor===it.id?null:it.id;render()}));
-        acts.append(actBtn("×","消す",()=>{items=items.filter(x=>x!==it&&x.parent!==it.id);commit();toast("消しました（↶で戻せます）")}));
-      }
-      li.append(h,box,t,acts);
-      if(it.memo&&!memoOpen.has(it.id)){const m=el("div","ai-m",it.memo);m.onclick=()=>{if(!readOnly)memoToggle(it.id)};li.append(m)}
-      if(memoOpen.has(it.id)){const mb=memoBox(it.id,()=>it.memo,v=>{if(v)it.memo=v;else delete it.memo},()=>save());mb.classList.add("ai-memo");li.append(mb)}
-      if(shiftFor===it.id){const sb=shiftBar(it);sb.classList.add("ai-shift");li.append(sb)}
-      ul.append(li);
-    });
+    // same rows as the day's list (subtasks, ★, memo, ⋯ menu, drag…)
+    list.forEach(it=>ul.append(itemRow(it)));
     $("aiNew").disabled=readOnly;$("aiAddBtn").disabled=readOnly;
   }
-  // ---- dragging an AI task: up/down inside the panel, or out into the day's list (it becomes an ordinary task there) ----
-  let ad=null;
-  function adStart(it,li,x,y,pid){
-    const r=li.getBoundingClientRect();
-    const g=li.cloneNode(true);g.classList.add("ad-ghost");g.style.width=r.width+"px";g.style.left=r.left+"px";g.style.top=r.top+"px";document.body.append(g);
-    const line=el("div","kline");line.hidden=true;document.body.append(line);
-    li.classList.add("kdragging");editing=true;
-    ad={it,li,g,line,pid,x0:x,y0:y,t:null};
-  }
-  function adTarget(x,y){
-    const hit=document.elementFromPoint(x,y);
-    if(hit&&hit.closest&&hit.closest("#aiPanel")){
-      const rows=[...$("aiList").children].filter(r=>r!==ad.li&&r.dataset.id);
-      let before=null;for(const r of rows){const b=r.getBoundingClientRect();if(y<b.top+b.height/2){before=r;break}}
-      return{zone:"ai",before,rows};
-    }
-    const lr=$("list").getBoundingClientRect();
-    if(x>=lr.left-30&&x<=lr.right+30&&(hit&&hit.closest&&hit.closest("#pageToday"))){
-      const rows=[...$("list").children].filter(r=>r.dataset.key);
-      let before=null;for(const r of rows){const b=r.getBoundingClientRect();if(y<b.top+b.height/2){before=r;break}}
-      return{zone:"list",before,rows};
-    }
-    return null;
-  }
-  document.addEventListener("pointermove",e=>{
-    if(!ad||e.pointerId!==ad.pid)return;e.preventDefault();
-    ad.g.style.transform="translate("+(e.clientX-ad.x0)+"px,"+(e.clientY-ad.y0)+"px)";
-    const t=adTarget(e.clientX,e.clientY);ad.t=t;
-    $("aiPanel").classList.toggle("drop",!!t&&t.zone==="ai");
-    if(!t){ad.line.hidden=true;return}
-    const box=t.zone==="ai"?$("aiList"):$("list");const br=box.getBoundingClientRect();
-    let ly;if(t.before)ly=t.before.getBoundingClientRect().top;else if(t.rows.length)ly=t.rows[t.rows.length-1].getBoundingClientRect().bottom;else ly=br.top;
-    ad.line.hidden=false;ad.line.style.top=(ly+window.scrollY-1)+"px";ad.line.style.left=(br.left+6+window.scrollX)+"px";ad.line.style.width=(br.width-12)+"px";
-    ad.line.dataset.label=t.zone==="ai"?"AI":"← 通常のタスクへ";ad.line.classList.toggle("sub",t.zone==="ai");
-    if(e.clientY<70)window.scrollBy(0,-10);else if(e.clientY>window.innerHeight-70)window.scrollBy(0,10);
-  },{passive:false});
-  document.addEventListener("touchmove",e=>{if(ad)e.preventDefault()},{passive:false});
-  const adEnd=(e,cancel)=>{
-    if(!ad||(e&&e.pointerId!==ad.pid))return;
-    const d=ad;ad=null;d.g.remove();d.line.remove();d.li.classList.remove("kdragging");$("aiPanel").classList.remove("drop");editing=false;
-    swSuppress=true;setTimeout(()=>{swSuppress=false},450);
-    const t=d.t;if(cancel||!t||Math.hypot((e?e.clientX:0)-d.x0,(e?e.clientY:0)-d.y0)<4){render();return}
-    const it=d.it;
-    if(t.zone==="ai"){
-      const move=[it,...items.filter(k=>k.parent===it.id)];items=items.filter(x=>!move.includes(x));
-      let at=t.before?items.findIndex(x=>x.id===t.before.dataset.id):-1;if(at<0)at=items.length;
-      items.splice(at,0,...move);commit();return;
-    }
-    delete it.ai;
-    const keys=viewKeys().filter(k=>k!==it.id);
-    let at=t.before?keys.indexOf(t.before.dataset.key):-1;
-    if(at<0){const last=[...t.rows].reverse()[0];at=last?keys.indexOf(last.dataset.key)+1:keys.length}
-    keys.splice(at,0,it.id);order=keys;commit();toast("通常のタスクに移しました（↶で戻せます）");
-  };
-  document.addEventListener("pointerup",e=>adEnd(e,false));
-  document.addEventListener("pointercancel",e=>adEnd(e,true));
+  // PC: grab a row anywhere (not only the grip) in either list and move the mouse a little to start dragging
   let md=null;
   document.addEventListener("pointerdown",e=>{
     md=null;
-    if(e.pointerType!=="mouse"||e.button!==0||readOnly||kd||ad)return;
+    if(e.pointerType!=="mouse"||e.button!==0||readOnly||kd)return;
     const t=e.target;if(!t.closest||t.closest("input,textarea,button,a,.memo,.shiftbar,.xpop"))return;
-    const ai=t.closest("#aiList .ai-item"),row=!ai&&(t.closest("#list li.sub")||t.closest("#list li.task"));
-    if(!ai&&!row)return;
-    md={x:e.clientX,y:e.clientY,pid:e.pointerId,ai,row};
+    const row=t.closest("#list li.sub, #aiList li.sub")||t.closest("#list li.task, #aiList li.task");
+    if(!row)return;
+    md={x:e.clientX,y:e.clientY,pid:e.pointerId,row};
   },true);
   document.addEventListener("pointermove",e=>{
-    if(!md||e.pointerId!==md.pid||kd||ad)return;
+    if(!md||e.pointerId!==md.pid||kd)return;
     if(Math.hypot(e.clientX-md.x,e.clientY-md.y)<6)return;
     const m=md;md=null;
     try{window.getSelection&&window.getSelection().removeAllRanges()}catch(_){}
-    if(m.ai){const it=items.find(i=>i.id===m.ai.dataset.id);if(it)adStart(it,m.ai,m.x,m.y,m.pid)}
-    else{const li=m.row.classList.contains("sub")?m.row:m.row;const task=li.closest("li.task");
-      if(task&&!task.classList.contains("moved")&&!task.classList.contains("newtask")&&!(li.classList.contains("sub")&&!li.dataset.id))startKDrag(li,m.x,m.y,m.pid)}
+    const li=m.row;const task=li.closest("li.task");
+    if(task&&!task.classList.contains("moved")&&!task.classList.contains("newtask")&&!(li.classList.contains("sub")&&!li.dataset.id))startKDrag(li,m.x,m.y,m.pid);
   },true);
   document.addEventListener("pointerup",()=>{md=null},true);
-  // long-press an AI task on a phone to drag it
-  let aiLp=null;
-  document.addEventListener("pointerdown",e=>{
-    clearTimeout(aiLp&&aiLp.t);aiLp=null;
-    if(e.pointerType==="mouse"||readOnly||ad||kd)return;
-    const li=e.target.closest&&e.target.closest("#aiList .ai-item");if(!li||e.target.closest("input,textarea,.handle,.memo,.shiftbar"))return;
-    const it=items.find(i=>i.id===li.dataset.id);if(!it)return;
-    aiLp={x:e.clientX,y:e.clientY,pid:e.pointerId,t:setTimeout(()=>{if(!aiLp)return;try{navigator.vibrate&&navigator.vibrate(12)}catch(_){}adStart(it,li,aiLp.x,aiLp.y,aiLp.pid);aiLp=null},380)};
-  },true);
-  document.addEventListener("pointermove",e=>{if(aiLp&&e.pointerId===aiLp.pid&&Math.hypot(e.clientX-aiLp.x,e.clientY-aiLp.y)>9){clearTimeout(aiLp.t);aiLp=null}},true);
-  document.addEventListener("pointerup",()=>{if(aiLp){clearTimeout(aiLp.t);aiLp=null}});
   const aiAdd=()=>{const v=$("aiNew").value.trim();if(!v||readOnly)return;
     if(!loaded){toast("読み込み中です。表示が出てからもう一度押してください");return}
     items.push({id:uid(),text:v,done:false,cat:TASK_CATS.includes(addCat)?addCat:"other",star:false,parent:null,ai:true});$("aiNew").value="";commit();
@@ -1566,7 +1477,10 @@ button{-webkit-tap-highlight-color:transparent}
           order=viewKeys().map(k=>k===it.id?"d:"+d.id:k);
           items=items.filter(x=>x!==it&&x.parent!==it.id);
           grouped(()=>{saveDaily();commit()});toast("毎日タスクにしました（明日からも毎日出ます）")}),
-        xBtn("⧉","コピー",()=>copyTasks([{text:it.text,cat:it.cat,star:it.star,subs:kids.map(k=>({text:k.text,star:k.star}))}],kids.length?"小タスクごとコピーしました":"コピーしました"))]);
+        xBtn("⧉","コピー",()=>copyTasks([{text:it.text,cat:it.cat,star:it.star,subs:kids.map(k=>({text:k.text,star:k.star}))}],kids.length?"小タスクごとコピーしました":"コピーしました")),
+        xBtn("AI",isAi(it)?"通常のタスクに戻す":"AIに任せる",()=>{
+          if(isAi(it)){delete it.ai;const keys=viewKeys().filter(k=>k!==it.id);keys.push(it.id);order=keys;commit();toast("通常のタスクに戻しました")}
+          else{it.ai=true;it.done=false;order=viewKeys();commit();toast("AIに任せ中に移しました")}})]);
     }else if(!readOnly&&it.moved){
       acts.append(actBtn("↩ 戻す","この日に戻す（移動先の分は消えます）",()=>unmove(it),"un"));
     }
@@ -1842,7 +1756,7 @@ button{-webkit-tap-highlight-color:transparent}
     sw=null;
     if(e.pointerType==="mouse"||readOnly||drag||kd||!e.isPrimary)return;
     const t=e.target;if(!t.closest||t.closest("input,textarea,a,.handle,.xpop,.subadd"))return;
-    if(!t.closest("#list,#doneList"))return;
+    if(!t.closest("#list,#doneList,#aiList"))return;
     const sub=t.closest("li.sub"),task=t.closest("li.task");
     if(!task||task.classList.contains("daily")||task.classList.contains("moved")||task.classList.contains("newtask"))return;
     if(sub&&!sub.dataset.id)return;
@@ -1897,7 +1811,7 @@ button{-webkit-tap-highlight-color:transparent}
   // phone: each task's buttons fold into a ⋯ button so the text gets the full width
   const openRows=new Set();
   function decorateRows(){
-    document.querySelectorAll("#list > .task, #doneList > .task").forEach(li=>{
+    document.querySelectorAll("#list > .task, #doneList > .task, #aiList > .task").forEach(li=>{
       const row=li.querySelector(":scope > .row");const acts=row&&row.querySelector(":scope > .acts");
       if(!row||!acts||!acts.children.length||li.classList.contains("moved"))return;
       const k=li.dataset.key;
@@ -1925,9 +1839,9 @@ button{-webkit-tap-highlight-color:transparent}
   // ---- drag like Google Keep: grab ⠿ (or long-press a row on a phone), move up/down to reorder,
   // and move right/left to make it a subtask of the task above / a big task. Works for big tasks and subtasks.
   let kd=null,kdHinted=false;
-  function dragRows(skip){
+  function dragRows(skip,ulId){
     const R=[];
-    [...$("list").children].forEach(li=>{
+    [...$(ulId||"list").children].forEach(li=>{
       if(!li.dataset.key||li===skip)return;
       const daily=li.dataset.key.startsWith("d:");
       R.push({type:"top",key:li.dataset.key,daily,moved:li.classList.contains("moved"),el:li.querySelector(":scope>.row")||li});
@@ -1939,8 +1853,7 @@ button{-webkit-tap-highlight-color:transparent}
     if(!li||readOnly)return;
     const sub=li.classList.contains("sub")?li:null;
     const task=sub?li.closest("li.task"):li;
-    if(!task||task.parentElement.id!=="list"&&!sub)return;
-    if(!task.closest("#list"))return;
+    if(!task||!["list","aiList"].includes(task.parentElement.id))return;
     // a daily task's subtasks can be reordered inside that daily task
     const rowEl=sub||task.querySelector(":scope>.row");if(!rowEl)return;
     const r=rowEl.getBoundingClientRect();
@@ -1955,7 +1868,8 @@ button{-webkit-tap-highlight-color:transparent}
     editing=true;
     if(!kdHinted&&!task.dataset.key.startsWith("d:")){kdHinted=true;toast("左右に動かすと 大タスク ⇔ 小タスク")}
     kd={want:sub?"sub":"top",pid,li,sub:!!sub,dsub:!!sub&&task.dataset.key.startsWith("d:"),daily:task.dataset.key.startsWith("d:"),key:task.dataset.key,id:sub?sub.dataset.id:task.dataset.key,
-        x0:x,y0:y,r,ghost,line,R:dragRows(li),gap:null,level:null,moved:false};
+        x0:x,y0:y,r,ghost,line,Rm:dragRows(li,"list"),Ra:dragRows(li,"aiList"),zone:task.parentElement.id==="aiList"?"ai":"main",gap:null,level:null,moved:false};
+    kd.R=kd.zone==="ai"?kd.Ra:kd.Rm;
     kdMove(x,y);
   }
   function kdTarget(x,y){
@@ -1981,10 +1895,11 @@ button{-webkit-tap-highlight-color:transparent}
   function kdMove(x,y){
     const dx=x-kd.x0,dy=y-kd.y0;
     if(Math.abs(dx)>3||Math.abs(dy)>3)kd.moved=true;
-    // over the AI panel: drop it there (it becomes an AI task)
+    // which list is under the finger: the AI panel or the day's list (a daily task stays in the day's list)
     {const hit=document.elementFromPoint(x,y);const overAi=!kd.daily&&!kd.dsub&&!!(hit&&hit.closest&&hit.closest("#aiPanel"));
-      kd.toAi=overAi;$("aiPanel").classList.toggle("drop",overAi);
-      if(overAi){kd.line.hidden=true;kd.ghost.style.transform="translate("+dx+"px,"+dy+"px)";if(y<70)window.scrollBy(0,-10);else if(y>window.innerHeight-70)window.scrollBy(0,10);return}}
+      const z=overAi?"ai":"main";if(z!==kd.zone){kd.zone=z;kd.R=z==="ai"?kd.Ra:kd.Rm;kd.t=null}
+      $("aiPanel").classList.toggle("drop",overAi);
+      if(overAi&&!kd.Ra.length){kd.line.hidden=true;kd.t={i:0,level:"top",parentKey:null,prev:null,next:null};kd.ghost.style.transform="translate("+dx+"px,"+dy+"px)";if(y<70)window.scrollBy(0,-10);else if(y>window.innerHeight-70)window.scrollBy(0,10);return}}
     const t=kdTarget(x,y);
     if(kd.t&&t.level&&kd.t.level&&t.level!==kd.t.level){try{navigator.vibrate&&navigator.vibrate(8)}catch(_){}}
     kd.t=t;
@@ -1992,7 +1907,7 @@ button{-webkit-tap-highlight-color:transparent}
     const lvX=(t.level==="sub"?40:0)-(kd.sub?40:0);
     kd.ghost.style.transform="translate("+(lvX+Math.max(-10,Math.min(10,dx-lvX))*0.4)+"px,"+dy+"px)";
     kd.ghost.classList.toggle("as-sub",t.level==="sub");
-    const lr=$("list").getBoundingClientRect();
+    const lr=$(kd.zone==="ai"?"aiList":"list").getBoundingClientRect();
     if(!t.level){kd.line.hidden=true;return}
     kd.line.hidden=false;
     let ly;if(t.next)ly=t.next.el.getBoundingClientRect().top;else if(t.prev)ly=t.prev.el.getBoundingClientRect().bottom;else ly=lr.top;
@@ -2008,13 +1923,8 @@ button{-webkit-tap-highlight-color:transparent}
     d.ghost.remove();d.line.remove();d.li.classList.remove("kdragging");editing=false;
     swSuppress=true;setTimeout(()=>{swSuppress=false},450);
     $("aiPanel").classList.remove("drop");
-    if(d.toAi&&d.moved){
-      const it=items.find(x=>x.id===d.id);if(!it){render();return}
-      const op=it.parent?items.find(x=>x.id===it.parent):null;
-      if(op){delete it.parent;const rest=items.filter(x=>x.parent===op.id);if(rest.length)op.done=rest.every(x=>x.done)}
-      it.ai=true;it.done=false;order=viewKeys();commit();toast("AIに任せ中に移しました（↶で戻せます）");return;
-    }
     const t=d.t;if(!d.moved||!t||!t.level){render();return}
+    const toAi=d.zone==="ai",fromAi=d.li.closest("#aiList")!=null;
     const {prev,next}=t;
     if(d.dsub){
       const dl=daily.find(x=>"d:"+x.id===d.key);if(!dl||!dl.subs){render();return}
@@ -2029,6 +1939,18 @@ button{-webkit-tap-highlight-color:transparent}
       if(d.sub){const it=items.find(x=>x.id===d.id);if(!it){render();return}
         const op=items.find(x=>x.id===it.parent);delete it.parent;
         if(op){const rest=items.filter(x=>x.parent===op.id);if(rest.length)op.done=rest.every(x=>x.done)}}
+      if(toAi){
+        // into the AI panel: its order is the order of the tasks themselves
+        const it=items.find(x=>x.id===key);if(!it){render();return}
+        it.ai=true;it.done=false;
+        const move=[it,...items.filter(x=>x.parent===it.id)];items=items.filter(x=>!move.includes(x));
+        let at=next?items.findIndex(x=>x.id===next.key):-1;
+        if(at<0){const lastTop=[...d.Ra].reverse().find(r=>r.type==="top");at=lastTop?items.findIndex(x=>x.id===lastTop.key):-1;at=at<0?items.length:at+1+items.filter(x=>x.parent===lastTop.key).length}
+        items.splice(at,0,...move);order=viewKeys();commit();
+        if(!fromAi)toast("AIに任せ中に移しました（↶で戻せます）");
+        return;
+      }
+      {const it=items.find(x=>x.id===key);if(it&&it.ai){delete it.ai;toast("通常のタスクに移しました（↶で戻せます）")}}
       const keys=viewKeys().filter(k=>k!==key);
       let at=next?keys.indexOf(next.key):-1;
       if(at<0){const lastTop=[...d.R].reverse().find(r=>r.type==="top");at=lastTop?keys.indexOf(lastTop.key)+1:0}
@@ -2042,7 +1964,7 @@ button{-webkit-tap-highlight-color:transparent}
     const wasTop=!it.parent;
     const move=[it,...items.filter(x=>x.parent===it.id)];
     items=items.filter(x=>!move.includes(x));
-    move.forEach(x=>{x.parent=P.id;x.cat=P.cat});
+    move.forEach(x=>{x.parent=P.id;x.cat=P.cat;delete x.ai});
     const ai=prev.type==="sub"?items.findIndex(x=>x.id===prev.id):items.indexOf(P);
     items.splice((ai<0?items.indexOf(P):ai)+1,0,...move);
     order=viewKeys();
@@ -2053,8 +1975,8 @@ button{-webkit-tap-highlight-color:transparent}
   }
   function kdCancel(){if(!kd)return;$("aiPanel").classList.remove("drop");const d=kd;kd=null;d.ghost.remove();d.line.remove();d.li.classList.remove("kdragging");editing=false;render()}
   // grip: starts right away (mouse or finger)
-  sheetEl.addEventListener("pointerdown",e=>{
-    const h=e.target.closest("#list .handle");if(!h||readOnly||h.style.visibility==="hidden"||kd)return;
+  document.addEventListener("pointerdown",e=>{
+    const h=e.target.closest&&e.target.closest("#list .handle, #aiList .handle");if(!h||readOnly||h.style.visibility==="hidden"||kd)return;
     e.preventDefault();
     startKDrag(h.closest(".sub")||h.closest(".task"),e.clientX,e.clientY,e.pointerId);
   });
@@ -2063,7 +1985,7 @@ button{-webkit-tap-highlight-color:transparent}
   document.addEventListener("pointercancel",e=>{if(kd&&e.pointerId===kd.pid)kdCancel()});
   // while dragging with a finger the page must not scroll
   document.addEventListener("touchmove",e=>{if(kd||lp&&lp.armed)e.preventDefault()},{passive:false});
-  document.addEventListener("contextmenu",e=>{if(kd||ad||(e.target.closest&&e.target.closest("#list,#aiList")))e.preventDefault()});
+  document.addEventListener("contextmenu",e=>{if(kd||(e.target.closest&&e.target.closest("#list,#aiList")))e.preventDefault()});
   document.addEventListener("keydown",e=>{if(kd&&e.key==="Escape")kdCancel()});
   // long-press on a phone
   let lp=null,lpT=null;
@@ -2071,7 +1993,7 @@ button{-webkit-tap-highlight-color:transparent}
     clearTimeout(lpT);lp=null;
     if(e.pointerType==="mouse"||readOnly||kd||!e.isPrimary)return;
     const t=e.target;if(!t.closest||t.closest("input,textarea,a,.handle,.xpop,.subadd"))return;
-    const task=t.closest("#list li.task");if(!task||task.classList.contains("newtask")||task.classList.contains("moved"))return;
+    const task=t.closest("#list li.task, #aiList li.task");if(!task||task.classList.contains("newtask")||task.classList.contains("moved"))return;
     const sub=t.closest("li.sub");if(sub&&!sub.dataset.id)return;
     lp={pid:e.pointerId,x:e.clientX,y:e.clientY,li:sub||task};
     lpT=setTimeout(()=>{
