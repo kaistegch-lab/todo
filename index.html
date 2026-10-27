@@ -936,7 +936,7 @@ button{-webkit-tap-highlight-color:transparent}
   let baseSnap=null,undoStack=[],redoStack=[],restoring=false,pendingX=null;
   let loaded=true,pendingDoc=null,pendingDaily=null,blurT=null;
   let groupDepth=0,groupX=[];
-  const dayDoc=()=>({items:items.map(i=>({...i})),rdone:{...rdone},order:[...order],carriedFrom});
+  const dayDoc=()=>({items:items.map(i=>({...i})),rdone:{...rdone},order:savedOrder(),carriedFrom});
   const auxNow=()=>{
     const weeks={};
     // "seen" (review auto-opened) is not an undo step
@@ -1010,7 +1010,7 @@ button{-webkit-tap-highlight-color:transparent}
     subFor=null;newAfter=null;editTarget=null;confirmFor=null;editing=false;
     Object.entries(e.days).forEach(([k,v])=>{
       const d=cloneDoc(v[which]);
-      if(k===cur){items=norm(d.items);rdone=d.rdone;order=d.order;carriedFrom=d.carriedFrom}
+      if(k===cur){items=norm(d.items);rdone=d.rdone;order=d.order;aiOrder=[...d.order];carriedFrom=d.carriedFrom}
       writeDay(k,d);
       if(week.data[k])week.data[k]={items:norm(d.items),rdone:{...d.rdone}};
       if(allDocs)allDocs[k]=d;
@@ -1061,7 +1061,7 @@ button{-webkit-tap-highlight-color:transparent}
   function save(){
     pendingDoc=null;
     if(!loaded){toast("読み込み中です。表示が出てからもう一度操作してください");return}
-    record();writeDay(cur,{items:items.map(i=>({...i})),rdone:{...rdone},order:[...order],carriedFrom});
+    record();writeDay(cur,{items:items.map(i=>({...i})),rdone:{...rdone},order:savedOrder(),carriedFrom});
   }
   function saveDaily(){
     record();
@@ -1135,6 +1135,20 @@ button{-webkit-tap-highlight-color:transparent}
   }
   let doneCollapsed=false;
   try{doneCollapsed=localStorage.getItem("todo:doneCollapsed")==="1"}catch(e){}
+  // the AI panel has its own order (aiOrder). It is saved in the day's "order" after the list's keys,
+  // so older versions just see a longer order. Keys not placed yet fall back to the day order, then add order.
+  let aiOrder=[];
+  function aiKeys(){
+    const its=items.filter(i=>isAi(i)&&!i.moved&&!i.done).map(i=>i.id);
+    const ds=shownDaily(cur,rdone).filter(aiDailyOpen).map(d=>"d:"+d.id);
+    const all=[...ds,...its];
+    const rank=k=>{let i=aiOrder.indexOf(k);if(i>=0)return i;i=order.indexOf(k);if(i>=0)return 1e6+i;return 2e6+all.indexOf(k)};
+    return all.map(k=>[k,rank(k)]).sort((a,b)=>a[1]-b[1]).map(x=>x[0]);
+  }
+  const savedOrder=()=>{const ak=aiKeys(),as=new Set(ak);return [...order.filter(k=>!as.has(k)),...ak]};
+  // put key into the AI order before `beforeKey` (null = at the end)
+  function aiPlace(key,beforeKey){const ks=aiKeys().filter(k=>k!==key);let at=beforeKey?ks.indexOf(beforeKey):-1;if(at<0)at=ks.length;ks.splice(at,0,key);aiOrder=ks}
+  function aiPlaceAfter(key,afterKey){const ks=aiKeys().filter(k=>k!==key);let at=afterKey?ks.indexOf(afterKey):-1;at=at<0?ks.length:at+1;ks.splice(at,0,key);aiOrder=ks}
   const aiDailyOpen=d=>!!d.ai&&rdone[d.id]!==true&&rdone[d.id]!=="miss"&&rdone[d.id]!=="skip";
   function viewKeys(){
     const tops=items.filter(i=>!i.parent&&!isNote(i)&&!(isAi(i)&&!i.done&&!i.moved)).map(i=>i.id);
@@ -1377,17 +1391,17 @@ button{-webkit-tap-highlight-color:transparent}
   let aiEdit=null;
   function renderAi(){
     placeAi();
-    const list=items.filter(i=>isAi(i)&&!i.moved&&!i.done);
-    // daily tasks handed to AI come first (they're there every day)
-    const dl=shownDaily(cur,rdone).filter(aiDailyOpen);
-    const n=list.length+dl.length;
+    const keys=aiKeys();const n=keys.length;
     $("aiCount").textContent=n?n+"件":"";
     const folded=aiFolded&&!aiWide();
     $("aiBody").hidden=folded;$("aiFold").setAttribute("aria-expanded",String(!folded));
     const ul=$("aiList");ul.textContent="";
     // same rows as the day's list (subtasks, ★, memo, ⋯ menu, drag…)
-    dl.forEach(d=>ul.append(dailyRow(d)));
-    list.forEach(it=>ul.append(itemRow(it)));
+    keys.forEach(k=>{
+      const row=k.startsWith("d:")?(()=>{const d=daily.find(x=>"d:"+x.id===k);return d&&dailyRow(d)})():(()=>{const it=items.find(i=>i.id===k);return it&&itemRow(it)})();
+      if(row)ul.append(row);
+      if(newAfter===k&&!readOnly)ul.append(newTaskRow(k));
+    });
     $("aiNew").disabled=readOnly;$("aiAddBtn").disabled=readOnly;
   }
   // PC: grab a row anywhere (not only the grip) in either list and move the mouse a little to start dragging
@@ -1411,11 +1425,26 @@ button{-webkit-tap-highlight-color:transparent}
   document.addEventListener("pointerup",()=>{md=null},true);
   const aiAdd=()=>{const v=$("aiNew").value.trim();if(!v||readOnly)return;
     if(!loaded){toast("読み込み中です。表示が出てからもう一度押してください");return}
-    items.push({id:uid(),text:v,done:false,cat:TASK_CATS.includes(addCat)?addCat:"other",star:false,parent:null,ai:true});$("aiNew").value="";commit();
+    const it={id:uid(),text:v,done:false,cat:TASK_CATS.includes(addCat)?addCat:"other",star:false,parent:null,ai:true};items.push(it);aiPlace(it.id,null);$("aiNew").value="";commit();
     if(aiFolded){aiFolded=false;try{localStorage.setItem("todo:aiFold","0")}catch(e){}renderAi()}
     $("aiNew").focus()};
   $("aiNew").addEventListener("keydown",e=>{if(isEnter(e)){e.preventDefault();aiAdd()}});
   $("aiAddBtn").onclick=aiAdd;
+  // several lines pasted (or tasks copied with ⧉) become several AI tasks, subtasks included
+  $("aiNew").addEventListener("paste",e=>{
+    if(readOnly)return;
+    const text=(e.clipboardData||window.clipboardData).getData("text");
+    const fromClip=clip&&squash(text)===squash(clip.text);
+    if(!text.includes("\n")&&!fromClip)return;
+    e.preventDefault();
+    if(!loaded){toast("読み込み中です。表示が出てからもう一度操作してください");return}
+    const tasks=parsePasted(text).map(t=>t.sub?{text:t.text,cat:null,star:t.star,subs:[]}:t);if(!tasks.length)return;
+    const def=TASK_CATS.includes(addCat)?addCat:"other";
+    tasks.forEach(t=>{const cat=TASK_CATS.includes(t.cat)?t.cat:def;
+      const it={id:uid(),text:t.text,done:false,cat,star:!!t.star,parent:null,ai:true};items.push(it);aiPlace(it.id,null);
+      (t.subs||[]).forEach(x=>items.push({id:uid(),text:x.text,done:false,cat,star:!!x.star,parent:it.id}))});
+    $("aiNew").value="";commit();toast(tasks.length+"件をAIに任せ中に貼り付けました");
+  });
   $("aiFold").onclick=()=>{if(aiWide())return;aiFolded=!aiFolded;try{localStorage.setItem("todo:aiFold",aiFolded?"1":"0")}catch(e){}renderAi()};
 
   // ---- 付箋: notes at the top of the day; ✓ clears it (undo brings it back) ----
@@ -1483,7 +1512,8 @@ button{-webkit-tap-highlight-color:transparent}
         xBtn("↻","毎日タスクにする",()=>{
           // subtasks come along: they show under the daily task every day
           const src=items.filter(x=>x.parent===it.id);const subs=src.map(k=>({id:uid(),text:k.text,star:!!k.star}));
-          const d={id:uid(),text:it.text,cat:it.cat,star:it.star,since:cur,until:null,...(subs.length?{subs}:{}),...(it.memo?{memo:it.memo}:{})};daily.push(d);
+          const d={id:uid(),text:it.text,cat:it.cat,star:it.star,since:cur,until:null,...(subs.length?{subs}:{}),...(it.memo?{memo:it.memo}:{}),...(isAi(it)?{ai:true}:{})};daily.push(d);
+          if(isAi(it))aiOrder=aiKeys().map(k=>k===it.id?"d:"+d.id:k);
           if(it.done)rdone[d.id]=true;
           subs.forEach((x,i)=>{if(src[i].done)rdone["s:"+x.id]=1});
           order=viewKeys().map(k=>k===it.id?"d:"+d.id:k);
@@ -1492,7 +1522,7 @@ button{-webkit-tap-highlight-color:transparent}
         xBtn("⧉","コピー",()=>copyTasks([{text:it.text,cat:it.cat,star:it.star,subs:kids.map(k=>({text:k.text,star:k.star}))}],kids.length?"小タスクごとコピーしました":"コピーしました")),
         xBtn("AI",isAi(it)?"通常のタスクに戻す":"AIに任せる",()=>{
           if(isAi(it)){delete it.ai;const keys=viewKeys().filter(k=>k!==it.id);keys.push(it.id);order=keys;commit();toast("通常のタスクに戻しました")}
-          else{it.ai=true;it.done=false;order=viewKeys();commit();toast("AIに任せ中に移しました")}})]);
+          else{it.ai=true;it.done=false;order=viewKeys();aiPlace(it.id,null);commit();toast("AIに任せ中に移しました")}})]);
     }else if(!readOnly&&it.moved){
       acts.append(actBtn("↩ 戻す","この日に戻す（移動先の分は消えます）",()=>unmove(it),"un"));
     }
@@ -1567,7 +1597,7 @@ button{-webkit-tap-highlight-color:transparent}
 
   // a daily task handed to AI stays in the AI panel every day until it's taken back
   function setDailyAi(d,on,keys){
-    if(on)d.ai=true;else delete d.ai;
+    if(on){d.ai=true;aiPlace("d:"+d.id,null)}else delete d.ai;
     if(keys)order=keys;else if(!on){const ks=viewKeys().filter(k=>k!=="d:"+d.id);const open=ks.filter(k=>!isFinished(k)&&!isSkipped(k));ks.splice(open.length?ks.indexOf(open[open.length-1])+1:0,0,"d:"+d.id);order=ks}
     grouped(()=>{saveDaily();commit()});
     toast(on?"AIに任せ中に移しました（毎日タスクなので毎日ここに出ます・↶で戻せます）":"通常のタスクに戻しました（↶で戻せます）");
@@ -1670,7 +1700,9 @@ button{-webkit-tap-highlight-color:transparent}
     let fin=false;
     const done=(ok,enter,blur)=>{if(fin)return;fin=true;const v=inp.value.trim();
       if(ok&&v){
-        const it={id:uid(),text:v,done:false,cat:anchorCat,star:false,parent:null};items.push(it);
+        const toAi=aiKeys().includes(anchor);
+        const it={id:uid(),text:v,done:false,cat:anchorCat,star:false,parent:null,...(toAi?{ai:true}:{})};items.push(it);
+        if(toAi){aiPlaceAfter(it.id,anchor);newAfter=enter?it.id:null;if(blur)softCommit(true);else commit();return}
         const ks=viewKeys().filter(k=>k!==it.id);let at=ks.indexOf(anchor);
         if(at<0||isFinished(anchor)){ // anchor sits in 完了済み: put the new task at the end of the open ones
           const open=ks.filter(k=>!isFinished(k)&&!isSkipped(k));at=open.length?ks.indexOf(open[open.length-1]):-1;
@@ -1713,7 +1745,7 @@ button{-webkit-tap-highlight-color:transparent}
       if(!row)return;
       if(fin){dl.append(row);nDone++}else ul.append(row);
     });
-    if(newAfter&&!readOnly){
+    if(newAfter&&!readOnly&&!aiKeys().includes(newAfter)){
       const nr=newTaskRow(newAfter);
       const a=[...ul.children].find(x=>x.dataset.key===newAfter);
       if(a)a.after(nr);else ul.append(nr);
@@ -1764,6 +1796,7 @@ button{-webkit-tap-highlight-color:transparent}
   function outdentTask(k){
     const P=items.find(x=>x.id===k.parent);
     delete k.parent;
+    if(P&&isAi(P)){k.ai=true;aiPlaceAfter(k.id,P.id);const rest=items.filter(x=>x.parent===P.id);if(rest.length)P.done=rest.every(x=>x.done);commit();toast("大タスクにしました（↶で元に戻せます）");return}
     const keys=viewKeys().filter(x=>x!==k.id);
     const at=P?keys.indexOf(P.id):-1;
     keys.splice(at>=0?at+1:keys.length,0,k.id);order=keys;
@@ -1856,7 +1889,7 @@ button{-webkit-tap-highlight-color:transparent}
     items=items.filter(x=>x.parent!==pid);
     const pi=items.findIndex(x=>x.id===pid);items.splice(pi+1,0,...kids);
   }
-  sheetEl.addEventListener("mousedown",e=>{if(e.target.closest(".handle"))e.preventDefault()});
+  document.addEventListener("mousedown",e=>{if(e.target.closest&&e.target.closest("#list .handle, #aiList .handle"))e.preventDefault()});
   // ---- drag like Google Keep: grab ⠿ (or long-press a row on a phone), move up/down to reorder,
   // and move right/left to make it a subtask of the task above / a big task. Works for big tasks and subtasks.
   let kd=null,kdHinted=false;
@@ -1983,7 +2016,10 @@ button{-webkit-tap-highlight-color:transparent}
     }
     if(d.daily){
       const dl=daily.find(x=>"d:"+x.id===d.key);if(!dl){render();return}
-      if(toAi){if(fromAi){render();return}setDailyAi(dl,true);return}
+      if(toAi){
+        const nx=t.next&&t.next.type==="top"?t.next.key:null;
+        if(fromAi){aiPlace(d.key,nx);commit();return}
+        dl.ai=true;aiPlace(d.key,nx);grouped(()=>{saveDaily();commit()});toast("AIに任せ中に移しました（毎日タスクなので毎日ここに出ます・↶で戻せます）");return}
       // into the day's list (from the AI panel or within it): put it where it was dropped
       const keys=viewKeys().filter(k=>k!==d.key);
       let at=next?keys.indexOf(next.key):-1;
@@ -2001,11 +2037,7 @@ button{-webkit-tap-highlight-color:transparent}
         // into the AI panel: its order is the order of the tasks themselves
         const it=items.find(x=>x.id===key);if(!it){render();return}
         it.ai=true;it.done=false;
-        const move=[it,...items.filter(x=>x.parent===it.id)];items=items.filter(x=>!move.includes(x));
-        const nx=d.Ra.slice(t.i).find(r=>r.type==="top"&&!r.daily);
-        let at=nx?items.findIndex(x=>x.id===nx.key):-1;
-        if(at<0){const lastTop=[...d.Ra].reverse().find(r=>r.type==="top"&&!r.daily);at=lastTop?items.findIndex(x=>x.id===lastTop.key):-1;at=at<0?items.length:at+1+items.filter(x=>x.parent===lastTop.key).length}
-        items.splice(at,0,...move);order=viewKeys();commit();
+        aiPlace(key,next&&next.type==="top"?next.key:null);order=viewKeys();commit();
         if(!fromAi)toast("AIに任せ中に移しました（↶で戻せます）");
         return;
       }
@@ -2068,8 +2100,9 @@ button{-webkit-tap-highlight-color:transparent}
   },true);
   const lpEnd=()=>{clearTimeout(lpT);lp=null};
   document.addEventListener("pointerup",lpEnd);document.addEventListener("pointercancel",lpEnd);
-  sheetEl.addEventListener("keydown",e=>{
-    const h=e.target.closest(".handle");if(!h||readOnly)return;
+  // (the AI panel sits outside the sheet on a PC, so listen on the whole page)
+  document.addEventListener("keydown",e=>{
+    const h=e.target.closest&&e.target.closest("#list .handle, #aiList .handle");if(!h||readOnly)return;
     if(e.key!=="ArrowUp"&&e.key!=="ArrowDown")return;
     const sub=h.closest(".sub");
     if(sub){
@@ -2082,7 +2115,16 @@ button{-webkit-tap-highlight-color:transparent}
       const nh=document.querySelector('.sub[data-id="'+CSS.escape(id)+'"] .handle');if(nh)nh.focus();
       return;
     }
-    const t=h.closest(".task");if(!t||t.parentElement.id!=="list")return;
+    const t=h.closest(".task");if(!t)return;
+    if(t.parentElement.id==="aiList"){
+      e.preventDefault();
+      const key=t.dataset.key,ks=aiKeys(),i=ks.indexOf(key),j=e.key==="ArrowUp"?i-1:i+1;
+      if(i<0||j<0||j>=ks.length)return;
+      [ks[i],ks[j]]=[ks[j],ks[i]];aiOrder=ks;commit();
+      const nh=document.querySelector('#aiList > .task[data-key="'+CSS.escape(key)+'"] > .row .handle');if(nh)nh.focus();
+      return;
+    }
+    if(t.parentElement.id!=="list")return;
     e.preventDefault();
     const key=t.dataset.key;const all=viewKeys();const ks=all.filter(k=>!isFinished(k)&&!isSkipped(k));const i=ks.indexOf(key);const j=e.key==="ArrowUp"?i-1:i+1;
     if(i<0||j<0||j>=ks.length)return;
@@ -3194,13 +3236,13 @@ button{-webkit-tap-highlight-color:transparent}
   }
 
   function applyDoc(v){
-    items=norm(v.items);rdone={...(v.rdone||{})};order=[...(v.order||[])];carriedFrom=v.carriedFrom||carriedFrom||null;
+    items=norm(v.items);rdone={...(v.rdone||{})};order=[...(v.order||[])];aiOrder=[...order];carriedFrom=v.carriedFrom||carriedFrom||null;
   }
   function open(k){
     if(cur!==k&&week.start===mondayOf(cur))week.data[cur]={items,rdone};
     if(week.start!==mondayOf(k))week={start:mondayOf(k),data:{}};
     const cached=week.data[k];
-    cur=k;items=cached?cached.items:[];rdone=cached?{...cached.rdone}:{};order=[];carriedFrom=null;
+    cur=k;items=cached?cached.items:[];rdone=cached?{...cached.rdone}:{};order=[];aiOrder=[];carriedFrom=null;
     pendingDoc=null;loaded=!db;
     prevItems=[];subFor=null;confirmFor=null;editing=false;renderDate();render();
     if(unsub){unsub();unsub=null}
@@ -3295,7 +3337,7 @@ button{-webkit-tap-highlight-color:transparent}
   const reset=()=>{$("rvBanner").hidden=true;stopWeeks();Object.keys(otherWeeks).forEach(k=>delete otherWeeks[k]);stopFuture();clearTimeout(futureT);futureT=null;futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
   // app version (from the offline cache name) so it's easy to see the update arrived
   // the version of this page (the same number as the offline cache in sw.js)
-  const APP_VERSION="v46";
+  const APP_VERSION="v47";
   $("appVer").textContent=APP_VERSION;
   $("verCheck").onclick=async()=>{
     const m=$("verMsg");m.textContent="確認中…";
