@@ -867,7 +867,7 @@ button{-webkit-tap-highlight-color:transparent}
   // checked ones join 完了済み. They count and carry over like any task.
   const isAi=i=>!!i&&!!i.ai&&!i.parent;
   const norm=list=>(list||[]).map(i=>({id:i.id!=null&&i.id!==""?String(i.id):uid(),text:String(i.text||""),done:!!i.done,cat:normCat(i.cat),...((i.ai||i.cat==="ai")&&!i.parent?{ai:true}:{}),star:!!i.star,parent:i.parent!=null&&i.parent!==""?String(i.parent):null,...(i.moved?{moved:true}:{}),...(i.from?{from:i.from}:{}),...(i.movedTo?{movedTo:i.movedTo}:{}),...(i.movedId?{movedId:i.movedId}:{}),...(i.fromDay?{fromDay:i.fromDay}:{}),...(i.fromId?{fromId:i.fromId}:{}),...(i.memo?{memo:String(i.memo)}:{}),...(i.planId?{planId:i.planId,planDay:i.planDay||null}:{})}));
-  const normDaily=list=>(list||[]).map(d=>({id:d.id||uid(),text:String(d.text||""),cat:normCat(d.cat),star:!!d.star,since:d.since||"2000-01-01",until:d.until||null,...(d.memo?{memo:String(d.memo)}:{}),
+  const normDaily=list=>(list||[]).map(d=>({id:d.id||uid(),text:String(d.text||""),cat:normCat(d.cat),star:!!d.star,since:d.since||"2000-01-01",until:d.until||null,...(d.memo?{memo:String(d.memo)}:{}),...(d.ai?{ai:true}:{}),
     ...(Array.isArray(d.subs)&&d.subs.length?{subs:d.subs.map(x=>({id:x.id||uid(),text:String(x.text||""),star:!!x.star,...(x.until?{until:x.until}:{}),...(x.memo?{memo:String(x.memo)}:{})}))}:{})}));
   const activeDaily=k=>daily.filter(d=>d.since<=k&&(!d.until||k<d.until));
   // daily tasks shown on day k (rd = that day's rdone; "skip" hides it for that day only)
@@ -1135,9 +1135,10 @@ button{-webkit-tap-highlight-color:transparent}
   }
   let doneCollapsed=false;
   try{doneCollapsed=localStorage.getItem("todo:doneCollapsed")==="1"}catch(e){}
+  const aiDailyOpen=d=>!!d.ai&&rdone[d.id]!==true&&rdone[d.id]!=="miss"&&rdone[d.id]!=="skip";
   function viewKeys(){
     const tops=items.filter(i=>!i.parent&&!isNote(i)&&!(isAi(i)&&!i.done&&!i.moved)).map(i=>i.id);
-    const dks=activeDaily(cur).map(d=>"d:"+d.id); // includes ones skipped today, so they keep their place
+    const dks=activeDaily(cur).filter(d=>!aiDailyOpen(d)).map(d=>"d:"+d.id); // includes ones skipped today, so they keep their place
     const valid=new Set([...tops,...dks]);
     const seen=new Set();const out=[];
     order.forEach(k=>{if(valid.has(k)&&!seen.has(k)){seen.add(k);out.push(k)}});
@@ -1377,11 +1378,15 @@ button{-webkit-tap-highlight-color:transparent}
   function renderAi(){
     placeAi();
     const list=items.filter(i=>isAi(i)&&!i.moved&&!i.done);
-    $("aiCount").textContent=list.length?list.length+"件":"";
+    // daily tasks handed to AI come first (they're there every day)
+    const dl=shownDaily(cur,rdone).filter(aiDailyOpen);
+    const n=list.length+dl.length;
+    $("aiCount").textContent=n?n+"件":"";
     const folded=aiFolded&&!aiWide();
     $("aiBody").hidden=folded;$("aiFold").setAttribute("aria-expanded",String(!folded));
     const ul=$("aiList");ul.textContent="";
     // same rows as the day's list (subtasks, ★, memo, ⋯ menu, drag…)
+    dl.forEach(d=>ul.append(dailyRow(d)));
     list.forEach(it=>ul.append(itemRow(it)));
     $("aiNew").disabled=readOnly;$("aiAddBtn").disabled=readOnly;
   }
@@ -1560,6 +1565,13 @@ button{-webkit-tap-highlight-color:transparent}
     return li;
   }
 
+  // a daily task handed to AI stays in the AI panel every day until it's taken back
+  function setDailyAi(d,on,keys){
+    if(on)d.ai=true;else delete d.ai;
+    if(keys)order=keys;else if(!on){const ks=viewKeys().filter(k=>k!=="d:"+d.id);const open=ks.filter(k=>!isFinished(k)&&!isSkipped(k));ks.splice(open.length?ks.indexOf(open[open.length-1])+1:0,0,"d:"+d.id);order=ks}
+    grouped(()=>{saveDaily();commit()});
+    toast(on?"AIに任せ中に移しました（毎日タスクなので毎日ここに出ます・↶で戻せます）":"通常のタスクに戻しました（↶で戻せます）");
+  }
   function dailyRow(d){
     const on=rdone[d.id]===true,miss=rdone[d.id]==="miss";
     const li=el("li","task daily"+(on?" done":"")+(miss?" missed":""));li.dataset.key="d:"+d.id;li.dataset.cat=d.cat;
@@ -1567,6 +1579,7 @@ button{-webkit-tap-highlight-color:transparent}
     const t=textEl(d.text,d.star);
     const tags=el("span","tags");
     tags.append(catTag(d.cat,c=>{d.cat=c;saveDaily();render()}),el("span","dtag","↻ 毎日"));
+    if(d.ai)tags.append(el("span","ai-badge ai-tag","AI"));
     if(miss)tags.append(el("span","misstag","× できなかった"));
     {const mt=memoTag("d:"+d.id,!!d.memo);if(mt)tags.append(mt)}
     t.append(tags);
@@ -1586,6 +1599,7 @@ button{-webkit-tap-highlight-color:transparent}
       xBtn("✎","メモ（毎日共通）",()=>memoToggle("d:"+d.id),d.memo?"has":""),
       xBtn("休","この日は休み（数に入れない）",()=>{rdone[d.id]="skip";confirmFor=null;commit();toast("この日は休みにしました（下の「休み」から戻せます）")}),
       xBtn("⧉","コピー",()=>copyTasks([{text:d.text,cat:d.cat,star:d.star,subs:subs.map(x=>({text:x.text,star:x.star}))}],"コピーしました")),
+      xBtn("AI",d.ai?"通常のタスクに戻す":"AIに任せる（毎日）",()=>setDailyAi(d,!d.ai)),
       xBtn("解除","毎日タスクを解除",()=>{confirmFor=confirmFor===d.id?null:d.id;render()},"un")]);
     row.append(handle(),boxBtn(on,()=>{
       if(miss)delete rdone[d.id];
@@ -1924,7 +1938,7 @@ button{-webkit-tap-highlight-color:transparent}
     const dx=x-kd.x0,dy=y-kd.y0;kd.lx=x;kd.ly=y;
     if(Math.abs(dx)>3||Math.abs(dy)>3)kd.moved=true;
     // which list is under the finger: the AI panel or the day's list (a daily task stays in the day's list)
-    {const hit=document.elementFromPoint(x,y);const overAi=!kd.daily&&!kd.dsub&&!!(hit&&hit.closest&&hit.closest("#aiPanel"));
+    {const hit=document.elementFromPoint(x,y);const overAi=!kd.dsub&&!!(hit&&hit.closest&&hit.closest("#aiPanel"));
       const z=overAi?"ai":"main";
       if(z!==kd.zone){
         kd.zone=z;kd.R=z==="ai"?kd.Ra:kd.Rm;kd.t=null;
@@ -1967,6 +1981,17 @@ button{-webkit-tap-highlight-color:transparent}
       rest.splice(at,0,me);dl.subs=rest;
       grouped(()=>{saveDaily();commit()});return;
     }
+    if(d.daily){
+      const dl=daily.find(x=>"d:"+x.id===d.key);if(!dl){render();return}
+      if(toAi){if(fromAi){render();return}setDailyAi(dl,true);return}
+      // into the day's list (from the AI panel or within it): put it where it was dropped
+      const keys=viewKeys().filter(k=>k!==d.key);
+      let at=next?keys.indexOf(next.key):-1;
+      if(at<0){const lastTop=[...d.R].reverse().find(r=>r.type==="top");at=lastTop?keys.indexOf(lastTop.key)+1:0}
+      keys.splice(at,0,d.key);
+      if(fromAi){setDailyAi(dl,false,keys);return}
+      order=keys;commit();return;
+    }
     if(t.level==="top"){
       const key=d.sub?d.id:d.key;
       if(d.sub){const it=items.find(x=>x.id===d.id);if(!it){render();return}
@@ -1977,8 +2002,9 @@ button{-webkit-tap-highlight-color:transparent}
         const it=items.find(x=>x.id===key);if(!it){render();return}
         it.ai=true;it.done=false;
         const move=[it,...items.filter(x=>x.parent===it.id)];items=items.filter(x=>!move.includes(x));
-        let at=next?items.findIndex(x=>x.id===next.key):-1;
-        if(at<0){const lastTop=[...d.Ra].reverse().find(r=>r.type==="top");at=lastTop?items.findIndex(x=>x.id===lastTop.key):-1;at=at<0?items.length:at+1+items.filter(x=>x.parent===lastTop.key).length}
+        const nx=d.Ra.slice(t.i).find(r=>r.type==="top"&&!r.daily);
+        let at=nx?items.findIndex(x=>x.id===nx.key):-1;
+        if(at<0){const lastTop=[...d.Ra].reverse().find(r=>r.type==="top"&&!r.daily);at=lastTop?items.findIndex(x=>x.id===lastTop.key):-1;at=at<0?items.length:at+1+items.filter(x=>x.parent===lastTop.key).length}
         items.splice(at,0,...move);order=viewKeys();commit();
         if(!fromAi)toast("AIに任せ中に移しました（↶で戻せます）");
         return;
@@ -3269,7 +3295,7 @@ button{-webkit-tap-highlight-color:transparent}
   const reset=()=>{$("rvBanner").hidden=true;stopWeeks();Object.keys(otherWeeks).forEach(k=>delete otherWeeks[k]);stopFuture();clearTimeout(futureT);futureT=null;futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
   // app version (from the offline cache name) so it's easy to see the update arrived
   // the version of this page (the same number as the offline cache in sw.js)
-  const APP_VERSION="v45";
+  const APP_VERSION="v46";
   $("appVer").textContent=APP_VERSION;
   $("verCheck").onclick=async()=>{
     const m=$("verMsg");m.textContent="確認中…";
