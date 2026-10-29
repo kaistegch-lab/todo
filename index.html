@@ -1711,8 +1711,8 @@ button{-webkit-tap-highlight-color:transparent}
       actBtn("⇢","先の日に移す（今日はここまでで達成）",()=>{shiftFor=shiftFor==="d:"+d.id?null:"d:"+d.id;render()},shiftFor==="d:"+d.id?"on":""),
       // × = this day it wasn't done (it stays and counts as not done); press again to take it back
       actBtn("×",miss?"「できなかった」を取り消す":"この日はできなかった",()=>{
-        if(miss)delete rdone[d.id];else{rdone[d.id]="miss";subs.forEach(x=>{delete rdone["s:"+x.id];if(x.until===cur)delete x.until})}
-        confirmFor=null;grouped(()=>{saveDaily();commit()});toast(miss?"「できなかった」を取り消しました":"この日はできなかった、にしました（↶で戻せます）")},miss?"on":"")],[
+        if(miss)delete rdone[d.id];else rdone[d.id]="miss";
+        confirmFor=null;grouped(()=>{saveDaily();commit()});toast(miss?"「できなかった」を取り消しました":(subs.some(x=>rdone["s:"+x.id]===1)?"この日はできなかった、にしました。チェックした小タスクはできた分として数え、明日からは出ません（↶で戻せます）":"この日はできなかった、にしました（↶で戻せます）"))},miss?"on":"")],[
       xBtn(d.star?"★":"☆",d.star?"重要マークを外す":"重要マーク",()=>{d.star=!d.star;saveDaily();render()},d.star?"on":""),
       xBtn("✎","メモ（毎日共通）",()=>memoToggle("d:"+d.id),d.memo?"has":""),
       xBtn("休","この日は休み（数に入れない）",()=>{rdone[d.id]="skip";confirmFor=null;commit();toast("この日は休みにしました（下の「休み」から戻せます）")}),
@@ -1853,13 +1853,13 @@ button{-webkit-tap-highlight-color:transparent}
     renderAi();
     TASK_CATS.forEach(c=>{
       const inC=counted.filter(x=>x.cat===c);if(!inC.length)return;
-      const dn=inC.filter(x=>x.done).length;
+      const dn=doneSum(inC);
       const ch=el("span","chip");ch.dataset.cat=c;
       const bar=el("i");const fill=el("b");fill.style.width=(dn/inC.length*100)+"%";bar.append(fill);
-      ch.append(el("span",null,CAT[c]+" "+dn+"/"+inC.length),bar);chips.append(ch);
+      ch.append(el("span",null,CAT[c]+" "+fmtN(dn)+"/"+inC.length),bar);chips.append(ch);
     });
     chips.hidden=!chips.children.length;
-    const all=counted.length,doneAll=counted.filter(x=>x.done).length;
+    const all=counted.length,doneAll=doneSum(counted);
     const p=all?doneAll/all:0;
     $("pct").textContent=all?Math.round(p*100)+"%":"—";
     $("ringFg").setAttribute("stroke-dashoffset",String(169.6*(1-p)));
@@ -2227,10 +2227,19 @@ button{-webkit-tap-highlight-color:transparent}
   let week={start:null,data:{}};
   // the day's % : a task carried to another day still counts on this day as not done,
   // and a carried-in task counts on the day it arrived (again as not done if it's carried on)
+  // a daily task that isn't finished but has some subtasks checked counts that part as done
+  function dailyPart(d,rd,k){
+    rd=rd||{};if(dDoneV(rd[d.id]))return 1;
+    const subs=(d.subs||[]).filter(x=>(!x.until||k<=x.until)&&(!x.from||k>=x.from));
+    if(!subs.length)return 0;
+    return subs.filter(x=>rd["s:"+x.id]===1).length/subs.length;
+  }
+  const doneSum=a=>a.reduce((n,x)=>n+(x.done===true?1:typeof x.done==="number"?x.done:0),0);
+  const fmtN=n=>Math.abs(n-Math.round(n))<1e-9?String(Math.round(n)):n.toFixed(1);
   function dayRateItems(k){
     const doc=k===cur?{items,rdone}:(week.data[k]||emptyDoc());
     return doc.items.filter(x=>!isNote(x)).map(x=>({cat:x.cat,done:!!x.done&&!(x.moved&&!x.parent&&!x.done)}))
-      .concat(shownDaily(k,doc.rdone).map(d=>({cat:d.cat,done:dDoneV((doc.rdone||{})[d.id])})));
+      .concat(shownDaily(k,doc.rdone).map(d=>({cat:d.cat,done:dailyPart(d,doc.rdone,k)})));
   }
   function dayItems(k){
     const doc=k===cur?{items,rdone}:(week.data[k]||emptyDoc());
@@ -3429,7 +3438,7 @@ button{-webkit-tap-highlight-color:transparent}
   const reset=()=>{$("rvBanner").hidden=true;stopWeeks();Object.keys(otherWeeks).forEach(k=>delete otherWeeks[k]);stopFuture();clearTimeout(futureT);futureT=null;futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
   // app version (from the offline cache name) so it's easy to see the update arrived
   // the version of this page (the same number as the offline cache in sw.js)
-  const APP_VERSION="v50";
+  const APP_VERSION="v51";
   $("appVer").textContent=APP_VERSION;
   $("verCheck").onclick=async()=>{
     const m=$("verMsg");m.textContent="確認中…";
