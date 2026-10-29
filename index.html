@@ -41,7 +41,7 @@
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
 .wrap{max-width:600px;margin:0 auto}
-.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:6px;overflow:hidden;overflow:clip}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 [data-cat="main"]{--c:var(--main);--c-soft:var(--main-soft)}
@@ -308,7 +308,7 @@ button{font:inherit;color:inherit}
 .ai-m{flex-basis:100%;padding-left:28px;font-size:12px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere;cursor:text}
 .ai-item .ai-memo{flex-basis:100%;padding:2px 0 0 28px}
 .ai-item .ai-shift{flex-basis:100%;padding:2px 0 0 28px}
-.ai-item input.edit{flex:1}
+.ai-item .edit{flex:1}
 .aipanel.drop{outline:2px solid var(--sat);outline-offset:-2px;background:color-mix(in srgb,var(--sat) 6%,var(--sheet))}
 .ai-item .ai-grip{flex:none;width:16px;align-self:center;opacity:.45}
 .ai-item .tags{display:inline-flex;gap:4px;margin-left:6px;vertical-align:1px}
@@ -335,7 +335,7 @@ button{font:inherit;color:inherit}
 .note-acts button{border:0;background:none;color:var(--muted);font-size:15px;cursor:pointer;border-radius:4px;padding:0 6px;min-height:26px}
 .note-acts .note-ok{color:var(--c,var(--post));font-weight:900;border:1px solid var(--c,var(--post));background:var(--sheet)}
 .note-card .shiftbar{flex-basis:100%;order:4;padding:4px 0 0}
-.note-card input.edit{flex:1}
+.note-card .edit{flex:1}
 .note-m{cursor:text}
 .misstag{font-size:11px;font-weight:700;color:var(--main);border:1px solid var(--main);border-radius:10px;padding:0 6px;white-space:nowrap}
 .task.daily.missed>.row>.txt{color:var(--muted)}
@@ -499,13 +499,15 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .sub .handle{width:18px;align-self:stretch;opacity:.45}
 .sub.dragging{box-shadow:0 4px 12px rgba(0,0,0,.18);z-index:5;border-radius:4px}
 .newtask .box{border-style:dashed;opacity:.6}
-.newtask input.edit{flex:1}
+.newtask .edit{flex:1}
 .sub::before{content:"";position:absolute;left:-12px;top:0;bottom:50%;width:8px;border-left:1.5px solid var(--line);border-bottom:1.5px solid var(--line);border-bottom-left-radius:4px}
 .sub .box{width:18px;height:18px;border-width:1.5px;border-radius:4px}
 .sub .box svg{width:11px;height:11px}
 .sub .txt{font-size:14px;font-weight:400}
 .sub .acts button{font-size:13px}
-input.edit,.subadd input{flex:1;min-width:0;font:inherit;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:3px 8px}
+.edit,.subadd textarea{flex:1;min-width:0;font:inherit;color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:4px;padding:3px 8px}
+@media (max-width:560px){.editing>.acts,.editing>.more,.editing>.tags{display:none!important}}
+textarea.edit,.subadd textarea{display:block;resize:none;overflow:hidden;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;box-sizing:border-box;width:100%;margin:0}
 .subadd{display:flex;gap:6px;padding:4px 0}
 .task.moved>.row>.txt,.task.moved>.row>.box,.task.moved>.subs{opacity:.5}
 .task.moved>.row>.acts{opacity:1}
@@ -629,7 +631,7 @@ button{-webkit-tap-highlight-color:transparent}
   .week{padding:10px 14px 12px;gap:8px}
 }
 /* touch: bigger targets, no zoom on inputs, add bar stays reachable */
-.addrow input,input.edit,.subadd input{font-size:16px}
+.addrow input,.edit,.subadd textarea{font-size:16px}
 @media (hover:none),(max-width:520px){
   .acts{opacity:.75}
   .acts button{min-width:32px;min-height:32px;font-size:16px}
@@ -1129,6 +1131,16 @@ button{-webkit-tap-highlight-color:transparent}
   const atStart=(e,inp)=>e.key==="Backspace"&&!e.isComposing&&e.keyCode!==229&&inp.selectionStart===0&&inp.selectionEnd===0;
   // Enter that is not the kana-kanji conversion confirm (Safari reports that one as keyCode 229)
   const isEnter=e=>e.key==="Enter"&&!e.isComposing&&e.keyCode!==229;
+  // one-line text box that wraps long text onto more lines (instead of scrolling sideways,
+  // which on a phone pushed the whole list off the left edge). Enter still means "done".
+  function lineBox(cls){
+    const t=el("textarea",cls||null);t.rows=1;t.setAttribute("enterkeyhint","done");t.autocomplete="off";t.spellcheck=false;
+    const fit=()=>{t.style.height="auto";t.style.height=t.scrollHeight+"px"};
+    t.addEventListener("input",()=>{if(/[\r\n]/.test(t.value)){const p=t.selectionStart;t.value=t.value.replace(/[\r\n]+/g," ");try{t.setSelectionRange(p,p)}catch(e){}}fit()});
+    t.addEventListener("focus",()=>requestAnimationFrame(fit));
+    t.fit=fit;requestAnimationFrame(fit);
+    return t;
+  }
 
   // Order: keys are item ids, or "d:<id>" for daily tasks. Anything not yet placed: daily tasks first, then items in the order they were added.
   // finished = checked (or a daily task checked today), or already moved to the next day
@@ -1213,8 +1225,8 @@ button{-webkit-tap-highlight-color:transparent}
 
   function editText(holder,txtEl,get,set,onEnter,onMergeUp,caret,onPasteLines){
     if(readOnly)return;editing=true;
-    const inp=el("input","edit");inp.value=get();inp.maxLength=400;
-    holder.replaceChild(inp,txtEl);inp.focus();
+    const inp=lineBox("edit");inp.value=get();inp.maxLength=400;
+    holder.replaceChild(inp,txtEl);holder.classList.add("editing");inp.fit();inp.focus();
     if(caret!=null)inp.setSelectionRange(caret,caret);
     let fin=false;
     const finish=(ok,enter,blur)=>{if(fin)return;fin=true;const v=inp.value.trim();
@@ -1223,7 +1235,7 @@ button{-webkit-tap-highlight-color:transparent}
       if(blur){if(changed)set(v);softCommit(changed);return}
       if(changed){set(v);commit()}else{editing=!!subFor||!!dsubFor||!!newAfter;render()}};
     inp.onkeydown=e=>{
-      if(isEnter(e))finish(true,true);
+      if(isEnter(e)){e.preventDefault();finish(true,true)}
       else if(e.key==="Escape")finish(false);
       else if(onMergeUp&&atStart(e,inp)){e.preventDefault();if(fin)return;fin=true;onMergeUp(inp.value.trim())}};
     inp.onblur=()=>finish(true,false,true);
@@ -1578,7 +1590,7 @@ button{-webkit-tap-highlight-color:transparent}
       const subs=el("ul","subs");
       // input row for a new subtask; Enter adds it and opens the next empty row right below
       const addRow=after=>{
-        const f=el("li","subadd");const inp=el("input");inp.placeholder="小タスクを入力してEnter（空でEnterで終了）";inp.maxLength=200;inp.id="subInput";
+        const f=el("li","subadd");const inp=lineBox();inp.placeholder="小タスクを入力してEnter（空でEnterで終了）";inp.maxLength=200;inp.id="subInput";
         f.append(inp);queueMicrotask(()=>inp.focus());
         let fin=false;
         const done=(ok,enter,blur)=>{if(fin)return;fin=true;const v=inp.value.trim();
@@ -1722,7 +1734,7 @@ button{-webkit-tap-highlight-color:transparent}
       const ul=el("ul","subs");
       const syncParent=()=>{if(subs.length&&subs.every(sdone))rdone[d.id]=true;else if(rdone[d.id]===true)delete rdone[d.id]};
       const addRow=after=>{
-        const f=el("li","subadd");const inp=el("input");inp.placeholder="小タスクを入力してEnter（空でEnterで終了）";inp.maxLength=200;inp.id="subInput";
+        const f=el("li","subadd");const inp=lineBox();inp.placeholder="小タスクを入力してEnter（空でEnterで終了）";inp.maxLength=200;inp.id="subInput";
         f.append(inp);queueMicrotask(()=>inp.focus());
         let fin=false;
         const done=(ok,enter,blur)=>{if(fin)return;fin=true;const v=inp.value.trim();
@@ -1771,7 +1783,7 @@ button{-webkit-tap-highlight-color:transparent}
     const anchorCat=anchor.startsWith("d:")?((daily.find(d=>"d:"+d.id===anchor)||{}).cat||addCat):((items.find(i=>i.id===anchor)||{}).cat||addCat);
     const li=el("li","task newtask");li.dataset.cat=anchorCat;
     const row=el("div","row");const sp=el("span","handle");sp.style.visibility="hidden";
-    const bx=el("span","box");const inp=el("input","edit");inp.id="newTaskInline";inp.maxLength=400;
+    const bx=el("span","box");const inp=lineBox("edit");inp.id="newTaskInline";inp.maxLength=400;
     inp.placeholder="新しいタスク（空でEnterで終了）";
     row.append(sp,bx,inp);li.append(row);
     queueMicrotask(()=>inp.focus());
@@ -2804,7 +2816,7 @@ button{-webkit-tap-highlight-color:transparent}
     t.title="タップで書き換え";t.style.cursor="text";
     t.onclick=()=>{
       if(readOnly)return;
-      const inp=el("input","edit");inp.value=s.text;inp.maxLength=200;row.replaceChild(inp,t);inp.focus();
+      const inp=lineBox("edit");inp.value=s.text;inp.maxLength=200;row.replaceChild(inp,t);inp.fit();inp.focus();
       let fin=false;
       const done=ok=>{if(fin)return;fin=true;const v=inp.value.trim();
         if(!ok||!v||v===s.text){renderPlan();return}
@@ -3417,7 +3429,7 @@ button{-webkit-tap-highlight-color:transparent}
   const reset=()=>{$("rvBanner").hidden=true;stopWeeks();Object.keys(otherWeeks).forEach(k=>delete otherWeeks[k]);stopFuture();clearTimeout(futureT);futureT=null;futureLoaded=false;Object.keys(weekInfo).forEach(k=>delete weekInfo[k]);allDocs=null;allStats=null;autoChecked={};week={start:null,data:{}};readOnly=false;undoStack=[];redoStack=[];baseSnap=null;pendingDoc=null;pendingDaily=null;histButtons()};
   // app version (from the offline cache name) so it's easy to see the update arrived
   // the version of this page (the same number as the offline cache in sw.js)
-  const APP_VERSION="v49";
+  const APP_VERSION="v50";
   $("appVer").textContent=APP_VERSION;
   $("verCheck").onclick=async()=>{
     const m=$("verMsg");m.textContent="確認中…";
